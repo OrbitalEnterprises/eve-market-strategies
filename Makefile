@@ -31,7 +31,7 @@ epub: markdown
 	pandoc -s $(filename).md --normalize --smart -t epub -o $(filename).epub \
 		--epub-metadata $(include_dir)/metadata.xml \
 		--epub-stylesheet epub.css \
-		--epub-cover-image img/cover.jpg \
+		--epub-cover-image img/logo__lettering_background_256_256.png \
 		--title-prefix $(title) \
 		--normalize \
 		--smart \

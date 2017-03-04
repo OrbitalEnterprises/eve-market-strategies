@@ -10,11 +10,11 @@ This book attempts to be a systematic discussion of data driven analysis and tra
 
 The remainder of the book is organized as follows:
 
-* [Chapter 1 - Preliminaries](01-preliminaries.md)
+* [Chapter 1 - Preliminaries](#preliminaries)
   This chapters describes key features of the EVE markets and introduces tools and data sources used to describe trading strategies.  This chapter concludes with several examples introducing the tools.
-* [Chapter 2 - Arbitrage](02-arbitrage.md)
+* [Chapter 2 - Arbitrage](#arbitrage)
   This chapter describes arbitrage trading which is the process of discovering undervalued market items which can be purchased and turned into profit very quickly.
-* [Chapter 3 - Market Making](03-market-making.md)
+* [Chapter 3 - Market Making](#market-making)
   This chapter describes market making strategies, better known as station trading, which profits from market participants willing to "cross the spread" instead of waiting for better prices through limit orders.
 
 ## Change Log
