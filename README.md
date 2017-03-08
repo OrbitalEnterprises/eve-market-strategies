@@ -2,7 +2,7 @@
 
 This is an open-source book which describes the development of market trading strategies in [EVE Online](https://www.eveonline.com/), a massively-multiplayer online game.  We're releasing this book under the [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License](http://creativecommons.org/licenses/by-nc-sa/4.0/), which roughly means you can mangle it all you want and share the result as long as you attribute the original work and you don't charge anything.  A copy of this license is included in the [LICENSE-BOOK](LICENSE-BOOK) file.  The source code available in this repository is released under the [MIT License](https://opensource.org/licenses/MIT) a copy of which is included in the [LICENSE-CODE](LICENSE-CODE) file.  We're not planning to ever charge a fee for this work, but if you'd like to show your appreciation you can donate in game to "Salacious Necrosis".
 
-The structure of this repository was copied from the [Backbone Fundamentals](https://github.com/addyosmani/backbone-fundamentals) open source book.
+The structure of this repository was copied from the [Backbone Fundamentals](https://github.com/addyosmani/backbone-fundamentals) open source book.  
 
 ## Who Should Read This Book?
 
@@ -32,3 +32,7 @@ We've set up a simple make file to build the book which should work on most vari
 * An OS appropriate version of [TeX](https://en.wikipedia.org/wiki/TeX) which includes pdflatex \(included in most modern distributions\).
 
 Use the command `make` or `make -f Makefile` to build the book.  The build will output versions of the book in Markdown, HTML, ePub, Mobi \(Kindle\), PDF and RTF.  
+
+## Legal
+
+EVE Online is Copyright (c) CCP Games 1997-2017.  Use of the third party APIs provided by CCP, and the data exposed by these APIs, is subject to the [DEVELOPER LICENSE AGREEMENT](https://developers.eveonline.com/resource/license-agreement). 
