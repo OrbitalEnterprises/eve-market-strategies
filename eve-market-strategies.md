@@ -374,7 +374,7 @@ We finish this chapter with code examples illustrating basic techniques we use i
 
 In this example, we're going to create a simple graph of market history \(i.e. daily price snapshots\) for a year of data.  We'll arbitrarily choose to graph Tritanium in Forge.  When we're done, we'll have a graph like the following:
 
-![Tritanium price over a year in The Forge](img/ex1_graph.PNG)
+![Tritanium price over a year in The Forge](img/ex1_graph.png)
 
 We'll use this simple example to introduce basic operations we'll use throughout this book.  If you want to follow along, you can download the [Jupyter notebook](code/book/ex1.ipynb) for this example.
 
