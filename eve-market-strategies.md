@@ -342,12 +342,66 @@ The result includes all types with names that contain the string "trit" \(case i
 
 ### Jupyter Notebook
 
-* Link to documentation for getting setup
-* Introduce Bravado Swagger client
+Our method for developing trading strategies could loosely be called "data science", meaning we use scientific methods and tools for extracting knowledge or insight from raw data.  Our main tool is the Python programming language around which a rich set of libraries and methodologies have been developed to support data science.  Strategy development is an iterative process, and during the early stages of development it is useful to have tools which are interactive in nature.  The [Jupyter Project](http://jupyter.org/) and its predecessor [iPython](https://ipython.org/) are arguably the most popular interactive tools for data science with Python[^7].  When combined with [NumPy](http://www.numpy.org/) and [Pandas](http://pandas.pydata.org/), the Jupyter platform provides a very capable interactive data science environment.  We use this environment almost exclusively in the examples we describe in this book.  It is not mandatory, but you'll get much more out of this book if you install Jupyter yourself and try out some of our examples.
+
+The easiest way to get started with Jupyter is to install [Anaconda](https://www.continuum.io/downloads) which is available for Windows, Mac and Linux.  Anaconda is a convenient packaging of several open source data science tools for Python (also R and Scala), and also includes Jupyter.  Once you've installed Anaconda, you can get started with Jupyter by following the [quickstart](https://jupyter.readthedocs.io/en/latest/running.html) instructions \(essentially just `jupyter notebook` in a shell and you're ready\).  If you're reasonably familiar with Python you can crash ahead and click "New -> Python 3" from your local Jupyter instance to create your first notebook.  If you'd like a more comprehensive introduction, we like [this tutorial](https://www.datacamp.com/community/tutorials/tutorial-jupyter-notebook).
+
+> Python 2 or Python 3?
+>
+> If you're familiar with Python, you'll know that Python 3 is the recommended environment for new code but, unfortunately, Python 3 broke compatibility with Python 2 in many areas.  Moreover, the large quantity of code still written in Python 2 \(at time of writing\) often leaves developers with a difficult decision as to which environment to use.  Fortunately, all of the data science libraries we need for this book have been ported to Python 3.  So we've made the decision to use Python 3 exclusively in this book.  If you *must* use Python 2, you'll find that most of our examples can be back-ported without difficulty.  However, if you don't have a strong reason to use Python 2, we recommend you stick with Python 3.
+
+The main interface to Jupyter is the notebook, which is a language *kernel* combined with code, text, graphs, etc.  A language kernel is a backend capable of executing code in a given language.  All of the examples we present in this section use the Python 3 language kernel, but Jupyter allows you to install other kernels as well \(e.g. Python 2, R, Scala, Java, etc.\).  The code within a notebook is executed by the kernel with output displayed in the notebook.  Text, graphic and other non-code artifacts are handled by the Jupyter environment itself and provide a way to document your work, or develop instructional material \(as we're doing in this book\).  Notebooks naturally keep a history of your actions \(numbered code or text sections\) and allow you to edit and re-run previous bits of code.  That is, to iterate on your experiments.  Finally, notebooks automatically checkpoint \(i.e. regularly save your progress\) and can be saved and restored at a later time.  Make sure you run your notebook on a reasonably powerful machine, however, as deeper data analysis will use up significant memory.
+
+The environment installed from Anaconda has most of the code we'll need, but from time to time you may need to install other code.  In this book, we do this in two cases:
+
+1. We'll install a few libraries that typically aren't included in Anaconda.  In fact, we'll do this almost immediately in the first example below so that we can use the [Bravado](https://github.com/Yelp/bravado) library for interacting with Swagger-annotated web services.
+
+2. As we work through the examples, we'll begin to develop a set of useful libraries we'll want to use in later examples.  We *could* copy this code to each of our notebooks but that would start to clutter our examples.  Instead, we'll show you how to install these libraries in the default path used by the Jupyter kernel.
+
+We'll provide instructions for installing missing libraries in the examples where they are needed.  Including your own code into Jupyter is a matter of ensuring the path to your packages is included in the "python path" used by Jupyter.  If you're already familiar with Python, you're free to choose your favorite way of adding your local path.  If you're less familiar with Python, we suggest adding your packages to your local `.ipython` folder which is created the first time you start a Python kernel in Jupyter.  This directory will be created in the home directory of the user which started the kernel.
+
+> Python Virtual Environments
+>
+> Notebooks provide a basic level of code isolation, but all notebooks share the set of packages installed in the Python kernel \(as well as any default modifications made to the Python path\).  This means that any new packages you install \(such as those we provide instructions for in some of the examples\) will affect all notebooks.  This can cause version problems when two different notebooks rely on two different versions of the same package.  For this reason, Python professionals try to avoid installing project specific packages in the "global" Python kernel.  Instead, the pros create one or more "virtual environments" which isolate the customizations needed for specific work.  This lets you divide your experiments so that work in one experiment doesn't accidentally break the work you've already done in another experiment.
+>
+> Virtual environments are an advanced topic which we won't try to cover here.  Interested parties should check out the [virtualenv](https://pypi.python.org/pypi/virtualenv) package or read up on using [Conda](https://conda.io/docs/) to set up isolated development environments.  In our experience, it is easier to use `conda` to create separate Jupyter environments, but instructions exist for using `virtualenv` to do this as well.  We document our Conda setup at the end of this chapter for the curious.
 
 ## Simple Strategies and Calculations
 
+We finish this chapter with code examples illustrating basic techniques we use in the remainder of the book.  If you'd like to follow along, you'll need to install Jupyter as described in the previous section.  As always, you can find our code as well as Jupyter notebooks in the `code` directory in our [GitHub project](https://github.com/OrbitalEnterprises/eve-market-strategies).
+
 ### Example 1 - Data Extraction: Make a Graph of Market History
+
+In this example, we're going to create a simple graph of market history \(i.e. daily price snapshots\) for a year of data.  We'll arbitrarily choose to graph Tritanium in Forge.  When we're done, we'll have a graph like the following:
+
+![Tritanium price over a year in The Forge](img/ex1_graph.PNG)
+
+We'll use this simple example to introduce basic operations we'll use throughout this book.  If you want to follow along, you can download the [Jupyter notebook](code/book/ex1.ipynb) for this example.
+
+We'll create our graph as follows:
+
+1. We'll use the Static Data Export \(SDE\) to look up the type and region ID, respectively, for "Tritanium" and "The Forge".
+2. Next, we'll construct a date range for a year of data from the current date.
+3. Then, we'll use the market data service to download daily market snapshots for our date range, and store the data in a Pandas dataframe.
+4. Finally, we'll graph average price from the data frame.
+
+We'll expand on a few variants of these steps at the end of the example to set up for later examples.  But before we can do any of this, we need to install [Bravado](https://github.com/Yelp/bravado) in order to access Swagger-annotated web services.  You can install bravado as follows \(do this before you start Jupyter\):
+
+```bash
+$ pip install bravado
+```
+
+> Installing Bravado on Windows
+>
+> On Windows, you may see an error message about missing C++ tools when building the "twisted" library.  You can get these tools for free from Microsoft at [this link](http://landinghub.visualstudio.com/visual-cpp-build-tools).  Once these tools are installed, you should be able to complete the install of bravado.
+
+* Show how to lookup TypeID and RegionID from the SDE
+* Show how to extract market history from the Market Collection web service
+* Show how to make a simple matplot graph from the history data
+* Show how to extract the same data directly from the history download
+* Show to script to download historic data
+* Show how to extract from history downloads stored locally
+* Show how to install [code/evekit]() from [Github project]() into `.ipython`.
 
 ### Example 2 - Book Data: Compute Average Daily Spread
 
@@ -359,57 +413,49 @@ The result includes all types with names that contain the string "trit" \(case i
 
 ### Example 6 - A Simple Strategy: Cross Region Trading
 
+### Setting up Isolated Environments with Conda
 
+If you installed Jupyter using [Anaconda]() then you already have `conda` which can be used to create isolated environments for experiments.  We use `conda` to first create a minimal base environment with Jupyter and related libraries.  We then clone this environment as need for our experiments.  Our base environment is created as follows \(this is Windows syntax, adjust as appropriate for your environment\):
+
+```bash
+$ conda create -n book_base
+$ activate book_base
+(book_base) $ conda install jupyter
+(book_base) $ conda install pandas
+(book_base) $ conda install matplotlib
+```
+
+You can then deactivate this environment and clone it later for each isolated environment you'd like to create.  We create our isolated environments as follows:
+
+```bash
+$ mkdir exp_1
+$ cd exp_1
+$ mkdir .ipython
+$ mkdir .jupyter
+$ cat > setup.bat
+@REM execute this before you start jupyter in this environment
+@SET JUPYTER_CONFIG_DIR=your_path/exp_1/.jupyter
+@SET IPYTHONDIR=your_path/exp_1/.ipython
+$ conda create -n book_exp_1 --clone book_base
+```
+
+You can then activate your new environment and start jupyter as follows:
+
+```bash
+$ activate book_exp_1
+(book_exp_1) $ setup.bat
+(book_exp_1) $ jupyter notebook
+```
+
+The environment settings allow you to add custom configuration for Jupyter or Ipython in your experiment directory.  For example, any library code you are developing can be added in the local `.ipython` directory to automatically be included in the path of your kernels.
 
 [^2]: Moreover, it is not uncommon for buy orders to be placed from non-public player-owned structures.  This is mostly a nuisance for processing market data.
 [^3]: Some financial markets have "dark pools" which are off exchange markets, usually reserved for specific types of transactions.  Dark pools do not always guarantee anonymity.
 [^4]: Arbitrage and market-making strategies are well suited to automated trading (i.e. "botting").  However, this is explicitly forbidden by the EULA.
 [^5]: CCP has an interesting view on the legality of these efforts.  The End User License Agreement (EULA) explicitly forbids cache scraping.  However, CCP has consistently said that they enforce the EULA at their discretion and, practically speaking, they have tolerated scraping market data for many years.  More recently, CCP has said many of their new third party APIs are intended to eliminate the need for cache scraping.  The new market data APIs are a direct result of such efforts.
 [^6]: The size of the window for this average, and whether the average is over all regions is not documented anywhere.
+[^7]: Whereas iPython mainly supports the Python language, the Jupyter project is more inclusive and intends to provide support for numerous "data science" languages including [R](https://www.r-project.org/) and [Julia](http://julialang.org/).  At time of writing, however, Python is still the best supported language in Jupyter.
 
 # Arbitrage
 
 # Market Making
-
-# Simulating Trading Strategies \(Planned\)
-
-* Types of testing
-  * Backtesting
-    * In vs. out of sample data, overfit, etc.
-  * Paper trading
-* Decide what you're going to measure
-  * Total profit, Return, Volatility \(Risk\), etc.
-
-## Using Zipline to Backtest EVE Trading Strategies
-
-* Quick intro to Zipline
-  * Making an EVE market look like a Zipline market
-* EVE data bundle
-  * Region market summaries
-  * Each region is an "exchange"
-* Other EVE data
-  * Region book data
-    * Download as part of EVE data bundle
-    * Accessible through EVE library
-  * Region price data
-    * Download as part of EVE data bundle
-    * Accessible through EVE libray
-  * SDE data
-    * Doesn't work if you go too far back, unless you have other sources 
-      because sometimes things in the SDE change with each release
-  * Order matching library
-    * Limited data for citadels
-
-### Example - Evaluating the Cross Region Trading Strategy in Zipline
-
-* Implement liquidity filter
-* Implement region trade finder
-* Submit "buy" orders
-* Simulate transportation delay after buy orders
-  * Simulating buy orders at other stations
-* Submit "sell" orders
-* Show expected profit
-
-# Risk
-
-# Trend Trading
