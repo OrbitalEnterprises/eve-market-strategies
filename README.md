@@ -10,7 +10,7 @@ This book attempts to be a systematic discussion of data driven analysis and tra
 
 ## Downloads
 
-The latest fully assembled Markdown version of the book will always be available in the repository [here](eve-market-strategies.md).  Other versions of the book will be available in our public Google Drive folder [here](https://drive.google.com/open?id=0B6lvkwGmS7a2NWkyc21zbHVmbEE).  Cloning and building the repository is always the best way to get the most recent version of the book.
+The latest fully assembled Markdown version of the book will always be available in the repository [here](eve-market-strategies.md).  You can also view the latest version in web page format [here](https://rawgit.com/OrbitalEnterprises/eve-market-strategies/master/index.html).  Other versions of the book will be available in our public Google Drive folder [here](https://drive.google.com/open?id=0B6lvkwGmS7a2NWkyc21zbHVmbEE).  Cloning and building the repository is always the best way to get the most recent version of the book.
 
 ## Contributing
 
@@ -35,4 +35,4 @@ Use the command `make` or `make -f Makefile` to build the book.  The build will 
 
 ## Legal
 
-EVE Online is Copyright (c) CCP Games 1997-2017.  Use of the third party APIs provided by CCP, and the data exposed by these APIs, is subject to the [DEVELOPER LICENSE AGREEMENT](https://developers.eveonline.com/resource/license-agreement). 
+EVE Online is Copyright (c) CCP Games 1997-2017.  Use of the third party APIs provided by CCP, and the data exposed by these APIs, is subject to the [DEVELOPER LICENSE AGREEMENT](https://developers.eveonline.com/resource/license-agreement).
