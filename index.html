@@ -191,7 +191,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <p>The ESI uses the same OAuth based authorization scheme as CREST. At time of writing, CCP has declared ESI as the API of the future and has deprecate both CREST and the XML API. However, CCP has stated they will keep the XML API and CREST active at least until ESI reaches feature parity. Unless otherwise indicated, examples in this book which require direct access to live market data will use the ESI endpoints.</p>
 <p>The remainder of this section describes the main market data ESI endpoints in more detail.</p>
 <h3 id="market-history-endpoints">Market History Endpoints</h3>
-<p>The market history endpoint returns a daily price summary for a given asset type in a given region. In financial modeling terms, this data is similar to daily stock market data. The market history endpoint returns all data from the start of the previous calendar year.</p>
+<p>The market history endpoint returns a daily price summary for a given asset type in a given region. In financial modeling terms, this data is similar to daily stock market data. The market history endpoint returns all data from the start of the previous calendar year. Note that data for the current day is typically not available until approximately 0800 UTC the following day.</p>
 <p>We’ll use market history to demonstrate the use of the ESI. ESI endpoints follow REST conventions and can always be accessed using the HTTP protocol. For example, the following URL will return market history for Tritanium (type 34) in Forge (region 10000002):</p>
 <pre><code>https://esi.tech.ccp.is/latest/markets/10000002/history/?datasource=tranquility&amp;type_id=34</code></pre>
 <p>The result of this request will be a JSON formatted array of values of the form:</p>
@@ -293,7 +293,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <h3 id="market-data-tools">Market Data Tools</h3>
 <p>Orbital Enterprises hosts a <a href="https://evekit.orbital.enterprises//#/md/main">market collection service</a> which provides historic and live access to book data and daily market snapshots (the “Order Book Data” and “Market History” endpoints described above, respectively). The service exposes a Swagger annotated API which can be accessed <a href="https://evekit.orbital.enterprises//#/md/ui">interactively</a>. Historic data is uploaded nightly to <a href="https://storage.googleapis.com/evekit_md">Google Storage</a> organized by date. Although the entire history maintained by the site is accessible through the service API, for research and back testing purposes it is usually more convenient to download the data in bulk from the Google Storage site.</p>
 <blockquote>
-<p>About Swagger</p>
+<h3 id="about-swagger">About Swagger</h3>
 <p><a href="http://swagger.io/">Swagger</a> is a configuration language for describing REST-based web services. A Swagger-annotated web site will normally provide a <code>swagger.json</code> file which defines the services provided by the site. For example, CCP’s EVE Swagger Interface provides <a href="https://esi.tech.ccp.is/latest/swagger.json?datasource=tranquility">this <code>swagger.json</code> file</a>.</p>
 <p>The power of Swagger is that the <code>swagger.json</code> file can be provided as input to tools which automate the generation of documentation and client code. For example, the <a href="http://petstore.swagger.io/">Swagger UI</a> will generate an interactive UI for any valid Swagger specification. The <a href="http://editor.swagger.io/#/">Swagger Editor</a> has similar capabilities but will also generate clients (and servers) in a variety of programming languages. In most cases, you won’t ever need to manually inspect a Swagger configuration file (much less learn the configuration language) as the tooling does all the hard work for you.</p>
 <p>In this book, we introduce many APIs using the Swagger UI. You can follow along by browsing to the generic <a href="http://petstore.swagger.io/">Swagger UI</a> and inserting the URL for the appropriate <code>swagger.json</code> configuration file. Most of our code samples are in Python for which we use the <a href="https://github.com/Yelp/bravado">Bravado</a> Swagger client generator. We’ll describe Bravado in more detail below.</p>
@@ -355,7 +355,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <p>Our method for developing trading strategies could loosely be called “data science”, meaning we use scientific methods and tools for extracting knowledge or insight from raw data. Our main tool is the Python programming language around which a rich set of libraries and methodologies have been developed to support data science. Strategy development is an iterative process, and during the early stages of development it is useful to have tools which are interactive in nature. The <a href="http://jupyter.org/">Jupyter Project</a> and its predecessor <a href="https://ipython.org/">iPython</a> are arguably the most popular interactive tools for data science with Python<a href="#fn7" class="footnoteRef" id="fnref7"><sup>7</sup></a>. When combined with <a href="http://www.numpy.org/">NumPy</a> and <a href="http://pandas.pydata.org/">Pandas</a>, the Jupyter platform provides a very capable interactive data science environment. We use this environment almost exclusively in the examples we describe in this book. It is not mandatory, but you’ll get much more out of this book if you install Jupyter yourself and try out some of our examples.</p>
 <p>The easiest way to get started with Jupyter is to install <a href="https://www.continuum.io/downloads">Anaconda</a> which is available for Windows, Mac and Linux. Anaconda is a convenient packaging of several open source data science tools for Python (also R and Scala), and also includes Jupyter. Once you’ve installed Anaconda, you can get started with Jupyter by following the <a href="https://jupyter.readthedocs.io/en/latest/running.html">quickstart</a> instructions (essentially just <code>jupyter notebook</code> in a shell and you’re ready). If you’re reasonably familiar with Python you can crash ahead and click “New -&gt; Python 3” from your local Jupyter instance to create your first notebook. If you’d like a more comprehensive introduction, we like <a href="https://www.datacamp.com/community/tutorials/tutorial-jupyter-notebook">this tutorial</a>.</p>
 <blockquote>
-<p>Python 2 or Python 3?</p>
+<h3 id="python-2-or-python-3">Python 2 or Python 3?</h3>
 <p>If you’re familiar with Python, you’ll know that Python 3 is the recommended environment for new code but, unfortunately, Python 3 broke compatibility with Python 2 in many areas. Moreover, the large quantity of code still written in Python 2 (at time of writing) often leaves developers with a difficult decision as to which environment to use. Fortunately, all of the data science libraries we need for this book have been ported to Python 3. So we’ve made the decision to use Python 3 exclusively in this book. If you <em>must</em> use Python 2, you’ll find that most of our examples can be back-ported without difficulty. However, if you don’t have a strong reason to use Python 2, we recommend you stick with Python 3.</p>
 </blockquote>
 <p>The main interface to Jupyter is the notebook, which is a language <em>kernel</em> combined with code, text, graphs, etc. A language kernel is a backend capable of executing code in a given language. All of the examples we present in this section use the Python 3 language kernel, but Jupyter allows you to install other kernels as well (e.g. Python 2, R, Scala, Java, etc.). The code within a notebook is executed by the kernel with output displayed in the notebook. Text, graphic and other non-code artifacts are handled by the Jupyter environment itself and provide a way to document your work, or develop instructional material (as we’re doing in this book). Notebooks naturally keep a history of your actions (numbered code or text sections) and allow you to edit and re-run previous bits of code. That is, to iterate on your experiments. Finally, notebooks automatically checkpoint (i.e. regularly save your progress) and can be saved and restored at a later time. Make sure you run your notebook on a reasonably powerful machine, however, as deeper data analysis will use up significant memory.</p>
@@ -366,40 +366,206 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </ol>
 <p>We’ll provide instructions for installing missing libraries in the examples where they are needed. Including your own code into Jupyter is a matter of ensuring the path to your packages is included in the “python path” used by Jupyter. If you’re already familiar with Python, you’re free to choose your favorite way of adding your local path. If you’re less familiar with Python, we suggest adding your packages to your local <code>.ipython</code> folder which is created the first time you start a Python kernel in Jupyter. This directory will be created in the home directory of the user which started the kernel.</p>
 <blockquote>
-<p>Python Virtual Environments</p>
+<h3 id="python-virtual-environments">Python Virtual Environments</h3>
 <p>Notebooks provide a basic level of code isolation, but all notebooks share the set of packages installed in the Python kernel (as well as any default modifications made to the Python path). This means that any new packages you install (such as those we provide instructions for in some of the examples) will affect all notebooks. This can cause version problems when two different notebooks rely on two different versions of the same package. For this reason, Python professionals try to avoid installing project specific packages in the “global” Python kernel. Instead, the pros create one or more “virtual environments” which isolate the customizations needed for specific work. This lets you divide your experiments so that work in one experiment doesn’t accidentally break the work you’ve already done in another experiment.</p>
 <p>Virtual environments are an advanced topic which we won’t try to cover here. Interested parties should check out the <a href="https://pypi.python.org/pypi/virtualenv">virtualenv</a> package or read up on using <a href="https://conda.io/docs/">Conda</a> to set up isolated development environments. In our experience, it is easier to use <code>conda</code> to create separate Jupyter environments, but instructions exist for using <code>virtualenv</code> to do this as well. We document our Conda setup at the end of this chapter for the curious.</p>
 </blockquote>
 <h2 id="simple-strategies-and-calculations">Simple Strategies and Calculations</h2>
 <p>We finish this chapter with code examples illustrating basic techniques we use in the remainder of the book. If you’d like to follow along, you’ll need to install Jupyter as described in the previous section. As always, you can find our code as well as Jupyter notebooks in the <code>code</code> directory in our <a href="https://github.com/OrbitalEnterprises/eve-market-strategies">GitHub project</a>.</p>
 <h3 id="example-1---data-extraction-make-a-graph-of-market-history">Example 1 - Data Extraction: Make a Graph of Market History</h3>
-<p>In this example, we’re going to create a simple graph of market history (i.e. daily price snapshots) for a year of data. We’ll arbitrarily choose to graph Tritanium in Forge. When we’re done, we’ll have a graph like the following:</p>
+<p>In this example, we’re going to create a simple graph of market history (i.e. daily price snapshots) for a year of data. We’ve arbitrarily chosen to graph Tritanium in Forge. When we’re done, we’ll have a graph like the following:</p>
 <figure>
 <img src="img/ex1_graph.png" alt="Tritanium price over a year in The Forge" /><figcaption>Tritanium price over a year in The Forge</figcaption>
 </figure>
-<p>We’ll use this simple example to introduce basic operations we’ll use throughout this book. If you want to follow along, you can download the <a href="code/book/ex1.ipynb">Jupyter notebook</a> for this example.</p>
-<p>We’ll create our graph as follows:</p>
+<p>We’ll use this simple example to introduce basic operations we’ll use throughout this book. If you want to follow along, you can download the <a href="code/book/Example_1_Data_Extraction.ipynb">Jupyter notebook</a> for this example. Since this is our first example, we’ll be extra verbose in our explanation.</p>
+<p>We’ll create our graph in four steps:</p>
 <ol type="1">
-<li>We’ll use the Static Data Export (SDE) to look up the type and region ID, respectively, for “Tritanium” and “The Forge”.</li>
+<li>We’ll use the Static Data Export (SDE) to look up type and region ID, respectively, for “Tritanium” and “The Forge”.</li>
 <li>Next, we’ll construct a date range for a year of data from the current date.</li>
-<li>Then, we’ll use the market data service to download daily market snapshots for our date range, and store the data in a Pandas dataframe.</li>
-<li>Finally, we’ll graph average price from the data frame.</li>
+<li>Then, we’ll use the market data service to download daily market snapshots for our date range, and store the data in a Pandas <a href="http://pandas.pydata.org/pandas-docs/stable/dsintro.html#dataframe">DataFrame</a>.</li>
+<li>Finally, we’ll plot average price from the DataFrame.</li>
 </ol>
 <p>We’ll expand on a few variants of these steps at the end of the example to set up for later examples. But before we can do any of this, we need to install <a href="https://github.com/Yelp/bravado">Bravado</a> in order to access Swagger-annotated web services. You can install bravado as follows (do this before you start Jupyter):</p>
 <div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash">$ <span class="ex">pip</span> install bravado</code></pre></div>
 <blockquote>
-<p>Installing Bravado on Windows</p>
+<h3 id="installing-bravado-on-windows">Installing Bravado on Windows</h3>
 <p>On Windows, you may see an error message about missing C++ tools when building the “twisted” library. You can get these tools for free from Microsoft at <a href="http://landinghub.visualstudio.com/visual-cpp-build-tools">this link</a>. Once these tools are installed, you should be able to complete the install of bravado.</p>
 </blockquote>
+<p>Once you’ve installed Bravado, you can start Jupyter and create a Python 3 notebook. Almost every notebook we create will start with an import preamble that brings in a few key packages. So we’ll start with this Jupyter cell:</p>
+<figure>
+<img src="img/ex1_cell1.PNG" alt="Import Preamble" /><figcaption>Import Preamble</figcaption>
+</figure>
+<p>The first thing we need to do is use the SDE to lookup the type and region ID, respectively, for “Tritanium” and “The Forge”. Yes we already know what these are from memory; we’ll write the code anyway to demonstrate the process. The next two cells import Swagger and create a client which will connect to the online SDE hosted by Orbital Enterprises:</p>
+<figure>
+<img src="img/ex1_cell2.PNG" alt="Create a Swagger client for the online SDE" /><figcaption>Create a Swagger client for the online SDE</figcaption>
+</figure>
+<p>The <code>config</code> argument to the Swagger client turns off response validation and instructs the client to return raw Python objects instead of wrapping results in typed Python classes. We turn off response validation because some Swagger endpoints return slightly sloppy but otherwise usable responses. We find working with raw Python objects to be easier than using typed classes, but this is a matter of personal preference. We’re now ready to look up type ID which is done in the following cell:</p>
+<figure>
+<img src="img/ex1_cell3.PNG" alt="Call and result of looking up Tritanium" /><figcaption>Call and result of looking up “Tritanium”</figcaption>
+</figure>
+<p>We use the <code>getTypes</code> method on the <code>Inventory</code> endpoint, selecting on the <code>typeName</code> field (using the syntax described <a href="https://evekit.orbital.enterprises//#/sde/main">here</a>). The result is an array of all matches to our query. In this case, there is only one type called “Tritanium” which is the first element of the result array.</p>
+<blockquote>
+<h3 id="pro-tip">Pro Tip</h3>
+<p>If you forget the usage of a Python function, you can bring up the Python docstring using the syntax <code>?function</code>. Jupyter will display the docstring in a popup. In the example above, you would use <code>?sde_client.Inventory.getTypes</code> to view the docstring.</p>
+</blockquote>
+<p>Similarly, we can use the <code>Map</code> endpoint to lookup the region ID for “The Forge”:</p>
+<figure>
+<img src="img/ex1_cell4.PNG" alt="Call and result of looking up The Forge" /><figcaption>Call and result of looking up “The Forge”</figcaption>
+</figure>
+<p>Of course, we only need the type and region ID, so we’ll tidy things up in the next cell and extract the fields we need into local variables:</p>
+<figure>
+<img src="img/ex1_cell5.PNG" alt="Extract and save type and region ID" /><figcaption>Extract and save type and region ID</figcaption>
+</figure>
+<p>Next, we need to create a date range for the days of market data we’d like to display. This is straightforward using <code>datetime</code> and the Pandas function <code>date_range</code>:</p>
+<figure>
+<img src="img/ex1_cell6.PNG" alt="Create a date range for the days we want to plot" /><figcaption>Create a date range for the days we want to plot</figcaption>
+</figure>
+<p>With these preliminaries out of the way, we’re now ready to start extracting market data. To do this, we’ll need a Swagger client pointing to the Orbital Enterprises market data service. As a test, we can call this service with the first date in our date range:</p>
+<figure>
+<img src="img/ex1_cell7.PNG" alt="Create a Swagger market data client and extract a day of market history" /><figcaption>Create a Swagger market data client and extract a day of market history</figcaption>
+</figure>
+<p>We call the <code>history</code> method on the <code>MarketData</code> endpoint passing a type ID, region ID, and the date we want to extract. This method can only be used to lookup data for a single date, so the result is a single JSON object with the requested information. The <code>history</code> endpoint may not have any data for a date we request (e.g. because the date is too far in the past, or the service has not yet loaded very recent data). It is therefore useful to check what happens when we request a missing date:</p>
+<figure>
+<img src="img/ex1_cell8.PNG" alt="Result of requesting a missing date" /><figcaption>Result of requesting a missing date</figcaption>
+</figure>
+<p>The result is a nasty stack trace due to an <code>HTTPNotFound</code> exception. We’ll need to handle this exception when we request our date range in case any data is missing.</p>
+<blockquote>
+<h3 id="using-a-response-object-instead-of-exceptions">Using a Response Object Instead of Exceptions</h3>
+<p>The Bravado client provides an alternative way to handle erroneous responses if you’d prefer not to handle exceptions. This is done by requesting a <code>response</code> object as the result of a call. To create a <code>response</code> object, change your call syntax from:</p>
+<pre><code>result = client.Endpoint.method(...).result()</code></pre>
+<p>to:</p>
+<pre><code>result, response = client.Endpoint.method(...).result()</code></pre>
+<p>The raw response to a call will be captured in the <code>response</code> variable which can be inspected for errors as follows:</p>
+<pre><code>if response.status_code != 200:
+    # An error occurred
+    ...</code></pre>
+<p>You can either handle exceptions or use response objects according to your preference. We choose to simply handle exceptions in this example.</p>
+</blockquote>
+<p>Now that we know how to retrieve market history for a single day, we can retrieve our entire date range with a simple loop:</p>
+<figure>
+<img src="img/ex1_cell9.PNG" alt="Retrieve history for our date range" /><figcaption>Retrieve history for our date range</figcaption>
+</figure>
+<p>The result is an array of market history, hopefully for every day we requested (the last day in the range will usually be missing because the market data service hasn’t loaded it yet). Now that we have our market data, we need to turn it into a plot. We’ll use a Pandas <a href="http://pandas.pydata.org/pandas-docs/stable/dsintro.html#dataframe"><code>DataFrame</code></a> for this. If you haven’t already, you’ll want to read up on Pandas as we’ll use its data structures and functions throughout the book. There are many ways to create a <code>DataFrame</code> but in our case the most convenient approach will be to base our <code>DataFrame</code> on the array of market data we just loaded. All that is missing is an index for the <code>DataFrame</code>. The natural choice here is to use the <code>date</code> field in each day of market history. However, these dates are not in a format understood by Pandas so we’ll have to convert them. This is easy to do using <code>datetime</code> again. Here’s an example which converts the <code>date</code> field from the first day of market history:</p>
+<figure>
+<img src="img/ex1_cell10.PNG" alt="Date conversion for the first day of market history" /><figcaption>Date conversion for the first day of market history</figcaption>
+</figure>
+<p>We’ll turn the converter into a function for convenience, then create our <code>DataFrame</code>:</p>
+<figure>
+<img src="img/ex1_cell11.PNG" alt="Create a DataFrame from market history" /><figcaption>Create a DataFrame from market history</figcaption>
+</figure>
+<p>Last but not least, we’re ready to plot our data. Simple plots are very easy to create with a <code>DataFrame</code>. Here, we plot average price for our date range:</p>
+<figure>
+<img src="img/ex1_cell12.PNG" alt="Plot of Average Price" /><figcaption>Plot of Average Price</figcaption>
+</figure>
+<p>And that’s it! You’ve just created a simple plot of market history.</p>
+<p>We walked through this example in verbose fashion to demonstrate some of the key techniques we’ll need for analysis later in the book. As you develop your own analysis, however, you’ll likely switch to an iterative process which may involve executing parts of a notebook multiple times. You’ll want to avoid re-executing code to download data unless absolutely necessary as more complicated analysis will require order book data which is substantially larger than market history. If you know you’ll be doing this often, you may find it more convenient to download historic data to your local disk and read the data locally instead of calling a web service.</p>
+<p>All data available on the market data service site we used in this example is uploaded daily to the Orbital Enterprises Google Storage site (you can find full documentation <a href="https://evekit.orbital.enterprises//#/md/main">here</a>). Historic data is organized by day. You can find data for a given day at the URL: <code>https://storage.googleapis.com/evekit_md/YYYY/MM/DD</code>. At time of writing, six files are stored for each day<a href="#fn8" class="footnoteRef" id="fnref8"><sup>8</sup></a>:</p>
+<table>
+<colgroup>
+<col style="width: 26%" />
+<col style="width: 73%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>File</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>market_YYYYMMDD.tgz</td>
+<td>Market history for all regions and types for the given day.</td>
+</tr>
+<tr class="even">
+<td>interval_YYYYMMDD_5.tgz</td>
+<td>Order book snapshots for all regions and types for the given day.</td>
+</tr>
+<tr class="odd">
+<td>market_YYYYMMDD.bulk</td>
+<td>Market history in “bulk” form for all regions and types for the given day.</td>
+</tr>
+<tr class="even">
+<td>interval_YYYYMMDD_5.bulk</td>
+<td>Order book snapshots in “bulk” form for all regions and types for the given day.</td>
+</tr>
+<tr class="odd">
+<td>market_YYYYMMDD.index.gz</td>
+<td>Market history bulk file index for the given day.</td>
+</tr>
+<tr class="even">
+<td>interval_YYYYMMDD_5.index.gz</td>
+<td>Order book snapshot bulk file for the given day.</td>
+</tr>
+</tbody>
+</table>
+<p>We’ll discuss the market history files here, and leave the order book files for the next example.</p>
+<p>Historic market data is optimized for two use cases:</p>
+<ol type="1">
+<li>Download for local storage; and,</li>
+<li>Efficient online access using HTTP “range” requests.</li>
+</ol>
+<p>The tar’d archive files (e.g. tgz files), when extracted, contain files of the form <code>market_TYPE_YYYYMMDD.history.gz</code> where <code>TYPE</code> is the type ID for which history is recorded in the file, and <code>YYYYMMDD</code> is the date of the market history. The content of each file is a comma-separated table of market history for all regions on the given day. Let’s look at a sample file:</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash">$ <span class="fu">wget</span> -q https://storage.googleapis.com/evekit_md/2017/01/01/market_20170101.tgz
+$ <span class="fu">ls</span> -lh market_20170101.tgz
+<span class="ex">-rw-r--r--+</span> 1 mark_000 mark_000 2.2M Jan 31 02:55 market_20170101.tgz
+$ <span class="fu">tar</span> xvzf market_20170101.tgz
+<span class="ex">...</span> about 10000 files extracted ...
+$ <span class="fu">zcat</span> market_34_20170101.history.gz <span class="kw">|</span> <span class="fu">head</span> -n 10
+<span class="ex">34</span>,10000025,13,2.89,4.50,4.00,7319512,1483228800000
+<span class="ex">34</span>,10000027,1,0.28,0.28,0.28,155501,1483228800000
+<span class="ex">34</span>,10000028,44,4.80,4.80,4.80,12336476,1483228800000
+<span class="ex">34</span>,10000029,19,2.00,5.00,3.50,41728843,1483228800000
+<span class="ex">34</span>,10000030,735,4.60,4.76,4.64,419745507,1483228800000
+<span class="ex">34</span>,10000016,964,3.98,4.66,4.36,225219117,1483228800000
+<span class="ex">34</span>,10000018,4,2.03,2.03,2.03,3046465,1483228800000
+<span class="ex">34</span>,10000020,367,4.50,4.50,4.50,264925396,1483228800000
+<span class="ex">34</span>,10000021,1,4.48,4.48,4.48,4500000,1483228800000
+<span class="ex">34</span>,10000022,3,1.51,1.51,1.51,10145393,1483228800000</code></pre></div>
+<p>The columns in the file are:</p>
 <ul>
-<li>Show how to lookup TypeID and RegionID from the SDE</li>
-<li>Show how to extract market history from the Market Collection web service</li>
-<li>Show how to make a simple matplot graph from the history data</li>
-<li>Show how to extract the same data directly from the history download</li>
-<li>Show to script to download historic data</li>
-<li>Show how to extract from history downloads stored locally</li>
-<li>Show how to install <a href="">code/evekit</a> from <a href="">Github project</a> into <code>.ipython</code>.</li>
+<li><em>type ID</em> - the type ID for the current row.</li>
+<li><em>region ID</em> - the region ID for the current row.</li>
+<li><em>order count</em> - the number of market orders for this type in this region on this day.</li>
+<li><em>low price</em> - low trade price for this type in this region on this day.</li>
+<li><em>high price</em> - high trade price for this type in this region on this day.</li>
+<li><em>average price</em> - average trade price for this type in this region on this day.</li>
+<li><em>volume</em> - daily volume for this type in this region on this day.</li>
+<li><em>date</em> - date of snapshot in milliseconds UTC (since the epoch).</li>
 </ul>
+<p>The data stored in the bulk files has the same format but is organized differently in order to support efficient online requests using an HTTP range header. We construct the bulk file by concatenating each of the individual compressed market files. This results in a file with roughly the same size as the archive, but which needs an index in order to recover market history for a particular type. This is the purpose of the market index file, which records the byte range for each market type stored in the bulk file. Here are the first ten lines for the index file for our sample date:</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash">$ <span class="ex">curl</span> -s https://storage.googleapis.com/evekit_md/2017/01/01/market_20170101.index.gz <span class="kw">|</span> <span class="fu">zcat</span> <span class="kw">|</span> <span class="fu">head</span> -n 10
+<span class="ex">market_18_20170101.history.gz</span> 0
+<span class="ex">market_19_20170101.history.gz</span> 984
+<span class="ex">market_20_20170101.history.gz</span> 1928
+<span class="ex">market_21_20170101.history.gz</span> 3678
+<span class="ex">market_22_20170101.history.gz</span> 4439
+<span class="ex">market_34_20170101.history.gz</span> 5431
+<span class="ex">market_35_20170101.history.gz</span> 8953
+<span class="ex">market_36_20170101.history.gz</span> 12396
+<span class="ex">market_37_20170101.history.gz</span> 15820
+<span class="ex">market_38_20170101.history.gz</span> 19108</code></pre></div>
+<p>Thus, to recover type 34 we need to extract bytes 5431 through 8952 (inclusive) from the bulk file. We can do this by using an HTTP “range” request as follows:</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash">$ <span class="ex">curl</span> -s -H <span class="st">&quot;range: bytes=5431-8952&quot;</span> https://storage.googleapis.com/evekit_md/2017/01/01/market_20170101.bulk <span class="kw">|</span> <span class="fu">zcat</span> <span class="kw">|</span> <span class="fu">head</span> -n 10
+<span class="ex">34</span>,10000025,13,2.89,4.50,4.00,7319512,1483228800000
+<span class="ex">34</span>,10000027,1,0.28,0.28,0.28,155501,1483228800000
+<span class="ex">34</span>,10000028,44,4.80,4.80,4.80,12336476,1483228800000
+<span class="ex">34</span>,10000029,19,2.00,5.00,3.50,41728843,1483228800000
+<span class="ex">34</span>,10000030,735,4.60,4.76,4.64,419745507,1483228800000
+<span class="ex">34</span>,10000016,964,3.98,4.66,4.36,225219117,1483228800000
+<span class="ex">34</span>,10000018,4,2.03,2.03,2.03,3046465,1483228800000
+<span class="ex">34</span>,10000020,367,4.50,4.50,4.50,264925396,1483228800000
+<span class="ex">34</span>,10000021,1,4.48,4.48,4.48,4500000,1483228800000
+<span class="ex">34</span>,10000022,3,1.51,1.51,1.51,10145393,1483228800000</code></pre></div>
+<p>Note that this is the same data we extracted from the downloaded archive.</p>
+<p>As an illustration of code which makes use of downloaded data (if available), we’ll conclude this example with an introduction to library code we’ll be using in later examples. You can find our library code in the <a href="https://github.com/OrbitalEnterprises/eve-market-strategies/tree/master/code">code</a> folder on our GitHub site. You can incorporate our libraries into your notebooks by copying the <a href="https://github.com/OrbitalEnterprises/eve-market-strategies/tree/master/code/evekit">evekit</a> folder (and all its subfolders) to your <code>.ipython</code> directory (or another convenient directory in your Python path).</p>
+<p>We can re-implement this first example using the following modules from our libraries:</p>
+<ol type="1">
+<li><code>evekit.online.Download</code> - download archive files to local storage.</li>
+<li><code>evekit.reference.Client</code> - make it easy to instantiate Swagger clients for commonly used services.</li>
+<li><code>evekit.marketdata.MarketHistory</code> - make it easy to retrieve market history in various forms.</li>
+<li><code>evekit.util</code> - a collection of useful utility functions.</li>
+</ol>
+<p>You can view <a href="code/book/Example_1_Data_Extraction_With_Libraries.ipynb">this Jupyter notebook</a> to see this example implemented with these libraries. We didn’t actually download any archives in the original example, but we include a download in the re-implemented example to demonstrate how these libraries function.</p>
 <h3 id="example-2---book-data-compute-average-daily-spread">Example 2 - Book Data: Compute Average Daily Spread</h3>
 <h3 id="example-3---trading-rules-build-an-order-matching-algorithm">Example 3 - Trading Rules: Build an Order Matching Algorithm</h3>
 <h3 id="example-4---unpublished-data-build-a-trade-heuristic">Example 4 - Unpublished Data: Build a Trade Heuristic</h3>
@@ -439,6 +605,7 @@ $ <span class="ex">conda</span> create -n book_exp_1 --clone book_base</code></p
 <li id="fn5"><p>CCP has an interesting view on the legality of these efforts. The End User License Agreement (EULA) explicitly forbids cache scraping. However, CCP has consistently said that they enforce the EULA at their discretion and, practically speaking, they have tolerated scraping market data for many years. More recently, CCP has said many of their new third party APIs are intended to eliminate the need for cache scraping. The new market data APIs are a direct result of such efforts.<a href="#fnref5">↩</a></p></li>
 <li id="fn6"><p>The size of the window for this average, and whether the average is over all regions is not documented anywhere.<a href="#fnref6">↩</a></p></li>
 <li id="fn7"><p>Whereas iPython mainly supports the Python language, the Jupyter project is more inclusive and intends to provide support for numerous “data science” languages including <a href="https://www.r-project.org/">R</a> and <a href="http://julialang.org/">Julia</a>. At time of writing, however, Python is still the best supported language in Jupyter.<a href="#fnref7">↩</a></p></li>
+<li id="fn8"><p>Currently, the upload process begins around 0200 UTC and takes serveral hours to assemble and upload data. Order book data for the previous day is usually available by 0800 UTC. Market history for the previous day is usually delayed one additional day because CCP does not immediately make the data available. For example, the data for 2017-01-01 will be processed at 0200 UTC on 2017-01-02. However, CCP will not provide the market history snapshot for 2017-01-01 until several hours into 2017-01-02 (i.e. after we’ve already started processing data for the previous day). This data will instead be uploaded at 0200 UTC on 2017-01-03.<a href="#fnref8">↩</a></p></li>
 </ol>
 </section>
 <script type="text/javascript">

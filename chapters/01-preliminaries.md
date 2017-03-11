@@ -98,7 +98,7 @@ The remainder of this section describes the main market data ESI endpoints in mo
 
 ### Market History Endpoints
 
-The market history endpoint returns a daily price summary for a given asset type in a given region.  In financial modeling terms, this data is similar to daily stock market data.  The market history endpoint returns all data from the start of the previous calendar year.
+The market history endpoint returns a daily price summary for a given asset type in a given region.  In financial modeling terms, this data is similar to daily stock market data.  The market history endpoint returns all data from the start of the previous calendar year.  Note that data for the current day is typically not available until approximately 0800 UTC the following day.
 
 We'll use market history to demonstrate the use of the ESI.  ESI endpoints follow REST conventions and can always be accessed using the HTTP protocol.  For example, the following URL will return market history for Tritanium \(type 34\) in Forge \(region 10000002\):
 
@@ -242,7 +242,7 @@ This section provides an introduction to the tools we use to develop strategies 
 
 Orbital Enterprises hosts a [market collection service](https://evekit.orbital.enterprises//#/md/main) which provides historic and live access to book data and daily market snapshots \(the "Order Book Data" and "Market History" endpoints described above, respectively\).  The service exposes a Swagger annotated API which can be accessed [interactively](https://evekit.orbital.enterprises//#/md/ui).  Historic data is uploaded nightly to [Google Storage](https://storage.googleapis.com/evekit_md) organized by date.  Although the entire history maintained by the site is accessible through the service API, for research and back testing purposes it is usually more convenient to download the data in bulk from the Google Storage site.
 
-> About Swagger
+> ### About Swagger
 >
 > [Swagger](http://swagger.io/) is a configuration language for describing REST-based web services.  A Swagger-annotated web site will normally provide a `swagger.json` file which defines the services provided by the site.  For example, CCP's EVE Swagger Interface provides [this `swagger.json` file](https://esi.tech.ccp.is/latest/swagger.json?datasource=tranquility).
 >
@@ -317,7 +317,7 @@ Our method for developing trading strategies could loosely be called "data scien
 
 The easiest way to get started with Jupyter is to install [Anaconda](https://www.continuum.io/downloads) which is available for Windows, Mac and Linux.  Anaconda is a convenient packaging of several open source data science tools for Python (also R and Scala), and also includes Jupyter.  Once you've installed Anaconda, you can get started with Jupyter by following the [quickstart](https://jupyter.readthedocs.io/en/latest/running.html) instructions \(essentially just `jupyter notebook` in a shell and you're ready\).  If you're reasonably familiar with Python you can crash ahead and click "New -> Python 3" from your local Jupyter instance to create your first notebook.  If you'd like a more comprehensive introduction, we like [this tutorial](https://www.datacamp.com/community/tutorials/tutorial-jupyter-notebook).
 
-> Python 2 or Python 3?
+> ### Python 2 or Python 3?
 >
 > If you're familiar with Python, you'll know that Python 3 is the recommended environment for new code but, unfortunately, Python 3 broke compatibility with Python 2 in many areas.  Moreover, the large quantity of code still written in Python 2 \(at time of writing\) often leaves developers with a difficult decision as to which environment to use.  Fortunately, all of the data science libraries we need for this book have been ported to Python 3.  So we've made the decision to use Python 3 exclusively in this book.  If you *must* use Python 2, you'll find that most of our examples can be back-ported without difficulty.  However, if you don't have a strong reason to use Python 2, we recommend you stick with Python 3.
 
@@ -331,7 +331,7 @@ The environment installed from Anaconda has most of the code we'll need, but fro
 
 We'll provide instructions for installing missing libraries in the examples where they are needed.  Including your own code into Jupyter is a matter of ensuring the path to your packages is included in the "python path" used by Jupyter.  If you're already familiar with Python, you're free to choose your favorite way of adding your local path.  If you're less familiar with Python, we suggest adding your packages to your local `.ipython` folder which is created the first time you start a Python kernel in Jupyter.  This directory will be created in the home directory of the user which started the kernel.
 
-> Python Virtual Environments
+> ### Python Virtual Environments
 >
 > Notebooks provide a basic level of code isolation, but all notebooks share the set of packages installed in the Python kernel \(as well as any default modifications made to the Python path\).  This means that any new packages you install \(such as those we provide instructions for in some of the examples\) will affect all notebooks.  This can cause version problems when two different notebooks rely on two different versions of the same package.  For this reason, Python professionals try to avoid installing project specific packages in the "global" Python kernel.  Instead, the pros create one or more "virtual environments" which isolate the customizations needed for specific work.  This lets you divide your experiments so that work in one experiment doesn't accidentally break the work you've already done in another experiment.
 >
@@ -343,18 +343,18 @@ We finish this chapter with code examples illustrating basic techniques we use i
 
 ### Example 1 - Data Extraction: Make a Graph of Market History
 
-In this example, we're going to create a simple graph of market history \(i.e. daily price snapshots\) for a year of data.  We'll arbitrarily choose to graph Tritanium in Forge.  When we're done, we'll have a graph like the following:
+In this example, we're going to create a simple graph of market history \(i.e. daily price snapshots\) for a year of data.  We've arbitrarily chosen to graph Tritanium in Forge.  When we're done, we'll have a graph like the following:
 
 ![Tritanium price over a year in The Forge](img/ex1_graph.png)
 
-We'll use this simple example to introduce basic operations we'll use throughout this book.  If you want to follow along, you can download the [Jupyter notebook](code/book/ex1.ipynb) for this example.
+We'll use this simple example to introduce basic operations we'll use throughout this book.  If you want to follow along, you can download the [Jupyter notebook](code/book/Example_1_Data_Extraction.ipynb) for this example.  Since this is our first example, we'll be extra verbose in our explanation.
 
-We'll create our graph as follows:
+We'll create our graph in four steps:
 
-1. We'll use the Static Data Export \(SDE\) to look up the type and region ID, respectively, for "Tritanium" and "The Forge".
+1. We'll use the Static Data Export \(SDE\) to look up type and region ID, respectively, for "Tritanium" and "The Forge".
 2. Next, we'll construct a date range for a year of data from the current date.
-3. Then, we'll use the market data service to download daily market snapshots for our date range, and store the data in a Pandas dataframe.
-4. Finally, we'll graph average price from the data frame.
+3. Then, we'll use the market data service to download daily market snapshots for our date range, and store the data in a Pandas [DataFrame](http://pandas.pydata.org/pandas-docs/stable/dsintro.html#dataframe).
+4. Finally, we'll plot average price from the DataFrame.
 
 We'll expand on a few variants of these steps at the end of the example to set up for later examples.  But before we can do any of this, we need to install [Bravado](https://github.com/Yelp/bravado) in order to access Swagger-annotated web services.  You can install bravado as follows \(do this before you start Jupyter\):
 
@@ -362,17 +362,183 @@ We'll expand on a few variants of these steps at the end of the example to set u
 $ pip install bravado
 ```
 
-> Installing Bravado on Windows
+> ### Installing Bravado on Windows
 >
 > On Windows, you may see an error message about missing C++ tools when building the "twisted" library.  You can get these tools for free from Microsoft at [this link](http://landinghub.visualstudio.com/visual-cpp-build-tools).  Once these tools are installed, you should be able to complete the install of bravado.
 
-* Show how to lookup TypeID and RegionID from the SDE
-* Show how to extract market history from the Market Collection web service
-* Show how to make a simple matplot graph from the history data
-* Show how to extract the same data directly from the history download
-* Show to script to download historic data
-* Show how to extract from history downloads stored locally
-* Show how to install [code/evekit]() from [Github project]() into `.ipython`.
+Once you've installed Bravado, you can start Jupyter and create a Python 3 notebook.  Almost every notebook we create will start with an import preamble that brings in a few key packages.  So we'll start with this Jupyter cell:
+
+![Import Preamble](img/ex1_cell1.PNG)
+
+The first thing we need to do is use the SDE to lookup the type and region ID, respectively, for "Tritanium" and "The Forge".  Yes we already know what these are from memory; we'll write the code anyway to demonstrate the process.  The next two cells import Swagger and create a client which will connect to the online SDE hosted by Orbital Enterprises:
+
+![Create a Swagger client for the online SDE](img/ex1_cell2.PNG)
+
+The `config` argument to the Swagger client turns off response validation and instructs the client to return raw Python objects instead of wrapping results in typed Python classes.  We turn off response validation because some Swagger endpoints return slightly sloppy but otherwise usable responses.  We find working with raw Python objects to be easier than using typed classes, but this is a matter of personal preference.  We're now ready to look up type ID which is done in the following cell:
+
+![Call and result of looking up "Tritanium"](img/ex1_cell3.PNG)
+
+We use the `getTypes` method on the `Inventory` endpoint, selecting on the `typeName` field \(using the syntax described [here](https://evekit.orbital.enterprises//#/sde/main)\).  The result is an array of all matches to our query.  In this case, there is only one type called "Tritanium" which is the first element of the result array.
+
+> ### Pro Tip
+>
+> If you forget the usage of a Python function, you can bring up the Python docstring using the syntax `?function`.  Jupyter will display the docstring in a popup.  In the example above, you would use `?sde_client.Inventory.getTypes` to view the docstring.
+
+Similarly, we can use the `Map` endpoint to lookup the region ID for "The Forge":
+
+![Call and result of looking up "The Forge"](img/ex1_cell4.PNG)
+
+Of course, we only need the type and region ID, so we'll tidy things up in the next cell and extract the fields we need into local variables:
+
+![Extract and save type and region ID](img/ex1_cell5.PNG)
+
+Next, we need to create a date range for the days of market data we'd like to display.  This is straightforward using `datetime` and the Pandas function `date_range`:
+
+![Create a date range for the days we want to plot](img/ex1_cell6.PNG)
+
+With these preliminaries out of the way, we're now ready to start extracting market data.  To do this, we'll need a Swagger client pointing to the Orbital Enterprises market data service.  As a test, we can call this service with the first date in our date range:
+
+![Create a Swagger market data client and extract a day of market history](img/ex1_cell7.PNG)
+
+We call the `history` method on the `MarketData` endpoint passing a type ID, region ID, and the date we want to extract.  This method can only be used to lookup data for a single date, so the result is a single JSON object with the requested information.  The `history` endpoint may not have any data for a date we request \(e.g. because the date is too far in the past, or the service has not yet loaded very recent data\).  It is therefore useful to check what happens when we request a missing date:
+
+![Result of requesting a missing date](img/ex1_cell8.PNG)
+
+The result is a nasty stack trace due to an `HTTPNotFound` exception.  We'll need to handle this exception when we request our date range in case any data is missing.
+
+> ### Using a Response Object Instead of Exceptions
+>
+> The Bravado client provides an alternative way to handle erroneous responses if you'd prefer not to handle exceptions.  This is done by requesting a `response` object as the result of a call.  To create a `response` object, change your call syntax from:
+> ```
+> result = client.Endpoint.method(...).result()
+> ```
+> to:
+> ```
+> result, response = client.Endpoint.method(...).result()
+> ```
+> The raw response to a call will be captured in the `response` variable which can be inspected for errors as follows:
+>
+> ```
+> if response.status_code != 200:
+>     # An error occurred
+>     ...
+> ```
+> You can either handle exceptions or use response objects according to your preference.  We choose to simply handle exceptions in this example.
+
+Now that we know how to retrieve market history for a single day, we can retrieve our entire date range with a simple loop:
+
+![Retrieve history for our date range](img/ex1_cell9.PNG)
+
+The result is an array of market history, hopefully for every day we requested \(the last day in the range will usually be missing because the market data service hasn't loaded it yet\).  Now that we have our market data, we need to turn it into a plot.  We'll use a Pandas [`DataFrame`](http://pandas.pydata.org/pandas-docs/stable/dsintro.html#dataframe) for this.  If you haven't already, you'll want to read up on Pandas as we'll use its data structures and functions throughout the book.  There are many ways to create a `DataFrame` but in our case the most convenient approach will be to base our `DataFrame` on the array of market data we just loaded.  All that is missing is an index for the `DataFrame`.  The natural choice here is to use the `date` field in each day of market history.  However, these dates are not in a format understood by Pandas so we'll have to convert them.  This is easy to do using `datetime` again.  Here's an example which converts the `date` field from the first day of market history:
+
+![Date conversion for the first day of market history](img/ex1_cell10.PNG)
+
+We'll turn the converter into a function for convenience, then create our `DataFrame`:
+
+![Create a DataFrame from market history](img/ex1_cell11.PNG)
+
+Last but not least, we're ready to plot our data.  Simple plots are very easy to create with a `DataFrame`.  Here, we plot average price for our date range:
+
+![Plot of Average Price](img/ex1_cell12.PNG)
+
+And that's it!  You've just created a simple plot of market history.
+
+We walked through this example in verbose fashion to demonstrate some of the key techniques we'll need for analysis later in the book.  As you develop your own analysis, however, you'll likely switch to an iterative process which may involve executing parts of a notebook multiple times.  You'll want to avoid re-executing code to download data unless absolutely necessary as more complicated analysis will require order book data which is substantially larger than market history.  If you know you'll be doing this often, you may find it more convenient to download historic data to your local disk and read the data locally instead of calling a web service.
+
+All data available on the market data service site we used in this example is uploaded daily to the Orbital Enterprises Google Storage site \(you can find full documentation [here](https://evekit.orbital.enterprises//#/md/main)\).  Historic data is organized by day.  You can find data for a given day at the URL: `https://storage.googleapis.com/evekit_md/YYYY/MM/DD`.  At time of writing, six files are stored for each day[^8]:
+
+|File                        |Description                                                                     |
+|----------------------------|--------------------------------------------------------------------------------|
+|market_YYYYMMDD.tgz         |Market history for all regions and types for the given day.                     |
+|interval_YYYYMMDD_5.tgz     |Order book snapshots for all regions and types for the given day.               |
+|market_YYYYMMDD.bulk        |Market history in "bulk" form for all regions and types for the given day.      |
+|interval_YYYYMMDD_5.bulk    |Order book snapshots in "bulk" form for all regions and types for the given day.|
+|market_YYYYMMDD.index.gz    |Market history bulk file index for the given day.                               |
+|interval_YYYYMMDD_5.index.gz|Order book snapshot bulk file for the given day.                                |
+
+We'll discuss the market history files here, and leave the order book files for the next example.
+
+Historic market data is optimized for two use cases:
+
+1. Download for local storage; and,
+2. Efficient online access using HTTP "range" requests.
+
+The tar'd archive files \(e.g. tgz files\), when extracted, contain files of the form `market_TYPE_YYYYMMDD.history.gz` where `TYPE` is the type ID for which history is recorded in the file, and `YYYYMMDD` is the date of the market history.  The content of each file is a comma-separated table of market history for all regions on the given day.  Let's look at a sample file:
+
+```bash
+$ wget -q https://storage.googleapis.com/evekit_md/2017/01/01/market_20170101.tgz
+$ ls -lh market_20170101.tgz
+-rw-r--r--+ 1 mark_000 mark_000 2.2M Jan 31 02:55 market_20170101.tgz
+$ tar xvzf market_20170101.tgz
+... about 10000 files extracted ...
+$ zcat market_34_20170101.history.gz | head -n 10
+34,10000025,13,2.89,4.50,4.00,7319512,1483228800000
+34,10000027,1,0.28,0.28,0.28,155501,1483228800000
+34,10000028,44,4.80,4.80,4.80,12336476,1483228800000
+34,10000029,19,2.00,5.00,3.50,41728843,1483228800000
+34,10000030,735,4.60,4.76,4.64,419745507,1483228800000
+34,10000016,964,3.98,4.66,4.36,225219117,1483228800000
+34,10000018,4,2.03,2.03,2.03,3046465,1483228800000
+34,10000020,367,4.50,4.50,4.50,264925396,1483228800000
+34,10000021,1,4.48,4.48,4.48,4500000,1483228800000
+34,10000022,3,1.51,1.51,1.51,10145393,1483228800000
+```
+
+The columns in the file are:
+
+* *type ID* - the type ID for the current row.
+* *region ID* - the region ID for the current row.
+* *order count* - the number of market orders for this type in this region on this day.
+* *low price* - low trade price for this type in this region on this day.
+* *high price* - high trade price for this type in this region on this day.
+* *average price* - average trade price for this type in this region on this day.
+* *volume* - daily volume for this type in this region on this day.
+* *date* - date of snapshot in milliseconds UTC (since the epoch).
+
+The data stored in the bulk files has the same format but is organized differently in order to support efficient online requests using an HTTP range header.  We construct the bulk file by concatenating each of the individual compressed market files.  This results in a file with roughly the same size as the archive, but which needs an index in order to recover market history for a particular type.  This is the purpose of the market index file, which records the byte range for each market type stored in the bulk file.  Here are the first ten lines for the index file for our sample date:
+
+```bash
+$ curl -s https://storage.googleapis.com/evekit_md/2017/01/01/market_20170101.index.gz | zcat | head -n 10
+market_18_20170101.history.gz 0
+market_19_20170101.history.gz 984
+market_20_20170101.history.gz 1928
+market_21_20170101.history.gz 3678
+market_22_20170101.history.gz 4439
+market_34_20170101.history.gz 5431
+market_35_20170101.history.gz 8953
+market_36_20170101.history.gz 12396
+market_37_20170101.history.gz 15820
+market_38_20170101.history.gz 19108
+```
+
+Thus, to recover type 34 we need to extract bytes 5431 through 8952 \(inclusive\) from the bulk file.  We can do this by using an HTTP "range" request as follows:
+
+```bash
+$ curl -s -H "range: bytes=5431-8952" https://storage.googleapis.com/evekit_md/2017/01/01/market_20170101.bulk | zcat | head -n 10
+34,10000025,13,2.89,4.50,4.00,7319512,1483228800000
+34,10000027,1,0.28,0.28,0.28,155501,1483228800000
+34,10000028,44,4.80,4.80,4.80,12336476,1483228800000
+34,10000029,19,2.00,5.00,3.50,41728843,1483228800000
+34,10000030,735,4.60,4.76,4.64,419745507,1483228800000
+34,10000016,964,3.98,4.66,4.36,225219117,1483228800000
+34,10000018,4,2.03,2.03,2.03,3046465,1483228800000
+34,10000020,367,4.50,4.50,4.50,264925396,1483228800000
+34,10000021,1,4.48,4.48,4.48,4500000,1483228800000
+34,10000022,3,1.51,1.51,1.51,10145393,1483228800000
+```
+
+Note that this is the same data we extracted from the downloaded archive.
+
+As an illustration of code which makes use of downloaded data \(if available\), we'll conclude this example with an introduction to library code we'll be using in later examples.  You can find our library code in the [code](https://github.com/OrbitalEnterprises/eve-market-strategies/tree/master/code) folder on our GitHub site.  You can incorporate our libraries into your notebooks by copying the [evekit](https://github.com/OrbitalEnterprises/eve-market-strategies/tree/master/code/evekit) folder \(and all its subfolders\) to your `.ipython` directory \(or another convenient directory in your Python path\).
+
+We can re-implement this first example using the following modules from our libraries:
+
+1. `evekit.online.Download` - download archive files to local storage.
+2. `evekit.reference.Client` - make it easy to instantiate Swagger clients for commonly used services.
+3. `evekit.marketdata.MarketHistory` - make it easy to retrieve market history in various forms.
+4. `evekit.util` - a collection of useful utility functions.
+
+You can view [this Jupyter notebook](code/book/Example_1_Data_Extraction_With_Libraries.ipynb) to see this example implemented with these libraries.  We didn't actually download any archives in the original example, but we include a download in the re-implemented example to demonstrate how these libraries function.
 
 ### Example 2 - Book Data: Compute Average Daily Spread
 
@@ -426,3 +592,4 @@ The environment settings allow you to add custom configuration for Jupyter or Ip
 [^5]: CCP has an interesting view on the legality of these efforts.  The End User License Agreement (EULA) explicitly forbids cache scraping.  However, CCP has consistently said that they enforce the EULA at their discretion and, practically speaking, they have tolerated scraping market data for many years.  More recently, CCP has said many of their new third party APIs are intended to eliminate the need for cache scraping.  The new market data APIs are a direct result of such efforts.
 [^6]: The size of the window for this average, and whether the average is over all regions is not documented anywhere.
 [^7]: Whereas iPython mainly supports the Python language, the Jupyter project is more inclusive and intends to provide support for numerous "data science" languages including [R](https://www.r-project.org/) and [Julia](http://julialang.org/).  At time of writing, however, Python is still the best supported language in Jupyter.
+[^8]: Currently, the upload process begins around 0200 UTC and takes serveral hours to assemble and upload data.  Order book data for the previous day is usually available by 0800 UTC.  Market history for the previous day is usually delayed one additional day because CCP does not immediately make the data available.  For example, the data for 2017-01-01 will be processed at 0200 UTC on 2017-01-02.  However, CCP will not provide the market history snapshot for 2017-01-01 until several hours into 2017-01-02 \(i.e. after we've already started processing data for the previous day\).  This data will instead be uploaded at 0200 UTC on 2017-01-03.

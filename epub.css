@@ -101,7 +101,7 @@ blockquote {
 
 	blockquote p {
 	    font-size: 120%;
-	    margin-bottom: 0;
+	    margin-bottom: 10px;
 	    font-style: italic;
 	}
 
