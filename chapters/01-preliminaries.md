@@ -542,6 +542,212 @@ You can view [this Jupyter notebook](code/book/Example_1_Data_Extraction_With_Li
 
 ### Example 2 - Book Data: Compute Average Daily Spread
 
+In this example, we turn our attention to analyzing order book data.  The goal of this example is to compute the average daily *spread* for Tritanium in The Forge region for a given date.  Spread is defined as the difference in price between the lowest priced sell order, and the highest priced buy order.  Among other things, spread is an indication of whether market making will be profitable for a given asset, but we'll get to that in a later chapter.  The average daily spread is the average of the spreads for each order book snapshot.  At time of writing, order book snapshots are generated every five minutes.  So the average daily spread is just the average of the spread computed for each of the 288 book snapshots which make up a day.
+
+We'll start by getting familiar with the order book data endpoint on the [Orbital Enterprises market data service](https://evekit.orbital.enterprises//#/md/ui) site:
+
+![Order book endpoint](img/ex2_order_book_ep.PNG)
+
+There are actually two endpoints, but we're only looking at the historic endpoint for now.  We'll cover the "latest book" endpoint in a later chapter.  As with the market history endpoint, the order book endpoint expects a type ID, a region ID, and a date.  However, the date field may optionally include a time.  The order book snapshot returned by the endpoint  will be the latest snapshot *before* the specified time.  Here's an example of the result returned with type ID 34 \(Tritanium\), region ID 10000002 \(The Forge\), and timestamp `2017-01-01 12:02:00 UTC` \(note that this endpoint can parse time zone specifications properly\):
+
+```json
+{
+  "bookTime": 1483272000000,
+  "orders": [
+    {
+      "typeID": 34,
+      "regionID": 10000002,
+      "orderID": 4708935394,
+      "buy": true,
+      "issued": 1481705362000,
+      "price": 5,
+      "volumeEntered": 200000000,
+      "minVolume": 1,
+      "volume": 43345724,
+      "orderRange": "solarsystem",
+      "locationID": 60002242,
+      "duration": 90
+    },
+    {
+      "typeID": 34,
+      "regionID": 10000002,
+      "orderID": 4734310642,
+      "buy": true,
+      "issued": 1483260173000,
+      "price": 4.9,
+      "volumeEntered": 100000000,
+      "minVolume": 1,
+      "volume": 99928181,
+      "orderRange": "station",
+      "locationID": 60015026,
+      "duration": 90
+    },
+    ... many more buy orders ...
+    {
+      "typeID": 34,
+      "regionID": 10000002,
+      "orderID": 4733287152,
+      "buy": false,
+      "issued": 1483171052000,
+      "price": 4.69,
+      "volumeEntered": 5612007,
+      "minVolume": 1,
+      "volume": 747984,
+      "orderRange": "region",
+      "locationID": 60007498,
+      "duration": 90
+    },
+    {
+      "typeID": 34,
+      "regionID": 10000002,
+      "orderID": 4734141760,
+      "buy": false,
+      "issued": 1483239477000,
+      "price": 4.77,
+      "volumeEntered": 46906,
+      "minVolume": 1,
+      "volume": 46906,
+      "orderRange": "region",
+      "locationID": 60003079,
+      "duration": 90
+    },
+    ... many more sell orders ...
+  ],
+  "typeID": 34,
+  "regionID": 10000002
+}
+```
+
+The `bookTime` field reports the actual timestamp of this snapshot in milliseconds UTC since the epoch.  In this example, the book time is `2017-01-01 12:00 UTC` because that is the latest book snapshot at requested time `2017-01-01 12:02 UTC`.
+
+> ### Pro Tip: Converting Timestamps
+>
+> If you plan to work with Orbital Enterprises raw data on a frequent basis, you'll want to find a convenient tool for converting millisecond timestamps to human readable form.  The author uses the [Utime Chrome plugin](https://chrome.google.com/webstore/detail/utime/kpcibgnngaaabebmcabmkocdokepdaki?utm_source=chrome-app-launcher-info-dialog) for quick conversions.  You'll only need this when browsing the data manually.  The evekit libraries \(should you choose to use then\) handle these conversions for you.
+
+Orders in the order book are contained in the `orders` array with buy orders appearing first, followed by sell orders.  To make processing easier, buy orders are sorted with the highest priced orders first; and, sell orders are priced with the lowest priced orders first.  Order sorting simplifies spread computations but there's a catch in that a spread is only valid if the highest buy and lowest sell are eligible for matching \(except for price, of course\).  That is, the spread is not always the difference between the highest price buy and the loweset price sell, because those orders may not be matchable.  We see this behavior in the sample output above: the highest price buy order is for 5 ISK, but the lowest price sell order is 4.69 ISK.  Even though the resulting spread would be negative, which can never happen according to market order matching rules, the orders are valid because they can not match: the buy order is ranged to the solar system Otanuomi but the sell order was placed in the Obe solar system.  For the sake of simplicity, we'll limit this example to computing the spread for buy and sell orders at a given station.  We'll use "Jita IV - Moon 4 - Caldari Navy Assembly Plant" which is the most popular station in the Forge region and has location ID 60003760.  In reality, there may be many spreads for a given type in a given region as different parts of the region may have unique sets of matching orders.  Computing proper spreads in this way would also require implementing a proper order matching algorithm which we'll leave to a later example.  For strategies like market making, however, one is normally only concerned with "station spread" which is what we happen to be computing in this example.
+
+We assume you've already installed `bravado` as described in [Example 1](#example-1---data-Extraction-make-a-graph-of-market-history).  If you haven't installed `bravado`, please do so now.  As always, you can follow along with this example by downloading the [Jupyter notebook](code/book/Example_2_Compute_Average_Daily_Spread.ipynb).
+
+The first two cells of this example important standard libraries and configure properties such as `type_id`, `region_id`, `station_id` and `compute_date` which is set to the timestamp of the first order book snapshot we wish to measure.  Note that we use the EveKit library to retrieve an instance of the SDE client:
+
+![Example Setup](img/ex2_cell1.PNG)
+
+We can use the Orbital Enterprises market data client to extract the first book snapshot:
+
+![Order Book Snapshot for Tritanium in The Forge at 2017-01-01 00:00 UTC](img/ex2_cell2.PNG)
+
+Buy and sell orders are conveniently sorted in the result.  We use a filter exract these orders by type \(e.g. buy or sell\) and station ID, then implement a simple spread calculation function to calculate the spread for a set of buys and sells:
+
+![Sort and Compute Spread](img/ex2_cell3.PNG)
+
+Finally, we're ready to compute spread for all 5-minute snaphots on the target date.  We can do this with a simple loop, requesting the next snapshot at each iteration and adding the spread to an array of values which are averaged at the end:
+
+![Compute Spreads for All Snapshots and Average](img/ex2_cell4.PNG)
+
+And with that, you've just computed avereage daily spread.
+
+As in the first example, we now turn to order book data formats for local storage.  You can find order book files for a given day at the URL: `https://storage.googleapis.com/evekit_md/YYYY/MM/DD`.  Three files are relevant for order book data:
+
+|File                        |Description                                                                     |
+|----------------------------|--------------------------------------------------------------------------------|
+|interval_YYYYMMDD_5.tgz     |Order book snapshots for all regions and types for the given day.               |
+|interval_YYYYMMDD_5.bulk    |Order book snapshots in "bulk" form for all regions and types for the given day.|
+|interval_YYYYMMDD_5.index.gz|Order book snapshot bulk file for the given day.                                |
+
+Note that book data files are significantly larger than market history files as they contain every order book snapshot for every type in every region on a given day.  At time of writing, a typical book index file is about 100KB which is manageable.  However, bulk files are typically 500MB while zipped archives are 250MB.  A year of data is about 90GB of storage.  By the way, the `5` in the file name indicates that these are five minute snapshot files.  In the future, we may generate snapshots with dfferent intervals.  You can easily generate your own sampling frequency using the five minute samples as a source since these these are currently the highest resolution samples available.
+
+The tar'd archive files \(e.g. tgz files\), when extracted, contain files of the form `interval_TYPE_YYYYMMDD_5.book.gz` where `TYPE` is the type ID for which order book snapshots are recorded, and `YYYYMMDD` is the date on which the snapshots were recorded.  The content of each file is slightly more complicated and is explained below.  Here is the contents of a sample file:
+
+```bash
+$ wget -q https://storage.googleapis.com/evekit_md/2017/01/01/interval_20170101_5.tgz
+$ ls -lh interval_20170101_5.tgz
+-rw-r--r--+ 1 mark_000 mark_000 223M Jan  2 03:43 interval_20170101_5.tgz
+$ tar xvzf index_20170101_5.tgz
+... about 10000 files extracted ...
+$ zcat interval_34_20170101_5.book.gz | head -n 10
+34
+288
+10000025
+1483228800000
+10
+12
+4730662577,true,1482974353000,4.85,100000000,1,46444066,station,61000807,30
+4732527006,true,1483117790000,4.50,100000000,1,99774417,station,61000912,90
+4733368217,true,1483178139000,4.45,340000,1,340000,solarsystem,1021334931934,30
+4724371732,true,1482505562000,4.05,10000000,1,4636157,2,61000912,90
+```
+
+The first two lines indicate the type contained in the file, in this case Tritanium \(type ID 34\),  and the number of snapshots collected for each region, in this case 288 \(a snapshot every five minutes for 24 hours\).  The remainder of the file organizes snapshots per region and is organized as follows:
+
+```
+FIRST_REGION_ID
+FIRST_REGION_FIRST_SNAPSHOT_TIME
+FIRST_REGION_FIRST_SNAPSHOT_BUY_ORDER_COUNT
+FIRST_REGION_FIRST_SNAPSHOT_SELL_ORDER_COUNT
+FIRST_REGION_FIRST_SNAPSHOT_BUY_ORDER
+...
+FIRST_REGION_FIRST_SNAPSHOT_SELL_ORDER
+...
+FIRST_REGION_SECOND_SNAPSHOT_TIME
+...
+SECOND_REGION_ID
+...
+```
+
+The columns for each order row are:
+
+* *order ID* - Unique market order ID.
+* *buy*	- "true" if this order represents a buy, "false" otherwise.
+* *issued* - Order issue date in milliseconds UTC (since the epoch).
+* *price* - Order price.
+* *volume entered* - Volume entered when order was created.
+* *min volume* - Minimum volume required for each order fill.
+* *volume* - Current remaining volume to be filled in the order.
+* *order range* - Order range string. One of "station", "solarsystem", "region" or a number representing the number of jobs allowed from the station where the order was entered.
+* *location ID* - Location ID of station where order was entered.
+* *duration* - Order duration in days.
+
+As with market history, the bulk files are simply the concatenation of the per-type book files together with an index to allow efficient range requests.  We can retrieve the same data as above by first consulting the index file:
+
+```bash
+$ curl -s https://storage.googleapis.com/evekit_md/2017/01/01/interval_20170101_5.index.gz | zcat | head -n 10
+interval_18_20170101_5.book.gz 0
+interval_19_20170101_5.book.gz 143131
+interval_20_20170101_5.book.gz 234988
+interval_21_20170101_5.book.gz 447702
+interval_22_20170101_5.book.gz 522083
+interval_34_20170101_5.book.gz 619717
+interval_35_20170101_5.book.gz 1236236
+interval_36_20170101_5.book.gz 1780447
+interval_37_20170101_5.book.gz 2208243
+interval_38_20170101_5.book.gz 2651627
+```
+
+Then sending a range request, in this case to extract bytes 619717 through 1236236 \(inclusive\):
+
+```bash
+$ curl -s -H "range: bytes=619717-1236236" https://storage.googleapis.com/evekit_md/2017/01/01/interval_20170101_5.bulk | zcat | head -n 10
+34
+288
+10000025
+1483228800000
+10
+12
+4730662577,true,1482974353000,4.85,100000000,1,46444066,station,61000807,30
+4732527006,true,1483117790000,4.50,100000000,1,99774417,station,61000912,90
+4733368217,true,1483178139000,4.45,340000,1,340000,solarsystem,1021334931934,30
+4724371732,true,1482505562000,4.05,10000000,1,4636157,2,61000912,90
+```
+
+The format of book files is currently optimized for selection by type, which may not be appropriate for all use cases.  It is usually best to download the book files you need, and re-organize them according to your use case.  The EveKit libraries provide support for basic downloading, including only downloading the types or regions you want.
+
+The second part of the Jupyter Notebook for this example illustrates how to download and compute average spread using the EveKit libraries and Pandas.  This can be done in four steps:
+
+1. We first download the order book for Tritanium in the Forge on the target date.  By filtering the download by type and region, we can avoid downloading the entire 230MB archive file; the file stored on disk is just 104K.
+2. We next use the OrderBook class to load book data as a Pandas DataFrame.  The DataFrame stores each order as a row where the index is the time of the book snapshot where the order was listed.  We also add columns for type and region ID to allow for further filtering.  Since the index is just snapshot time, we can recover the individual snapshots by grouping on index.  Each Pandas group then becomes a book snapshot.
+3. We re-implement our spread computation function to operate on a DataFrame representing a snapshot instead of an array of buys and sells.  The computation is the same, except that we return "NaN" in cases where there is no well-defined spread.  This is done because the Pandas mean function, which we use in the next step, conveniently ignores NaN values.
+4. We finish by combing Pandas "groupby" and "apply" with our spread computation function to compute a series of spreads, which can then be averaged with Pandas "mean".
+
 ### Example 3 - Trading Rules: Build an Order Matching Algorithm
 
 ### Example 4 - Unpublished Data: Build a Trade Heuristic
@@ -552,7 +758,7 @@ You can view [this Jupyter notebook](code/book/Example_1_Data_Extraction_With_Li
 
 ### Setting up Isolated Environments with Conda
 
-If you installed Jupyter using [Anaconda]() then you already have `conda` which can be used to create isolated environments for experiments.  We use `conda` to first create a minimal base environment with Jupyter and related libraries.  We then clone this environment as need for our experiments.  Our base environment is created as follows \(this is Windows syntax, adjust as appropriate for your environment\):
+If you installed Jupyter using [Anaconda]() then you already have `conda` which can be used to create isolated environments for experiments.  We use `conda` to first create a minimal base environment with Jupyter and related libraries.  We then clone this environment as needed for our experiments.  Our base environment is created as follows \(this is Windows syntax, adjust as appropriate for your environment\):
 
 ```bash
 $ conda create -n book_base

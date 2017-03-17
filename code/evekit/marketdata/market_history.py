@@ -61,6 +61,7 @@ class MarketHistory:
             next_obj = MarketHistory(line)
             if next_obj.type_id in types and next_obj.region_id in regions:
                 results.append(next_obj)
+        ps.close()
         return results
 
     @staticmethod
