@@ -409,7 +409,7 @@ The `config` argument to the Swagger client turns off response validation and in
 
 We use the `getTypes` method on the `Inventory` endpoint, selecting on the `typeName` field \(using the syntax described [here](https://evekit.orbital.enterprises//#/sde/main)\).  The result is an array of all matches to our query.  In this case, there is only one type called "Tritanium" which is the first element of the result array.
 
-> ### Pro Tip
+> ### Pro Tip: Getting Python Function Documentation
 >
 > If you forget the usage of a Python function, you can bring up the Python docstring using the syntax `?function`.  Jupyter will display the docstring in a popup.  In the example above, you would use `?sde_client.Inventory.getTypes` to view the docstring.
 
@@ -777,7 +777,108 @@ The second part of the Jupyter Notebook for this example illustrates how to down
 3. We re-implement our spread computation function to operate on a DataFrame representing a snapshot instead of an array of buys and sells.  The computation is the same, except that we return "NaN" in cases where there is no well-defined spread.  This is done because the Pandas mean function, which we use in the next step, conveniently ignores NaN values.
 4. We finish by combing Pandas "groupby" and "apply" with our spread computation function to compute a series of spreads, which can then be averaged with Pandas "mean".
 
-### Example 3 - Trading Rules: Build an Order Matching Algorithm
+### Example 3 - Trading Rules: Build a Buy Matching Algorithm
+
+As described in the introductory material in this chapter, sell limit orders do not specifiy a range.  Buyers explicitly choose which sell orders they wish to buy from and, if the buyer's price is at least as large as the seller's price, then the order will match at the location of the seller \(but at the maximum of the buyer's price and the seller's price; also, the lowest priced asset at the target station always matches first\).  When selling at the market, however, the matching rules are more complicated because buy limit orders specify a range.  In order to figure out whether two orders match, the location of the buyer and seller must be compared against the range specified in the buyer's order.
+
+The analysis of more sophisticated trading strategies will eventually require that you determine which orders you can sell to in a given market.  Thus, in this example, we show how to implement a "buy order matching" algorithm.  Buy matching boils down to determining the distance between the seller and potentially matching buy orders.  We show how to use map data from the Static Data Export \(SDE\) to compute distances between buyers and sellers \(or rather, the distance between the solar systems where their stations reside\).  One added complication is that player-owned structures are not included in the SDE.  Instead, a separate data service must be consulted to map a player-owned structure to the solar system where it is located.  We show how to use one such service in this example.  Finally, we demonstrate the use of our matching algorithm against an order book snapshot.  As always, you can follow along with this example by downloading the [Jupyter Notebook](code/book/Example_3_Buy_Matching_Algorithm.ipynb).
+
+> ### NOTE
+>
+> This example requires the `scipy` package.  If you've installed Anaconda, then you should already have `scipy`.  If not, then you'll need to install it using your favorite Python package manager.
+
+Let's start by looking at a function which determines whether a sell order placed at a particular station can match a given buy order visible at the same station.  We need the following information to make this determination:
+
+* *region_id* - the ID of the region we're trying to sell in.
+* *sell_station_id* - the ID of the station where the sell order is placed.
+* *buy_station_id* - the ID of the station where the buy order is placed.
+* *order_range* - the order range of the buy order.  This will be one of "region", "solarsystem", "station", or the maximum number of jumps allowed between the buyer and seller solar systems.
+
+Strictly speaking, the region ID is not required as it can be inferred from station ID.  We include the region ID here as a reminder that trades can only occur within a single region: EVE does not currently allow cross-region market trading.  Henceforth, unless otherwise stated, we assume the selling and buying stations are within the same region.
+
+With the information above, we can write the following order matching function:
+
+```python
+def order_match(sell_station_id, buy_station_id, order_range):
+  """
+  Returns true if a sell market order placed at sell_station_id could be matched
+  by a buy order at buy_station_id with the given order_range
+  """
+  # Case 1 - "region"
+  if order_range == 'region':
+      return True
+  # Case 2 - "station"
+  if order_range == 'station':
+      return sell_station_id == buy_station_id
+  # Remaining checks require solar system IDs and distance between solar systems
+  sell_solar = get_solar_system_id(sell_station_id)
+  buy_solar = get_solar_system_id(buy_station_id)
+  # Case 3 - "solarsystem"
+  if order_range == 'solarsystem':
+      return sell_solar == buy_solar
+  # Case 4 - check jump range between solar systems
+  jump_count = compute_jumps(sell_solar, buy_solar)
+  return jump_count <= int(order_range)
+```
+
+There are two functions we need to implement to complete our matcher:
+
+* `get_solar_system_id` - maps a station ID to a solar system ID.
+* `compute_jumps` - calculates the shortest number of jumps to get from one solar system to another.
+
+We can implement most parts of these functions using the SDE.  However, if either station is a player-owned structure, then the SDE alone won't be sufficient.  Let's first assume neither station is player-owned and implement the appropriate functions.  For this example, we'll load our Jupyter notebook with region and station information as in previous examples.  We'll also include type and date information so that we can download an order book snapshot for Tritanium to use for testing:
+
+![Example Setup](img/ex3_cell1.PNG)
+
+The next cell contains our order matcher, essentially identical to the code above:
+
+![Buy Order Matching Function](img/ex3_cell2.PNG)
+
+Let's start with the `get_solar_system_id` function.  Since we're assuming that neither station is a player-owned structure, this function will be just a simple lookup from the SDE:
+
+![Solar System ID Lookup](img/ex3_cell3.PNG)
+
+Implementing the `compute_jumps` function, however, is a bit more complicated.  In order to calculate the minimum number of jumps between a pair of solar systems, we first need to determine which solar systems are adjacent, then we need to compute a minimal path using adjacency relationships.  Fortunately, the `scipy` package provides a library to help solve this straightfoward graph theory problem.  Our first task is to build an adjacency matrix indicating which solar systems are adjacent \(i.e. connected by a jump gate\).  We start by retrieving all the solar systems in the current region using the SDE:
+
+![Retrieve All Solar Systems](img/ex3_cell4.PNG)
+
+The `solar_map` dictionary will maintain a list of solar system IDs which share a jump gate.  The next bit of code populates the dictionary by fetching solar system jump gates from the SDE:
+
+![Populating Solar System Adjacency](img/ex3_cell5.PNG)
+
+With adjacency determined, we're now ready to build an adjacency matrix.  An adjacency matrix is a square matrix with dimension equal to the number of solar systems, where the value at location \(source, destination\) is set to 1 if source and destination share a jump gate, and 0 otherwise.  Once we've created our adjacency matrix, we use it to initialize a `scipy` matrix object needed for the next step:
+
+![Construct Adjacency Matrix](img/ex3_cell6.PNG)
+
+The last step is to call the appropriate `scipy` function to build a shortest paths matrix from the adjacency matrix.  The result is a matrix where the value at location \(source, destination\) is the number of solar system jumps required to move from source to destination:
+
+![Construct Shortest Path Matrix](img/ex3_cell7.PNG)
+
+With the shortest path matrix complete, we can now implement the `compute_jumps` function:
+
+![Compute Jumps Function](img/ex3_cell8.PNG)
+
+The Jupyter notebook includes a few simple tests to show that this function is working properly.  Now that our basic matching algorithm is complete, we can test it on the book snapshot we extracted.  In this case, we'll test which buy orders could potentially match a sell order placed at our target station.  This can be done with a simple loop:
+
+![Finding Matchable Buy Orders](img/ex3_cell9.PNG)
+
+Although we've found several matches, note that there are several orders for which the solar system ID can not be determined.  This is because these orders have been placed at a player-owned structure.  Another way you can tell this is the case is by looking at the location ID for these orders.  Location IDs greater than 1,000,000,000,000 \(1 trillion\) are generally player-owned structures.  Let's now turn our attention to resolving the solar system ID for player-owned structures.  The CCP supported mechanism is to use the [Universe Structures ESI Endpoint](https://esi.tech.ccp.is/latest/#!/Universe/get_universe_structures_structure_id).  This endpoint returns location information for a player-owned structure if your authenticated account is authorized to access that structure.  If your account is *not* authorized to access a given structure, then you can't view location information, *even* if the buy orders placed from the structure appear in the public market.  This is a somewhat inconvenient inconsistency in EVE's market rules, but fortunately there are third party sites which can be used to discover the location of otherwise inaccessible player-owned structures.  We use one such site in this example, primarily because it doesn't require authentication and setting up proper authentication to use the supported ESI endpoint is beyond the scope of this example.
+
+The third party site we'll use in this example is the [Citadel API](https://stop.hammerti.me.uk/api/) site, which uses a combination of the ESI and crowd-sourced reporting to track information about player-owned structures.  This site provides a very simple API for retrieving structure information based on structure ID.  You can create a client for this site using the EveKit libraries:
+
+![Using the Citadel API to look up structure information](img/ex3_cell10.PNG)
+
+The relevant information for our purposes is `systemId` which is the solar system ID.  With this service, we can implement an improved `get_solar_system_id`:
+
+![Improved solar system ID lookup](img/ex3_cell11.PNG)
+
+which fixes any missing solar systems when we attempt to match orders in our snapshot:
+
+![Proper matches now that all solar systems are resolved](img/ex3_cell12.PNG)
+
+And with that, we've implemented our buy order matcher.
+
+As currently implemented, our matcher makes frequent calls to the SDE which can be inefficient for analyzing large amounts of data.  The remainder of the Jupyter notebook for this example describes library support for caching map information for frequent access.  We end the example with a convenient library function that implements our buy matcher in it's entirety, including resolving solar system information from alternate sources.
 
 ### Example 4 - Unpublished Data: Build a Trade Heuristic
 
