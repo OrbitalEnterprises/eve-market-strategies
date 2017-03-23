@@ -882,6 +882,92 @@ As currently implemented, our matcher makes frequent calls to the SDE which can 
 
 ### Example 4 - Unpublished Data: Build a Trade Heuristic
 
+The CCP provided EVE market data endpoints provide quote and aggregated trade information.  For some trading strategies \(e.g. market making\), finer grained detail is often required.  For example, which trades matched a buy market order versus a sell market order?  What time of day do most trades occur?  Because CCP does not yet provide individual trade information, we're left to infer trade activity ourselves.  In some cases, we can deduce trades based on changes to existing marker orders, as long as those orders are not completely filled \(i.e. appear in the next order book snapshot\).  Orders which are removed, however, could either be canceled or completely filled by a trade.  As a result, we're left to use heuristics to infer trading behavior.
+
+In this example, we develop a simple trade inference heuristic.  This will be our first taste of the type of analysis we'll perform many times in later chapters in the book.  Specifically, we'll need to derive one or more hypothese to explain some market behavior; we'll need to do some basic testing to convince ourselves we're on the right track; then, we'll need to perform a back test over historical data to confirm the validity of our hypothesis.  Of course, performing well in a back test is no guarantee of future results, and back tests themselves can be misused \(e.g. overfitting\).  A discussion of proper back testing is beyond the scope of this example.  We'll touch on this topic as needed in later chapters \(there are also numerous external sources which discuss the topic\).
+
+We'll use a day of order book snapshots for Tritanium in The Forge to test our heuristic.  This example dives more deeply into analysis than previous examples.  We'll find that the "obvious" choice for estimating trades does not work very well, and we'll briefly discuss two hypotheses for how to make a better choice.  We'll show how to perform a basic analysis of these hypotheses, then we'll choose one and show a simple back test evaluating our strategy.  You can follow along with this example by downloading the [Jupyter Notebook](code/book/Example_4_Trade_Heuristic.ipynb).
+
+We begin our analysis using a single day of book data.  A quick review of EVE market mechanics tells us that once an order is placed, it can only be changed in the following ways:
+
+* The price can be changed.  Changing price also resets the issue date of the order.
+* The order can be canceled.  This removes the order from the order book.
+* The order can be partially filled.  This reduces volume for the order, but otherwise the order remains in the order book.
+* The order can be completely filled.  This removes the order from the order book.
+
+Since a partially filled order is the only unambiguous indication of a trade, let's start buy building our heuristic to catch those events.  The following function does just that:
+
+![Initial Trade Heuristic](img/ex4_cell1.PNG)
+
+This function reports the set of inferred trades as a DataFrame:
+
+![Partial Fill Trades](img/ex4_cell2.PNG)
+
+Note that the trade price may not be correct as market orders only guarantee a minimum price \(in the case of a sell\), or a maximum price \(in the case of a buy\).  The actual price of an order depends on the price of the matching order and could be higher or lower.  Note also that we can only be certain of location for sell orders since these always transact at the location of the seller, *unless* a buy order happens to list a range of `station`.
+
+The best way to test our heuristic is to compute trades for a day where market history is also available.  We've done that in this example so that we can load the relevant market history and compare results.  From that comparison, we see that partial only account for a fraction of the volume for our target day:
+
+![Difference Between Trade Heuristic and Historic Data](img/ex4_cell3.PNG)
+
+In this example, partial fills only account for about one third of the trade volume for the day.  That means complete fills make up the majority of daily volume and thus it is important to have a good estimate of these fills.  There are many ways we can estimate complete fills, but a simple strategy is to start with the naive approach of assuming any order which is removed between book snapshots must be a completed fill.  We know this will rarely be correct, but it's possible that the number of removed orders which are actually cancels is small enough to not be significant.  Let's update our trade heuristic to capture these fills in addition to the partial fills we already capture:
+
+![Naive Capture of Complete Fills](img/ex4_cell4.PNG)
+
+How does this version compare?
+
+![Naive Capture Results](img/ex4_cell5.PNG)
+
+As you can see, the naive approach significantly overshoots volume.  This tells us that in fact a significant number of removed orders are actually cancels \(or expiry\).  We'll have to more carefully estimate complete fills.  A careful and complete solution to this problem is beyond the scope of this example.  Instead, we'll now turn to the evaluation of two different strategies for capturing complete fills.  Each strategy starts with a hypothesis which attempts to characterize complete fills.  We conduct a simple analysis of each hypothesis, then implement the idea that seems most promising and show how to set up a simple back test.
+
+Our first hypothesis is that removed orders near the "top of book" are more likely to be fills than cancels.  The "top of book" is the current best bid and ask for a given asset.  In real-world markets, this is a well defined concept because all trading happens at a single location.  In EVE, however, buy orders have ranges so the current top of book varies according to station and the range of buy orders.[^9]  For simplicity, we'll ignore the location issue for now.  We'll define a threshold, `N`, such that a removed order within the first `N` top of book orders will be considered as a complete fill and thus listed as a trade.  The top `N` buy orders are simply the first `N` buy orders sorted by price \(highest price first\).  For sell orders, we can do slightly better since we know a removed sell order must be transacted at the location of the seller.  Therefore, given a sell order at location `L`, we define the top `N` sell orders to be the first `N` sell orders at location `L` sorted by price \(lowest price first\).
+
+This hypothesis sounds promising but let's test it before we commit to adding it to our trade heuristic.  The following functions count the number of trade orders and resulting volume that would be included for a given value of `N`:
+
+![Top N Strategy Test Functions](img/ex4_cell6.PNG)
+
+The following results show the performance of this strategy on our test order book for several values of `N`:
+
+![Top N Strategy Test Results](img/ex4_cell7.PNG)
+
+The first three columns in the results report the value of `N`, the number of complete fills reported, and the volume of complete fills reported.  The fourth column shows the number of fills remaining based on the historic order count after subtracting partial fills and the complete fills reported by this strategy.  Likewise, the fifth column reports remaining volume.  The results of this strategy are not very promising.  We can capture a large portion of the missing volume, but a relatively small portion of the order count.  It is likely that we're capturing a few large cancels with this strategy, thus skewing our results.  Let's look at another strategy.
+
+A second hypotheses is that large fills should be relatively rare.  We would expect that most fills stay within a relatively tight range.  Removed orders with large volume are therefore more likely to be cancels instead of fills.  Taking this hypothesis a step further, we might expect order size to cluster around the simple average of all order volumes \(e.g. an assumption that amounts to order sizes being normally distributed\).  We can spot check this hypothesis by viewing the naive set of trades as a histrogram \(recall that this set treats every removed order as a completed fill\):
+
+![Histogram of Volumes for Naive Trade Set](img/ex4_cell8.PNG)
+
+The histogram does show significant clustering near the simple order volume average \(around 4 million in this example\).  A simple strategy, then, would be to set a volume threshold such that any removed order with a volume less than the threshold would be treated as a completed fill; and, any order with a volume greater than the threshold would be treated as a cancel \(and dropped\).  As in the previous example, we can write a simple function to count the number of orders and total volume that would result from this strategy for a given volume threshold:
+
+![Volume Threshold Test Function](img/ex4_cell9.PNG)
+
+We can then test this strategy as before using various thresholds.  Historic average volume for the day seems to be a reasonable threshold, so we'll test with multiples of that volume:
+
+![Volume Threshold Test Results](img/ex4_cell10.PNG)
+
+This strategy does a better job of capturing volume, but overshoots order count.  Neither strategy seems very effective but, arguably, the threshold strategy is the better of the two.  As discussed above, trade estimation is a difficult task the further analysis of which is beyond the scope of this example.  Let us assume that we'll adopt the threshold strategy for now and turn to a back test analysis of this strategy against historic data.
+
+Before we begin our back test, we need to determine the volume threshold to use.  Our analysis used multiples of the historic average volume for testing.  If we did the same for our trade heuristic, then we could only apply the heuristic once historic volume is known.  This would preclude us from inferring trades on the current day which is not ideal for many trading strategies.  Therefore, we will arbitrarily use the moving average of average volume for the previous 10 days of trading.  This allows us to infer trades for the current day once the previous day's historic volume is known.  Based on our analysis above, we will set our volume threshold to be five times the 10-day moving average of average trading volume.  This threshold seemed to capture a reasonable amount of completed fill volume without excessively overshooting the order count.
+
+For reference, here's the final version of our trade inferrence function:
+
+![Final Version of Trade Heuristic](img/ex4_cell11.PNG)
+
+A "back test" is simply an evaluation of an algorithm over some period of historical data.  For this example, we'll test our strategy over the thirty days prior to our original test date.  The example [Jupyter Notebook](code/book/Example_4_Trade_Heuristic.ipynb) provides cells you can evaluate to download sufficient market data to local storage.  We strongly recommend you do this as book data will take significantly longer to fetch on demand over a network connection.  Once data has been downloaded, our back test is then a simple iteration over the appropriate date range:
+
+![Back Test Loop](img/ex4_cell12.PNG)
+
+We capture the results in a DataFrame for further analsyis:
+
+![Back Test Results](img/ex4_cell13.PNG)
+
+We can then view the results of our test comparing inferred trade count and volume with historic values on the same days.  The following graphs show the results of this comparison \(values near zero are better\):
+
+![Inferred Count vs. Historic Count as Percentage](img/ex4_cell14.PNG)
+![Inferred Volume vs. Historic Volume as Percentage](img/ex4_cell15.PNG)
+
+Somewhat surprisingly, inferred trade counts perform better over longer stretches than inferred trade volume.  Regardless, we would need to perform a more detailed analysis over a larger set of historical data to have any real confidence in our heuristic.
+
+The EveKit libraries do not attempt to provide any general functions for inferring trades.  The highly heuristic nature of this analsyis makes it difficult to provide a standard offering for broad use.  However, the point of this example was to introduce basic analysis techniques which we expect you'll find useful as you develop your own strategies.
+
 ### Example 5 - Important Concepts: Build a Liquidity Filter
 
 ### Example 6 - A Simple Strategy: Cross Region Trading
@@ -929,6 +1015,7 @@ The environment settings allow you to add custom configuration for Jupyter or Ip
 [^6]: The size of the window for this average, and whether the average is over all regions is not documented anywhere.
 [^7]: Whereas iPython mainly supports the Python language, the Jupyter project is more inclusive and intends to provide support for numerous "data science" languages including [R](https://www.r-project.org/) and [Julia](http://julialang.org/).  At time of writing, however, Python is still the best supported language in Jupyter.
 [^8]: Currently, the upload process begins around 0200 UTC and takes serveral hours to assemble and upload data.  Order book data for the previous day is usually available by 0800 UTC.  Market history for the previous day is usually delayed one additional day because CCP does not immediately make the data available.  For example, the data for 2017-01-01 will be processed at 0200 UTC on 2017-01-02.  However, CCP will not provide the market history snapshot for 2017-01-01 until several hours into 2017-01-02 \(i.e. after we've already started processing data for the previous day\).  This data will instead be uploaded at 0200 UTC on 2017-01-03.
+[^9]: An obvious variant of this heuristic is to assume that most volume occurs at the most active station in the region, at which the top of book is well defined \(since the location is fixed\).  You can use the order matcher from [Example 3](#example-3---trading-rules-build-an-order-matching-algorithm) to derive the proper top of book at a given station.  We leave this variant as an exercise for the reader.
 
 # Arbitrage
 
