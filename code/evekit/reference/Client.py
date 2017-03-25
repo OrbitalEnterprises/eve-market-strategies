@@ -69,6 +69,17 @@ class SDE:
             __external_clients__.set('SDE', version, existing)
         return existing
 
+    @staticmethod
+    def load_complete(query_func, **kwargs):
+        result = []
+        kwargs['contid'] = 0
+        batch, status = query_func(**kwargs).result()
+        while status.status_code == 200 and len(batch) > 0:
+            result.extend(batch)
+            kwargs['contid'] += len(batch)
+            batch, status = query_func(**kwargs).result()
+        return result
+
 
 class MarketData:
     @staticmethod

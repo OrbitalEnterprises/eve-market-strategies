@@ -337,9 +337,9 @@ We'll provide instructions for installing missing libraries in the examples wher
 >
 > Virtual environments are an advanced topic which we won't try to cover here.  Interested parties should check out the [virtualenv](https://pypi.python.org/pypi/virtualenv) package or read up on using [Conda](https://conda.io/docs/) to set up isolated development environments.  In our experience, it is easier to use `conda` to create separate Jupyter environments, but instructions exist for using `virtualenv` to do this as well.  We document our Conda setup at the end of this chapter for the curious.
 
-## Simple Strategies and Calculations
+## Example Analysis and Calculations
 
-We finish this chapter with code examples illustrating basic techniques we use in the remainder of the book.  If you'd like to follow along, you'll need to install Jupyter as described in the previous section.  As always, you can find our code as well as Jupyter notebooks in the `code` directory in our [GitHub project](https://github.com/OrbitalEnterprises/eve-market-strategies).
+We finish this chapter with code examples illustrating basic analysis techniques we use in the remainder of the book.  If you'd like to follow along, you'll need to install Jupyter as described in the previous section.  As always, you can find our code as well as Jupyter notebooks in the `code` directory in our [GitHub project](https://github.com/OrbitalEnterprises/eve-market-strategies).
 
 ### Example 1 - Data Extraction: Make a Graph of Market History
 
@@ -940,6 +940,66 @@ Somewhat surprisingly, inferred trade counts perform better over longer stretche
 The EveKit libraries do not attempt to provide any general functions for inferring trades.  The highly heuristic nature of this analsyis makes it difficult to provide a standard offering for broad use.  However, the point of this example was to introduce basic analysis techniques which we expect you'll find useful as you develop your own strategies.
 
 ### Example 5 - Important Concepts: Build a Liquidity Filter
+
+Thousands of asset types are traded in EVE's markets.  However, as in real-world markets, the frequency of trades and the price range for an asset varies widely according to type.  Trading strategies usually prefer *liquid* asset types, which are those asset types that can be bought or sold at relatively stable prices.  Such asset types are more amenable to analysis and are typically easier to buy and sell as needed in the market.  Real-world traders use liquidity as one of the prime measures for admitting or excluding asset types from their tradeable portfolio.  There are many factors that lead to price stability, but often the most important factor is daily volume.  Assets which are traded daily at reasonable volume are more likely to have rich pools of buyers and sellers, and prices are more likely to converge to a stable range.  Additional criteria, such as having roughly balanced buyers and sellers, may also be important.
+
+In this example, we derive a simple liquidity filter.  This is one of the simplest of our preliminary examples, but also one of the most important as a well chosen asset portfolio is key to many strategies.  We focus our efforts on the general framework for testing liquidity.  This framework is pluggable, allowing different filters to be inserted as needed.  We create two example filters to illustrate how to use the framework.  You can follow along with this example by downloading the [Jupyter Notebook](code/book/Example_5_Liquidity_Filter.ipynb).
+
+For this example, we'll look for liquid types in The Forge region and we'll choose to measure liquidity over the 90 days of market snapshots leading up to our reference date.  The choice of date range depends on your trading strategy: if your strategy expects recently liquid assets to remain liquid well into the future, then you should select a longer historical date range; if, instead, you only require assets to remain liquid for the next day or so, then you can select a much shorter historical range.  Likewise, we could also create a liquidity filter based on order book data instead of market snapshots.  This is usually not necessary unless your strategy calls for analyzing liquidity at certain times of day \(some market making strategies may find this information useful\).  The first cell in our notebook sets up are initial parameters:
+
+![Liquidity Filter Setup](img/ex5_cell1.PNG)
+
+If you plan to test and iterate over different liquidity filters, you'll almost certainly want to download market history for the range in question.  The next notebook cell does just that.  Make sure you are on a reasonably fast network connection before you execute this cell:
+
+![Liquidity History Download](img/ex5_cell2.PNG)
+
+Our last bit of setup is to load the set of market types in EVE's markets, then load all relevant market history into a Pandas DataFrame.  An easy way to find the set of marketable assets is to query the SDE Inventory endpoint and select types with a market group ID.  The next two cells handle this final bit of setup:
+
+![Load Marketable Tables and History](img/ex5_cell3.PNG)
+
+As we'll want to experiment with a few different liquidity filters, we'll start by creating a general framework for applying a filter to a range of market history.  Our framework will accept a liquidity filter function which will be passed a region ID, a type ID, and market history for the given region and type over our historical range.  This function will be expected to return `True` if the type should be considered liquid, and `False` otherwise.  Our framework will iterate over every region in our history, then systematically over every type in each region, and will record the set of liquid types.  The following function implements this process:
+
+![Liquidity Test Framework](img/ex5_cell4.PNG)
+
+We mentioned previously that volume, more specifically ISK volume \(e.g. $price \times volume$\), is a common measure of liquidity.  Likewise, the number of transactions on a given day is also a reasonable measure of liquidity.  We can combine these two measures to build our first liquidity filter:
+
+![Volume and Order Count Liquidity Filter](img/ex5_cell5.PNG)
+
+Note that our filter is generated by a *functor* \(a function which returns a function\) to make it easier to experiment with different parameter settings.  This filter requires a type to pass three tests:
+
+1. We must have a minimal number of days of data for the type;
+2. The type must have traded a minimum number of times each day; and,
+3. The average daily ISK volume must exceed a certain threshold.
+
+Reasonable parameters for this filter may be something like:
+
+* Each type must have traded at least 70% of the days in our range;
+* Each type must have traded at least 100 times a day; and,
+* The average daily ISK volume for each time must be at least 100 million ISK.
+
+As an example, we can apply this filter against Tritanium \(type 34\) in The Forge as follows:
+
+![Checking Liquidity of Tritanium in The Forge](img/ex5_cell6.PNG)
+
+Not surprisingly, we do indeed find that Tritanium is liquid over our date range.  The next cell checks liquidity across the entire region:
+
+![Finding Liquid Types in The Forge](img/ex5_cell7.PNG)
+
+We've truncated the output, but if you view the notebook you'll see that we've found 286 liquid types over our date range in The Forge.  The next cell shows how to view the type names of our liquid set.
+
+As a second example of a liquidity filter, we note that many assets are more active on weekends as compared to weekdays \(we define a weekend as Friday through Sunday\).  This should not surprise anyone familiar with the behavior of most EVE players.  We see this effect in market data as well.  For example, the following graph compares weekday and weekend volume for Tritanium in The Forge:
+
+![Tritanium Volume on Weekends vs. Weekdays](img/ex5_cell8.PNG)
+
+We, therefore, might expect our liquidity filter to return more types if we only consider weekends.  We can change our filter to do just that as follows:
+
+![Liquidity Filter for Weekends Only](img/ex5_cell9.PNG)
+
+After applying our new filter in our framework \(next cell\), we can compare the two results:
+
+![Liquidity All Days vs. Just Weekends](img/ex5_cell10.PNG)
+
+Our new filter does, indeed, include more types.  We'll use a liquidity filter to help choose profitable assets to trade across regions in the next example.
 
 ### Example 6 - A Simple Strategy: Cross Region Trading
 
