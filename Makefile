@@ -22,6 +22,7 @@ html: markdown
 		--include-before-body $(include_dir)/author.html \
 		--include-before-body $(include_dir)/share.html \
 		--include-after-body $(include_dir)/stats.html \
+		--webtex \
 		--title-prefix $(title) \
 		--normalize \
 		--smart \

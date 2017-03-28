@@ -1032,6 +1032,120 @@ Our new filter does, indeed, include more types.  We'll use a liquidity filter t
 
 ### Example 6 - A Simple Strategy: Cross Region Trading
 
+In our last introductory example, we'll combine techniques from previous examples to create a strategy for finding profitable cross-region trades.  Cross-region trading \(also called "Hauling"\) is a common occupation for many EVE industrialists.  By choosing the right assets, reasonable profit can be made for players willing to haul cargo between regions.  Distances between main trading centers in each region are non-trivial.  Therefore, it is worthwhile to spend a little time planning and choosing the best assets to trade.  Likewise, we'd prefer to focus on trades which are, historically, consistently profitable.  These trades are more likely to be profitable in the future.  That is not to say that capitalizing on a short-lived trend is not profitable, but that is a different type of analysis we're not considering in this example.  Finally, we'll only consider trades between high security regions in this example.  It is trivial to modify our techniqes to consider trades across all regions \(regardless of security status\).  You can follow along with this example by downloading the [Jupyter Notebook](code/book/Example_6_Cross_Region_Trading.ipynb).
+
+Our setup for this example is similar to previous examples.  We first load region information for all 15 high security regions.  We then set a date range for analysis consisting of the 90 days before our reference date.  Our last bit of setup is to retrieve the set of all market types from the Static Data Export \(SDE\).
+
+![Example Setup](img/ex6_cell1.PNG)
+
+We'll base our analysis on market snapshot history.  It is possible to instead use order book history but, as discussed in the previous example, order book level granularity is typically only useful for short term trends or very specific behavior \(such as determining the best times to buy or sell assets\).  The next cell in this example loads market snapshot history for our date range.  As in previous examples, we strongly recommend that you download market data to local storage so you can iterate on your experiments without having to reload data from the network.
+
+![Load Market Data](img/ex6_cell2.PNG)
+
+To trade successfully between regions, we need to: easily acquire assets from a source region; haul to the destination region; and, easily liquidate those same assets.  We argued in the last example that liquidity is a key indicator of the ease with which assets can be acquired or sold at stable prices.  Therefore, our first task will be to determine liquid assets in each region.  These are the only assets we'll consider for our trading strategy.  We'll use the same liquidity apparatus we created in the previous example.  Our liquidity filter will have four tests for each asset type:
+
+1. Market history must exist for a minimum number of days;
+2. Average ISK volume must exceed a given threshold;
+3. Volume must exceed a given threshold; and,
+4. Average price must *not* exceed a given threshold.
+
+The following cell creates a functor which returns this filter.  We use a functor to make it easy to vary the parameters of the filter:
+
+![Liquidity Filter](img/ex6_cell3.PNG)
+
+Initially, we'll parameterize our filter as follows \(for each type\):
+
+1. Market history may not be missing for more than two days in the date range;
+2. Average ISK volume must exceed 100M ISK;
+3. Volume must exceed 100 units; and,
+4. The price of an asset can not exceed 500M ISK.
+
+These parameters are designed to capture a wide range of regularly traded types, but exclude certain low volume and/or high priced types.  Low volume or high priced types are usually thinly traded and may induce more risk than we're comfortable with.  Once we have our parameters set, we can use the liquidity framework to find liquid types across all high security regions:
+
+![Find Liquid Types](img/ex6_cell4.PNG)
+
+Before we move to discovering profitable trades, we need to decide how we'll model trading.  A trading model describes the rules and assumptions around buying and selling assets, including: trading costs we'll incur; our assumptions around how orders will be filled; and, any other features of the market which will affect our strategy.  We can use a simple trading model for this example because we're restricting ourselves to liquid types \(in which, by construction, orders are readily filled\), and because we're modeling relatively coarse behavior \(restricting our analysis to consistently profitable trades, and the large time scale of hauling assets between regions, makes market behavior on smaller time scales less relevant\).  The main aspect of our trading model is, therfore, cost.  We'll assume, for this example, that we're buying and selling assets using limit orders.  Limit orders usually guarantee the best prices in markets and are readily filled on liquid types.  When buying with limit orders, we'll incur a broker fee of no less than 2.5% at Non-Player Character \(NPC\) stations \(with maximum trading skills\).  This means that when buying an asset, the actual cost will be 1.025 times the actual cost of the asset.  When selling with limit orders, we'll incur a broker fee and sales tax.  Sales tax is no less than 1% at NPC stations \(with maximum trading skills\).  Therefore, the proceeds of an asset sale will be 0.965 times the actual sale price of the asset.  We refer to the buy cost multiplier as the "buy cost factor", and correspondingly the "sell cost factor" is the sale cost multplier.  For this simple example, these two factors make up the bulk of our trading model.
+
+As a final piece of configuration, we specify the following requirements on the performance of our strategy:
+
+1. A trade is considered profitable only if it exceeds a given profit margin; and,
+2. A type is only admitted to the strategy if its trades are profitable for a minimum number of days in the date range.
+
+Initially, we'll require a 5% profit margin for profitable trades, and we'll require trades on a type to be profitable at least half the days in our date range.  The next cell initializes our trading model and performance settings:
+
+![Trading Model Settings](img/ex6_cell5.PNG)
+
+Now let's walk through the process of determining profitable trades between a pair of regions.  For this walk through, we'll use Domain as the source region, and The Forge as the destination region.  Our first step is to restrict our attention to types which are liquid in both regions:
+
+![Find Liquid Types in Domain and The Forge](img/ex6_cell6.PNG)
+
+We only want to consider market history restricted to these types in our target regions.  A convenient way to perform this analysis is to construct a merged DataFrame which combines market information for both regions joined on asset type and date.  Given such a DataFrame, we can filter further using our trading model to limit ourselves to types with profitable trades.  Given source region A and destination region B, the profitable rows are those for which:
+
+${\left( B_{avgPrice} \times sellCostF - A_{avgPrice} \times buyCostF \right) \over A_{avgPrice}} \ge profitMargin$
+
+We construct such a DataFrame in the next cell:
+
+![DataFrame Containing Profitable Trades](img/ex6_cell7.PNG)
+
+This DataFrame does not enforce the constraint that each type must trade profitably a minimum number of days in our date range.  We enforce this final constraint with a simple list comprehension.  We use a convenience function to then display the list of profitable types:
+
+![Profitable Trades which Meet All Criteria](img/ex6_cell8.PNG)
+
+That may seem like a small set of tradeable instruments but keep in mind that we've only considered two regions.  We finish this two region comparison by adding code to summarize our trading opportunities:
+
+![Trading Opportunity Summary](img/ex6_cell9.PNG)
+
+Despite the small set of trading opportunities, we note that the top opportunity has a margin over 20%.  That is quite respectable for a liquid type.  However, it is often prudent to take a quick look at the price and volume graphs to make sure there are no hidden problems with this trade.  Let's take a look at the price graph first for `Republic Fleet Commander Insignia II` in the date range:
+
+![Source vs. Destination Trade Prices](img/ex6_cell10.PNG)
+
+"Price x" represents the source price, and "price y" represents the destination price.  From the graph, it is clear that the price differential is fairly consistent throughout the date range.  Let's take a look at the volume graph next:
+
+![Source vs. Destination Trade Volume](img/ex6_cell11.PNG)
+
+In this case, volume at the source is considerably lower than volume at the destination.  We can make the following observations from this graph:
+
+1. We'll have to be more patient with our buy orders as it may take a while to accumulate enough assets to justify the haul;
+2. We'll likely be hauling smaller volumes unless we're comfortable waiting longer;
+3. We should have no trouble selling assets quickly at the destination; and,
+4. While the margins are good, the low volume at the source suggests total profits will not be very high.
+
+Now that we know how to find profitable trades between a pair of regions, we can implement a general function which finds profitable trades between all pairs of regions in a given set of market history:
+
+![Trade Opportunity Finder](img/ex6_cell12.PNG)
+
+This function expects a liquidity filter, market history, and parameters which constrain profit margin and profitable days.  The result of this function will be a sorted list of profitable trades ordered by profit margin \(highest margin first\).  The function, as written, is intended to be mostly self-sufficient to make it easy to use elsewhere.  You'll need to include the liquidity framework from one of the earlier cells.  Let's try this function on the complete market history for our date range:
+
+![Evaluating Trade Opportunities on all History](img/ex6_cell13.PNG)
+
+We've used the same liquidity filter as before.  Note that this function may take a few minutes to run as it first calculates liquid types in all regions in the included history.  The next cell shows a nicely formatted summary of the results:
+
+![Trade Opportunity Summary Across Full History](img/ex6_cell14.PNG)
+
+The fact that The Forge is the destination region for most trades should surprise no one familiar with EVE as The Forge is the premier trading hub in New Eden.  From the previous example, we know that some instruments are more liquid on the weekends \(we define the weekend as Friday through Sunday\).  Let's increase our profit margin threshold to 10%, then check the results for weekends:
+
+![Evaluating Trade Opportunities on Weekends Only](img/ex6_cell15.PNG)
+
+In summary form:
+
+![Trade Opportunity Summary for Weekends](img/ex6_cell16.PNG)
+
+We generate a shorter list of results, which is not surprising since we increased the profit margin threshold, but we also display the previous top asset type with `Kernite`.  Let's take a look at the price and volume comparison for `Kernite`.  First prices:
+
+![Kernite Price Comparison](img/ex6_cell17.PNG)
+
+And volume:
+
+![Kernite Volume Comparison](img/ex6_cell18.PNG)
+
+As in the non-weekend case, the price separation is robust across the entire date range \(but remember this is weekends only\).  Even better, volume at the source and destination are very similar.  This suggests we should have little difficulty buying at the source and selling at the destination.  This is likely a good trade if you're willing to make the haul.
+
+In this example, we have focused on trades which have been historically strong trading reasonably liquid assets.  Although there are many trade calculators for EVE, most do not apply a similar standard and simply report which types are profitable to trade **now**.  Such trades are well suited to casual or beginning haulers.  As a career, however, you're likely better off focusing on consistently profitable trades with good margins.
+
+While the analysis above provides convincing evidence for certain hauling routes, it leaves out two important issues.  The first issue is minor: how much should I haul?  Hauling too little will generate small total profit, while hauling too much may risk flooding the market at the destination \(and probably lowering your profit margin\).  A complete analysis of this topic is beyond the scope of this example.  As a simple rule of thumb, consider hauling no more than 10% of the total daily volume at the destination per day.  The logic behind this guidance is that the laws of supply and demand will force you to increase your buy price at the source, and lower your sale price at the destination, in order to increase your market participation.  The result will be a lower profit margin.
+
+The second issue with this analysis is more important: we've completely ignored risk.  As seasoned EVE players know, hauling anything between stations incurs a non-zero chance of getting attacked and losing everything.  A more complete analysis of hauling should include a study of risk and the likely effect on your profit.  We'll cover risk in much more detail in a later chapter.
+
 ### Setting up Isolated Environments with Conda
 
 If you installed Jupyter using [Anaconda]() then you already have `conda` which can be used to create isolated environments for experiments.  We use `conda` to first create a minimal base environment with Jupyter and related libraries.  We then clone this environment as needed for our experiments.  Our base environment is created as follows \(this is Windows syntax, adjust as appropriate for your environment\):
