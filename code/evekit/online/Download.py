@@ -214,7 +214,7 @@ def __download_order_book__(target_date, parent_dir, types=None, regions=None):
             # Write index entry for this file
             entry_name = 'interval_' + str(type_id) + '_' + name_string + '_5.book.gz'
             index_file_out.write((entry_name + " " + str(next_offset) + "\n").encode('utf-8'))
-            next_offset = file_size
+            next_offset += file_size
             # Delete file once we've added it
             os.remove(parent_dir + '/' + ff)
     bulk_file_out.close()
