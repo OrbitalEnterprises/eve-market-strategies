@@ -1201,7 +1201,18 @@ The rest of this chapter will explore arbitrage opportunities in EVE.  Impatient
 
 ![Performance of an Actual Arbitrage Strategy](img/ch2_fig1.PNG)
 
-We seeded our portfolio with 2B ISK, then executed our arbitrage strategy on this balance without using any other funds.  As of this writing, our balance is over 38B ISK for a profit of over 36B ISK in just under five months, or an average of about 7B ISK/month.  We haven't run the strategy long enough to uncover any seasonal effects, but it's clear late fall was more profitable than more recent returns.  We currently estimate a comfortable run rate of at least 3B ISK/month.  Compared to typical real-world market straegies, these returns are outstanding.
+We seeded our portfolio with 2B ISK, then executed our arbitrage strategy across the five main trading regions of EVE using only our starting balance.  We use three EVE characters to conduct our trading, placed strategically in the most active markets.  As of this writing, our balance is over 38B ISK for a profit of over 36B ISK in just under five months, or an average of about 7B ISK/month.  We haven't run the strategy long enough to uncover any seasonal effects, but it's clear late fall was more profitable than more recent returns.  We currently estimate a comfortable run rate of at least 3B ISK/month.  Compared to typical real-world market strategies, these returns are outstanding.
+
+## What Makes Arbitrage Possible?
+
+Before we get too far into analyzing arbitrage opportunites, it is worth briefly discussing why arbitrage is possible at all.  At its root, arbitrage is made possible by one or both of the following market behaviors:
+
+1. when the ask price of a source material falls below fair market value price as determined by the reprocessing equation \(see below\); and/or,
+2. when the bid price of one or more refined materials rises above fair market value price as determined by the reprocessing equation.
+
+There are many reasons why prices may move.  Given our knowledge of EVE player behavior, we know that some players regularly dispose of unwanted assets at cheap prices on the market.  We also know that some players focused on mining choose to trade raw ores directly as they may lack the skills to make trading refined materials possible.  Finally, we know that there are regular spikes in refined material prices as these materials are used to build the favored assets needed for wars and general PvP.
+
+The fact that arbitrage depends on market price moves means it is possible in some cases to actually *predict* when good opportunities will occur.  We discuss once such strategy [below](#capturing-dumping-with-buy-orders).  More generally, any price forecast algorithm has the potential to be used to predict arbitrage opportunities.
 
 ## Ore and Ice Refinement Arbitrage
 
@@ -1359,21 +1370,93 @@ Let's execute our new finder on our reference date.  Note that this execution wi
 
 The same number of opportunities are found as before, but now we have information on the full extent of each opportunity.  Opportunities early in our sample day look very promising.
 
-Based on our sample day, it looks like ore and ice arbitrage may be a viable trading strategy.  The next step is to perform a back test over a longer date range to see if arbitrage opportunities are common, or if we were just fortunate to pick this particular sample date.  Our back test should report the total value of opportunities for each day.  Note, however, that the same opportunity often persists over multiple consecutive snapshots.  Thus, simply adding all the opportunities for a day would be misleading.  Instead, we'd like to collapse multiple instances of the same opportunity into a single instance.  A simple way to do this is to collapse all consecutive opportunites for the same source material into one opportunity.  We can arbitrarily choose the first time the opportunity appears to be the representative for all consecutive appearances.  This approach isn't perfect.  It's possible that two consecutive opportunities for the same source material are, in fact, two different opportunities.  However, this simple approach will allow a reasonable approximation of the value of a day of opportunities.
+Based on our sample day, it looks like ore and ice arbitrage may be a viable trading strategy.  The next step is to perform a backtest over a longer date range to see if arbitrage opportunities are common, or if we were just fortunate to pick this particular sample date.  Our backtest should report the total value of opportunities for each day.  Note, however, that the same opportunity often persists over multiple consecutive snapshots.  Thus, simply adding all the opportunities for a day would be misleading.  Instead, we'd like to collapse multiple instances of the same opportunity into a single instance.  A simple way to do this is to collapse all consecutive opportunites for the same source material into one opportunity.  We can arbitrarily choose the first time the opportunity appears to be the representative for all consecutive appearances.  This approach isn't perfect.  It's possible that two consecutive opportunities for the same source material are, in fact, two different opportunities.  However, this simple approach will allow a reasonable approximation of the value of a day of opportunities.
 
 The next cell \(not shown\) defines the `clean_opportunities` function which "flattens" a list of opportunities as described above.  Flattening our maximized results produces the following list and summary statistics:
 
-![Flatted Opportunities for Sample Date](img/ex7_cell14.PNG)
+![Flattened Opportunities for Sample Date](img/ex7_cell14.PNG)
 
-From the summary results, ore and ice arbitrage seems like a promising strategy.  At 50M ISK per day, this strategy is worth about 1.5B ISK per month with little risk \(more on that below\).  The next example constructs a back test to determine whether this strategy remains viable over the long term.
+From the summary results, ore and ice arbitrage seems like a promising strategy.  At 50M ISK per day, this strategy would be worth about 1.5B ISK per month with little risk \(more on that below\).  The next example constructs a backtest to determine whether the long term behavior of this strategy matches the results of our sample day.
 
 ### Example 8 - Ore and Ice Arbitrage Backtest
 
+Our initial analysis in the previous example showed that ore and ice arbitrage may be a profitable strategy.  In this example, we'll backtest the strategy against a longer time range.  Our goal is to answer these key questions:
 
-* Derive check to determine whether ore/ice can be reprocessed for profit
-  * Must include trade model (sales tax)
-  * Demonstrate on a day of book data
-* Show results of three month backtest
+1. What are the average and median daily returns?
+2. What are the average and median daily profits?
+3. Are some days of the week more profitable \(or return better\) than others?
+4. Are certain times of day more profitable \(or return better\) than others?
+5. Are certain source materials more profitable \(or return better\) than others?
+
+Answers to these questions will help determine the long term viability of our strategy.
+
+We'll conduct our backtest over the three month period from 2017-01-01 to 2017-03-31.  The date range is arbitrary.  We chose this date range because it is near time of writing.  Before using any strategy, it is prudent to conduct your own backtest with an appropriate date range.
+
+Unlike previous examples, we won't provide a Jupyter notebook which performs the backtest.  The reason is that this backtest is rather time intensive, especially if run linearly for each date in the date range \(as a simple Jupyter notebook would do\).  Moreover, this backtest is [embarrassingly parallel](https://en.wikipedia.org/wiki/Embarrassingly_parallel), making it much simpler to run offline with a simple script.  To that end, we provide the [`ore_ice_arb_backtest.py`](code/book/ore_ice_arb_backtest.py) script which has the following usage:
+
+```bash
+$ python ore_ice_arb_backtest.py YYYY-MM-DD output.csv
+```
+
+This command will find all ore and ice opportunities on the given date and write those opportunites in CSV format to the specified file.  To run the complete backtest, simply run this command for every date in the date range.  If you have a reasonably powerful machine, you will be able to run multiple dates in parallel.  When all dates complete, you can concatenate all the output files to make a single results file with all opportunities for our date range.
+
+Assuming you've generated concatenated backtest results, we now turn to a [Jupyter notebook](code/book/Example_8_Ore_Ice_Arbitrage_Backtest.ipynb) which shows our analysis of the results.  We start by reading the opportunities file into a simple array:
+
+![Read Collected Opportunities](img/ex8_cell1.PNG)
+
+Next, we "clean" opportunities as in the previous example.  Cleaning joins adjacent opportunities for the same type in order to make daily profit calculations more accurate:
+
+![Cleaning Opportunities](img/ex8_cell2.PNG)
+
+To start, we'll group the results by day and look at a graph of profit over time:
+
+![Daily Profit](img/ex8_cell3.PNG)
+
+The results show a clear outlier which will make it difficult to determine whether this strategy is viable long term.  Even though the outlier might, in fact, be a valid opportunity, it is better to remove it for our analysis so that we can more accurately predict more typical behavior.  This outlier may be due to a single opportunity, or a small collection of opportunities.  To better understand the nature of the outlier, we'll graph profit for all opportunities over time:
+
+![Profit for All Opportunities](img/ex8_cell4.PNG)
+
+From this graph, it appears there are actually two significant outliers.  Removing opportunities above 150M ISK should be sufficient for our analysis.  Applying that adjustment, we can group by day and graph daily profit:
+
+![Daily Profit (Less Outliers)](img/ex8_cell5.PNG)
+
+as well as daily return \(profit / cost\):
+
+![Daily Return](img/ex8_cell6.PNG)
+
+From these results, it doesn't appear that our results from our test day are very common.  Profits are consistently in the small millions, and returns are likewise consistently in the low single digits.  We can confirm our intuition by computing daily average and median statistics:
+
+![Daily Aggregates](img/ex8_cell7.PNG)
+
+The aggregates confirm that while this strategy is profitable, we probably shouldn't focus on this approach to the exclusion of all others.  Despite the disappointing returns, let's continue our analysis to see if there is any other interesting behavior.
+
+We know from experience that EVE tends to be more active on weekends.  Do we see the same behavior in arbitrage opportunities?  Let's look at number of opportunities and total profit grouped by day of the week:
+
+![Opportunities (bar) and Profit (line) by Day of Week](img/ex8_cell8.PNG)
+
+With the caution that we're only looking at three months of data, we can draw some interesting conclusions from these results:
+
+* Tuesday has a slight edge in terms of number of opportunities, but is the clear favorite in terms of profitability.
+* Despite having a large opportunity count, the weekends are not as profitable as we might expect.
+* Sundays, in particular, have surprisingly low profit given the number of opportunities.
+
+If you can only spend one day a week executing your strategy, then these results say Tuesday is the day you should choose.
+
+What about time of day?  Grouping by hour of the day answers that question:
+
+![Opportunities (bar) and Profit (line)  by Hour of Day](img/ex8_cell9.PNG)
+
+The count of opportunities shows a very clear progression from fewest opportunites around midnight UTC, peaking with the most opportunities at 21:00 UTC.  Profit does not quite line up with the opportunity count, however.  It's not clear whether we can infer any guidelines for our trading from this data.  Note that we could combine our day of week results with hour of day results to attempt to infer the best time of day for opportunities on known high count days \(e.g. Tuesday\).  We leave this variant as an exercise for the reader.
+
+For our final bit of analysis, let's look at the data grouped by source material type:
+
+![Opportunites (bar) and Profit (line) by Type](img/ex8_cell10.PNG)
+
+We've sorted this graph by opportunity count as it seems likely that ore families will naturally group together.  In fact, we do see a distinct grouping in the plagioclase family.  This is perhaps not surprising given that plagioclase is a profitable ore in The Forge.  Conversely, an analysis in Domain might show Kernite as a more dominant ore for the same reason.  Some other pairs of ore also show grouping.  In terms of profitability, compressed dark glitter \(an ice\) is a clear outlier with a large number of opportunities as well.  This might be a focus for competitively priced bid orders to try to capture industrialists dumping excess stock on the market.
+
+Thus completes our backtest of our ore and ice arbitrage strategy.  Our results show that this strategy is profitable, but certainly not enough to be the main focus of any trader.  In our [Sample Trading Strategy](#a-sample-trading-strategy) section below, we recommend periodically checking for these opportunities in an automated fashion.
+
+Now we turn our focus to scrapmetal reprocessing as an arbitrage strategy.
 
 ## Scrapmetal Reproccessing Arbitrage
 
@@ -1440,6 +1523,11 @@ From the summary results, ore and ice arbitrage seems like a promising strategy.
 * 0.01 ISK effects cause order bunching
 * Can be bought out efficienctly with multi-buy with small effect on profit
 
+## For Further Analysis
+
+* Analyze the expected lifetime of a strategy
+* After accumulating history, look for common buyers and sellers and their behavior
+* Analyze which types produce the most opportunities.  May be highly region dependent.
 
 [^10]: This is changing with the recently announced ["PLEX split"](https://community.eveonline.com/news/dev-blogs/plex-changes-on-the-way/) which allows PLEX to be moved into and out of a special cross region container \(called the "PLEX Vault"\) shared by all characters on a given account.  With this container, you could buy PLEX in one region with one character, move the PLEX to the vault, switch to a character in a different region \(on the same account\), then pull the PLEX from the vault and sell it.  This would allow cross-region arbitrage on PLEX prices without hauling.
 [^11]: At time of writing, this page is slightly out of date.  In current game mechanics, the station owner tax is charged as an ISK amount based on refining yield, station tax and reference price, *not* as an adjustment to yield as shown on the EVE University page.
