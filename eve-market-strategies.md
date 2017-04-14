@@ -90,7 +90,7 @@ Training Broker Relations and Accounting skills is usually mandatory for serious
 
 ### Information Disclosure
 
-The primary live source of information for EVE markets is the game client UI which shows a live view of the current order book for each asset, as well as historical pricing information.  CCP provides third party developer APIs which expose similar information \(see below\), but the game client is always the most up to date view of the markets.  Several important metrics are visible from the game client including the volume \(total assets traded\) to date, and the current spread \(difference between best buy price and best sell price\) between buyers and sellers.  The order book for a given asset displays price, volume and location for each order, but does *not* display the names of market participants.  However, the names of market participants *are* recorded and visible to each counterparty when a transaction is completed.  This is a unique feature of EVE markets which is quite different from other financial markets where anonymity is preserved between counterparties.[^3]  This feature also provides an opportunity for traders to gather more information about other market participants, for example by buying or selling in small quantities to competing bids in order to discover the names of competitors.
+The primary live source of information for EVE markets is the game client UI which shows a live view of the current order book for each asset, as well as historical pricing information.  CCP provides third party developer APIs which expose similar information \(see below\), but the game client is always the most up to date view of the markets.  Several important metrics are visible from the game client including the volume \(total assets traded\) to date, and the current spread \(difference between best buy price and best sell price\) between buyers and sellers.  The order book for a given asset displays price, volume and location for each order, but does *not* display the names of market participants.  However, the names of market participants *are* recorded and visible to each counter-party when a transaction is completed.  This is a unique feature of EVE markets which is quite different from other financial markets where anonymity is preserved between counter-parties.[^3]  This feature also provides an opportunity for traders to gather more information about other market participants, for example by buying or selling in small quantities to competing bids in order to discover the names of competitors.
 
 Recent EVE expansions have added the ability to create market hubs in player-owned structures.  These hubs are added to the market for the region they are located in, allowing orders to be placed from player-owned locations.  Although market hubs are now included in regional markets, the player-owned structure itself may not be publicly accessible, or accessibility may change during the course of a day's market events.  As a result:
 
@@ -261,7 +261,7 @@ The use for this endpoint is not obvious until one needs to calculate which orde
 
 ### Discovering Trade Data
 
-As noted above, CCP currently does not provide an API endpoint for retrieving individual trades.  This lack of data is limiting in some cases, but fortunately a portion of trades can be inferred by observing changes in order book data.  This approach is effective for trades that do not completely consume a standing limit order.  However, limit orders which are removed from the order book can not be distinguished from cancelled orders.  Thus, the best we can do is rely on heuristics to attempt to estimate trades we can't otherwise infer.  Because CCP publishes daily trade volume, we do have some measure of how close our heuristics match reality.  We'll derive a simple trade estimation heuristic in [Example 4](#example-4---unpublished-data-build-a-trade-heuristic) below.
+As noted above, CCP currently does not provide an API endpoint for retrieving individual trades.  This lack of data is limiting in some cases, but fortunately a portion of trades can be inferred by observing changes in order book data.  This approach is effective for trades that do not completely consume a standing limit order.  However, limit orders which are removed from the order book can not be distinguished from canceled orders.  Thus, the best we can do is rely on heuristics to attempt to estimate trades we can't otherwise infer.  Because CCP publishes daily trade volume, we do have some measure of how close our heuristics match reality.  We'll derive a simple trade estimation heuristic in [Example 4](#example-4---unpublished-data-build-a-trade-heuristic) below.
 
 ## Tools used in this Book
 
@@ -285,7 +285,7 @@ Let's use the Swagger UI to introduce the Orbital Enterprises market collection 
 
 ![EveKit MarketData Server](img/mcs_view_1.PNG)
 
-These endpoints provide the following functons:
+These endpoints provide the following functions:
 
 * *history* - retrieves market history by type, region and date.
 * *book* - retrieves the order book snapshot by type and region closest to a specified time stamp.
@@ -350,7 +350,7 @@ The easiest way to get started with Jupyter is to install [Anaconda](https://www
 >
 > If you're familiar with Python, you'll know that Python 3 is the recommended environment for new code but, unfortunately, Python 3 broke compatibility with Python 2 in many areas.  Moreover, the large quantity of code still written in Python 2 \(at time of writing\) often leaves developers with a difficult decision as to which environment to use.  Fortunately, all of the data science libraries we need for this book have been ported to Python 3.  So we've made the decision to use Python 3 exclusively in this book.  If you *must* use Python 2, you'll find that most of our examples can be back-ported without difficulty.  However, if you don't have a strong reason to use Python 2, we recommend you stick with Python 3.
 
-The main interface to Jupyter is the notebook, which is a language *kernel* combined with code, text, graphs, etc.  A language kernel is a backend capable of executing code in a given language.  All of the examples we present in this section use the Python 3 language kernel, but Jupyter allows you to install other kernels as well \(e.g. Python 2, R, Scala, Java, etc.\).  The code within a notebook is executed by the kernel with output displayed in the notebook.  Text, graphic and other non-code artifacts are handled by the Jupyter environment itself and provide a way to document your work, or develop instructional material \(as we're doing in this book\).  Notebooks naturally keep a history of your actions \(numbered code or text sections\) and allow you to edit and re-run previous bits of code.  That is, to iterate on your experiments.  Finally, notebooks automatically checkpoint \(i.e. regularly save your progress\) and can be saved and restored at a later time.  Make sure you run your notebook on a reasonably powerful machine, however, as deeper data analysis will use up significant memory.
+The main interface to Jupyter is the notebook, which is a language *kernel* combined with code, text, graphs, etc.  A language kernel is a back end capable of executing code in a given language.  All of the examples we present in this section use the Python 3 language kernel, but Jupyter allows you to install other kernels as well \(e.g. Python 2, R, Scala, Java, etc.\).  The code within a notebook is executed by the kernel with output displayed in the notebook.  Text, graphic and other non-code artifacts are handled by the Jupyter environment itself and provide a way to document your work, or develop instructional material \(as we're doing in this book\).  Notebooks naturally keep a history of your actions \(numbered code or text sections\) and allow you to edit and re-run previous bits of code.  That is, to iterate on your experiments.  Finally, notebooks automatically checkpoint \(i.e. regularly save your progress\) and can be saved and restored at a later time.  Make sure you run your notebook on a reasonably powerful machine, however, as deeper data analysis will use up significant memory.
 
 The environment installed from Anaconda has most of the code we'll need, but from time to time you may need to install other code.  In this book, we do this in two cases:
 
@@ -362,7 +362,7 @@ We'll provide instructions for installing missing libraries in the examples wher
 
 > ### Python Virtual Environments
 >
-> Notebooks provide a basic level of code isolation, but all notebooks share the set of packages installed in the Python kernel \(as well as any default modifications made to the Python path\).  This means that any new packages you install \(such as those we provide instructions for in some of the examples\) will affect all notebooks.  This can cause version problems when two different notebooks rely on two different versions of the same package.  For this reason, Python professionals try to avoid installing project specific packages in the "global" Python kernel.  Instead, the pros create one or more "virtual environments" which isolate the customizations needed for specific work.  This lets you divide your experiments so that work in one experiment doesn't accidentally break the work you've already done in another experiment.
+> Notebooks provide a basic level of code isolation, but all notebooks share the set of packages installed in the Python kernel \(as well as any default modifications made to the Python path\).  This means that any new packages you install \(such as those we provide instructions for in some of the examples\) will affect all notebooks.  This can cause version problems when two different notebooks rely on two different versions of the same package.  For this reason, Python professionals try to avoid installing project specific packages in the "global" Python kernel.  Instead, the pros create one or more "virtual environments" which isolate the customization needed for specific work.  This lets you divide your experiments so that work in one experiment doesn't accidentally break the work you've already done in another experiment.
 >
 > Virtual environments are an advanced topic which we won't try to cover here.  Interested parties should check out the [virtualenv](https://pypi.python.org/pypi/virtualenv) package or read up on using [Conda](https://conda.io/docs/) to set up isolated development environments.  In our experience, it is easier to use `conda` to create separate Jupyter environments, but instructions exist for using `virtualenv` to do this as well.  We document our Conda setup at the end of this chapter for the curious.
 
@@ -558,7 +558,7 @@ $ curl -s -H "range: bytes=5431-8952" https://storage.googleapis.com/evekit_md/2
 
 Note that this is the same data we extracted from the downloaded archive.
 
-As an illustration of code which makes use of downloaded data \(if available\), we'll conclude this example with an introduction to library code we'll be using in later examples.  You can find our library code in the [code](https://github.com/OrbitalEnterprises/eve-market-strategies/tree/master/code) folder on our GitHub site.  You can incorporate our libraries into your notebooks by copying the [evekit](https://github.com/OrbitalEnterprises/eve-market-strategies/tree/master/code/evekit) folder \(and all its subfolders\) to your `.ipython` directory \(or another convenient directory in your Python path\).
+As an illustration of code which makes use of downloaded data \(if available\), we'll conclude this example with an introduction to library code we'll be using in later examples.  You can find our library code in the [code](https://github.com/OrbitalEnterprises/eve-market-strategies/tree/master/code) folder on our GitHub site.  You can incorporate our libraries into your notebooks by copying the [evekit](https://github.com/OrbitalEnterprises/eve-market-strategies/tree/master/code/evekit) folder \(and all its sub-folders\) to your `.ipython` directory \(or another convenient directory in your Python path\).
 
 We can re-implement this first example using the following modules from our libraries:
 
@@ -653,7 +653,7 @@ The `bookTime` field reports the actual timestamp of this snapshot in millisecon
 >
 > If you plan to work with Orbital Enterprises raw data on a frequent basis, you'll want to find a convenient tool for converting millisecond timestamps to human readable form.  The author uses the [Utime Chrome plugin](https://chrome.google.com/webstore/detail/utime/kpcibgnngaaabebmcabmkocdokepdaki?utm_source=chrome-app-launcher-info-dialog) for quick conversions.  You'll only need this when browsing the data manually.  The evekit libraries \(should you choose to use then\) handle these conversions for you.
 
-Orders in the order book are contained in the `orders` array with buy orders appearing first, followed by sell orders.  To make processing easier, buy orders are sorted with the highest priced orders first; and, sell orders are priced with the lowest priced orders first.  Order sorting simplifies spread computations but there's a catch in that a spread is only valid if the highest buy and lowest sell are eligible for matching \(except for price, of course\).  That is, the spread is not always the difference between the highest price buy and the loweset price sell, because those orders may not be matchable.  We see this behavior in the sample output above: the highest price buy order is for 5 ISK, but the lowest price sell order is 4.69 ISK.  Even though the resulting spread would be negative, which can never happen according to market order matching rules, the orders are valid because they can not match: the buy order is ranged to the solar system Otanuomi but the sell order was placed in the Obe solar system.  For the sake of simplicity, we'll limit this example to computing the spread for buy and sell orders at a given station.  We'll use "Jita IV - Moon 4 - Caldari Navy Assembly Plant" which is the most popular station in the Forge region and has location ID 60003760.  In reality, there may be many spreads for a given type in a given region as different parts of the region may have unique sets of matching orders.  Computing proper spreads in this way would also require implementing a proper order matching algorithm which we'll leave to a later example.  For strategies like market making, however, one is normally only concerned with "station spread" which is what we happen to be computing in this example.
+Orders in the order book are contained in the `orders` array with buy orders appearing first, followed by sell orders.  To make processing easier, buy orders are sorted with the highest priced orders first; and, sell orders are priced with the lowest priced orders first.  Order sorting simplifies spread computations but there's a catch in that a spread is only valid if the highest buy and lowest sell are eligible for matching \(except for price, of course\).  That is, the spread is not always the difference between the highest price buy and the lowest price sell, because those orders may not be matchable.  We see this behavior in the sample output above: the highest price buy order is for 5 ISK, but the lowest price sell order is 4.69 ISK.  Even though the resulting spread would be negative, which can never happen according to market order matching rules, the orders are valid because they can not match: the buy order is ranged to the solar system Otanuomi but the sell order was placed in the Obe solar system.  For the sake of simplicity, we'll limit this example to computing the spread for buy and sell orders at a given station.  We'll use "Jita IV - Moon 4 - Caldari Navy Assembly Plant" which is the most popular station in the Forge region and has location ID 60003760.  In reality, there may be many spreads for a given type in a given region as different parts of the region may have unique sets of matching orders.  Computing proper spreads in this way would also require implementing a proper order matching algorithm which we'll leave to a later example.  For strategies like market making, however, one is normally only concerned with "station spread" which is what we happen to be computing in this example.
 
 We assume you've already installed `bravado` as described in [Example 1](#example-1---data-Extraction-make-a-graph-of-market-history).  If you haven't installed `bravado`, please do so now.  As always, you can follow along with this example by downloading the [Jupyter notebook](code/book/Example_2_Compute_Average_Daily_Spread.ipynb).
 
@@ -665,15 +665,15 @@ We can use the Orbital Enterprises market data client to extract the first book 
 
 ![Order Book Snapshot for Tritanium in The Forge at 2017-01-01 00:00 UTC](img/ex2_cell2.PNG)
 
-Buy and sell orders are conveniently sorted in the result.  We use a filter exract these orders by type \(e.g. buy or sell\) and station ID, then implement a simple spread calculation function to calculate the spread for a set of buys and sells:
+Buy and sell orders are conveniently sorted in the result.  We use a filter extract these orders by type \(e.g. buy or sell\) and station ID, then implement a simple spread calculation function to calculate the spread for a set of buys and sells:
 
 ![Sort and Compute Spread](img/ex2_cell3.PNG)
 
-Finally, we're ready to compute spread for all 5-minute snaphots on the target date.  We can do this with a simple loop, requesting the next snapshot at each iteration and adding the spread to an array of values which are averaged at the end:
+Finally, we're ready to compute spread for all 5-minute snapshots on the target date.  We can do this with a simple loop, requesting the next snapshot at each iteration and adding the spread to an array of values which are averaged at the end:
 
 ![Compute Spreads for All Snapshots and Average](img/ex2_cell4.PNG)
 
-And with that, you've just computed avereage daily spread.
+And with that, you've just computed average daily spread.
 
 As in the first example, we now turn to order book data formats for local storage.  You can find order book files for a given day at the URL: `https://storage.googleapis.com/evekit_md/YYYY/MM/DD`.  Three files are relevant for order book data:
 
@@ -683,7 +683,7 @@ As in the first example, we now turn to order book data formats for local storag
 |interval_YYYYMMDD_5.bulk    |Order book snapshots in "bulk" form for all regions and types for the given day.|
 |interval_YYYYMMDD_5.index.gz|Order book snapshot bulk file for the given day.                                |
 
-Note that book data files are significantly larger than market history files as they contain every order book snapshot for every type in every region on a given day.  At time of writing, a typical book index file is about 100KB which is manageable.  However, bulk files are typically 500MB while zipped archives are 250MB.  A year of data is about 90GB of storage.  By the way, the `5` in the file name indicates that these are five minute snapshot files.  In the future, we may generate snapshots with dfferent intervals.  You can easily generate your own sampling frequency using the five minute samples as a source since these these are currently the highest resolution samples available.
+Note that book data files are significantly larger than market history files as they contain every order book snapshot for every type in every region on a given day.  At time of writing, a typical book index file is about 100KB which is manageable.  However, bulk files are typically 500MB while zipped archives are 250MB.  A year of data is about 90GB of storage.  By the way, the `5` in the file name indicates that these are five minute snapshot files.  In the future, we may generate snapshots with different intervals.  You can easily generate your own sampling frequency using the five minute samples as a source since these these are currently the highest resolution samples available.
 
 The tar'd archive files \(e.g. tgz files\), when extracted, contain files of the form `interval_TYPE_YYYYMMDD_5.book.gz` where `TYPE` is the type ID for which order book snapshots are recorded, and `YYYYMMDD` is the date on which the snapshots were recorded.  The content of each file is slightly more complicated and is explained below.  Here is the contents of a sample file:
 
@@ -779,7 +779,7 @@ The second part of the Jupyter Notebook for this example illustrates how to down
 
 ### Example 3 - Trading Rules: Build a Buy Matching Algorithm
 
-As described in the introductory material in this chapter, sell limit orders do not specifiy a range.  Buyers explicitly choose which sell orders they wish to buy from and, if the buyer's price is at least as large as the seller's price, then the order will match at the location of the seller \(but at the maximum of the buyer's price and the seller's price; also, the lowest priced asset at the target station always matches first\).  When selling at the market, however, the matching rules are more complicated because buy limit orders specify a range.  In order to figure out whether two orders match, the location of the buyer and seller must be compared against the range specified in the buyer's order.
+As described in the introductory material in this chapter, sell limit orders do not specify a range.  Buyers explicitly choose which sell orders they wish to buy from and, if the buyer's price is at least as large as the seller's price, then the order will match at the location of the seller \(but at the maximum of the buyer's price and the seller's price; also, the lowest priced asset at the target station always matches first\).  When selling at the market, however, the matching rules are more complicated because buy limit orders specify a range.  In order to figure out whether two orders match, the location of the buyer and seller must be compared against the range specified in the buyer's order.
 
 The analysis of more sophisticated trading strategies will eventually require that you determine which orders you can sell to in a given market.  Thus, in this example, we show how to implement a "buy order matching" algorithm.  Buy matching boils down to determining the distance between the seller and potentially matching buy orders.  We show how to use map data from the Static Data Export \(SDE\) to compute distances between buyers and sellers \(or rather, the distance between the solar systems where their stations reside\).  One added complication is that player-owned structures are not included in the SDE.  Instead, a separate data service must be consulted to map a player-owned structure to the solar system where it is located.  We show how to use one such service in this example.  Finally, we demonstrate the use of our matching algorithm against an order book snapshot.  As always, you can follow along with this example by downloading the [Jupyter Notebook](code/book/Example_3_Buy_Matching_Algorithm.ipynb).
 
@@ -838,7 +838,7 @@ Let's start with the `get_solar_system_id` function.  Since we're assuming that 
 
 ![Solar System ID Lookup](img/ex3_cell3.PNG)
 
-Implementing the `compute_jumps` function, however, is a bit more complicated.  In order to calculate the minimum number of jumps between a pair of solar systems, we first need to determine which solar systems are adjacent, then we need to compute a minimal path using adjacency relationships.  Fortunately, the `scipy` package provides a library to help solve this straightfoward graph theory problem.  Our first task is to build an adjacency matrix indicating which solar systems are adjacent \(i.e. connected by a jump gate\).  We start by retrieving all the solar systems in the current region using the SDE:
+Implementing the `compute_jumps` function, however, is a bit more complicated.  In order to calculate the minimum number of jumps between a pair of solar systems, we first need to determine which solar systems are adjacent, then we need to compute a minimal path using adjacency relationships.  Fortunately, the `scipy` package provides a library to help solve this straightforward graph theory problem.  Our first task is to build an adjacency matrix indicating which solar systems are adjacent \(i.e. connected by a jump gate\).  We start by retrieving all the solar systems in the current region using the SDE:
 
 ![Retrieve All Solar Systems](img/ex3_cell4.PNG)
 
@@ -884,7 +884,7 @@ As currently implemented, our matcher makes frequent calls to the SDE which can 
 
 The CCP provided EVE market data endpoints provide quote and aggregated trade information.  For some trading strategies \(e.g. market making\), finer grained detail is often required.  For example, which trades matched a buy market order versus a sell market order?  What time of day do most trades occur?  Because CCP does not yet provide individual trade information, we're left to infer trade activity ourselves.  In some cases, we can deduce trades based on changes to existing marker orders, as long as those orders are not completely filled \(i.e. appear in the next order book snapshot\).  Orders which are removed, however, could either be canceled or completely filled by a trade.  As a result, we're left to use heuristics to infer trading behavior.
 
-In this example, we develop a simple trade inference heuristic.  This will be our first taste of the type of analysis we'll perform many times in later chapters in the book.  Specifically, we'll need to derive one or more hypothese to explain some market behavior; we'll need to do some basic testing to convince ourselves we're on the right track; then, we'll need to perform a back test over historical data to confirm the validity of our hypothesis.  Of course, performing well in a back test is no guarantee of future results, and back tests themselves can be misused \(e.g. overfitting\).  A discussion of proper back testing is beyond the scope of this example.  We'll touch on this topic as needed in later chapters \(there are also numerous external sources which discuss the topic\).
+In this example, we develop a simple trade inference heuristic.  This will be our first taste of the type of analysis we'll perform many times in later chapters in the book.  Specifically, we'll need to derive one or more hypotheses to explain some market behavior; we'll need to do some basic testing to convince ourselves we're on the right track; then, we'll need to perform a back test over historical data to confirm the validity of our hypothesis.  Of course, performing well in a back test is no guarantee of future results, and back tests themselves can be misused \(e.g. over-fitting\).  A discussion of proper back testing is beyond the scope of this example.  We'll touch on this topic as needed in later chapters \(there are also numerous external sources which discuss the topic\).
 
 We'll use a day of order book snapshots for Tritanium in The Forge to test our heuristic.  This example dives more deeply into analysis than previous examples.  We'll find that the "obvious" choice for estimating trades does not work very well, and we'll briefly discuss two hypotheses for how to make a better choice.  We'll show how to perform a basic analysis of these hypotheses, then we'll choose one and show a simple back test evaluating our strategy.  You can follow along with this example by downloading the [Jupyter Notebook](code/book/Example_4_Trade_Heuristic.ipynb).
 
@@ -931,7 +931,7 @@ The following results show the performance of this strategy on our test order bo
 
 The first three columns in the results report the value of `N`, the number of complete fills reported, and the volume of complete fills reported.  The fourth column shows the number of fills remaining based on the historic order count after subtracting partial fills and the complete fills reported by this strategy.  Likewise, the fifth column reports remaining volume.  The results of this strategy are not very promising.  We can capture a large portion of the missing volume, but a relatively small portion of the order count.  It is likely that we're capturing a few large cancels with this strategy, thus skewing our results.  Let's look at another strategy.
 
-A second hypotheses is that large fills should be relatively rare.  We would expect that most fills stay within a relatively tight range.  Removed orders with large volume are therefore more likely to be cancels instead of fills.  Taking this hypothesis a step further, we might expect order size to cluster around the simple average of all order volumes \(e.g. an assumption that amounts to order sizes being normally distributed\).  We can spot check this hypothesis by viewing the naive set of trades as a histrogram \(recall that this set treats every removed order as a completed fill\):
+A second hypotheses is that large fills should be relatively rare.  We would expect that most fills stay within a relatively tight range.  Removed orders with large volume are therefore more likely to be cancels instead of fills.  Taking this hypothesis a step further, we might expect order size to cluster around the simple average of all order volumes \(e.g. an assumption that amounts to order sizes being normally distributed\).  We can spot check this hypothesis by viewing the naive set of trades as a histogram \(recall that this set treats every removed order as a completed fill\):
 
 ![Histogram of Volumes for Naive Trade Set](img/ex4_cell8.PNG)
 
@@ -947,7 +947,7 @@ This strategy does a better job of capturing volume, but overshoots order count.
 
 Before we begin our back test, we need to determine the volume threshold to use.  Our analysis used multiples of the historic average volume for testing.  If we did the same for our trade heuristic, then we could only apply the heuristic once historic volume is known.  This would preclude us from inferring trades on the current day which is not ideal for many trading strategies.  Therefore, we will arbitrarily use the moving average of average volume for the previous 10 days of trading.  This allows us to infer trades for the current day once the previous day's historic volume is known.  Based on our analysis above, we will set our volume threshold to be five times the 10-day moving average of average trading volume.  This threshold seemed to capture a reasonable amount of completed fill volume without excessively overshooting the order count.
 
-For reference, here's the final version of our trade inferrence function:
+For reference, here's the final version of our trade inference function:
 
 ![Final Version of Trade Heuristic](img/ex4_cell11.PNG)
 
@@ -955,7 +955,7 @@ A "back test" is simply an evaluation of an algorithm over some period of histor
 
 ![Back Test Loop](img/ex4_cell12.PNG)
 
-We capture the results in a DataFrame for further analsyis:
+We capture the results in a DataFrame for further analysis:
 
 ![Back Test Results](img/ex4_cell13.PNG)
 
@@ -966,11 +966,11 @@ We can then view the results of our test comparing inferred trade count and volu
 
 Somewhat surprisingly, inferred trade counts perform better over longer stretches than inferred trade volume.  Regardless, we would need to perform a more detailed analysis over a larger set of historical data to have any real confidence in our heuristic.
 
-The EveKit libraries do not attempt to provide any general functions for inferring trades.  The highly heuristic nature of this analsyis makes it difficult to provide a standard offering for broad use.  However, the point of this example was to introduce basic analysis techniques which we expect you'll find useful as you develop your own strategies.
+The EveKit libraries do not attempt to provide any general functions for inferring trades.  The highly heuristic nature of this analysis makes it difficult to provide a standard offering for broad use.  However, the point of this example was to introduce basic analysis techniques which we expect you'll find useful as you develop your own strategies.
 
 ### Example 5 - Important Concepts: Build a Liquidity Filter
 
-Thousands of asset types are traded in EVE's markets.  However, as in real-world markets, the frequency of trades and the price range for an asset varies widely according to type.  Trading strategies usually prefer *liquid* asset types, which are those asset types that can be bought or sold at relatively stable prices.  Such asset types are more amenable to analysis and are typically easier to buy and sell as needed in the market.  Real-world traders use liquidity as one of the prime measures for admitting or excluding asset types from their tradeable portfolio.  There are many factors that lead to price stability, but often the most important factor is daily volume.  Assets which are traded daily at reasonable volume are more likely to have rich pools of buyers and sellers, and prices are more likely to converge to a stable range.  Additional criteria, such as having roughly balanced buyers and sellers, may also be important.
+Thousands of asset types are traded in EVE's markets.  However, as in real-world markets, the frequency of trades and the price range for an asset varies widely according to type.  Trading strategies usually prefer *liquid* asset types, which are those asset types that can be bought or sold at relatively stable prices.  Such asset types are more amenable to analysis and are typically easier to buy and sell as needed in the market.  Real-world traders use liquidity as one of the prime measures for admitting or excluding asset types from their tradable portfolio.  There are many factors that lead to price stability, but often the most important factor is daily volume.  Assets which are traded daily at reasonable volume are more likely to have rich pools of buyers and sellers, and prices are more likely to converge to a stable range.  Additional criteria, such as having roughly balanced buyers and sellers, may also be important.
 
 In this example, we derive a simple liquidity filter.  This is one of the simplest of our preliminary examples, but also one of the most important as a well chosen asset portfolio is key to many strategies.  We focus our efforts on the general framework for testing liquidity.  This framework is pluggable, allowing different filters to be inserted as needed.  We create two example filters to illustrate how to use the framework.  You can follow along with this example by downloading the [Jupyter Notebook](code/book/Example_5_Liquidity_Filter.ipynb).
 
@@ -1032,7 +1032,7 @@ Our new filter does, indeed, include more types.  We'll use a liquidity filter t
 
 ### Example 6 - A Simple Strategy: Cross Region Trading
 
-In our last introductory example, we'll combine techniques from previous examples to create a strategy for finding profitable cross-region trades.  Cross-region trading \(also called "Hauling"\) is a common occupation for many EVE industrialists.  By choosing the right assets, reasonable profit can be made for players willing to haul cargo between regions.  Distances between main trading centers in each region are non-trivial.  Therefore, it is worthwhile to spend a little time planning and choosing the best assets to trade.  Likewise, we'd prefer to focus on trades which are, historically, consistently profitable.  These trades are more likely to be profitable in the future.  That is not to say that capitalizing on a short-lived trend is not profitable, but that is a different type of analysis we're not considering in this example.  Finally, we'll only consider trades between high security regions in this example.  It is trivial to modify our techniqes to consider trades across all regions \(regardless of security status\).  You can follow along with this example by downloading the [Jupyter Notebook](code/book/Example_6_Cross_Region_Trading.ipynb).
+In our last introductory example, we'll combine techniques from previous examples to create a strategy for finding profitable cross-region trades.  Cross-region trading \(also called "Hauling"\) is a common occupation for many EVE industrialists.  By choosing the right assets, reasonable profit can be made for players willing to haul cargo between regions.  Distances between main trading centers in each region are non-trivial.  Therefore, it is worthwhile to spend a little time planning and choosing the best assets to trade.  Likewise, we'd prefer to focus on trades which are, historically, consistently profitable.  These trades are more likely to be profitable in the future.  That is not to say that capitalizing on a short-lived trend is not profitable, but that is a different type of analysis we're not considering in this example.  Finally, we'll only consider trades between high security regions in this example.  It is trivial to modify our techniques to consider trades across all regions \(regardless of security status\).  You can follow along with this example by downloading the [Jupyter Notebook](code/book/Example_6_Cross_Region_Trading.ipynb).
 
 Our setup for this example is similar to previous examples.  We first load region information for all 15 high security regions.  We then set a date range for analysis consisting of the 90 days before our reference date.  Our last bit of setup is to retrieve the set of all market types from the Static Data Export \(SDE\).
 
@@ -1064,7 +1064,7 @@ These parameters are designed to capture a wide range of regularly traded types,
 
 ![Find Liquid Types](img/ex6_cell4.PNG)
 
-Before we move to discovering profitable trades, we need to decide how we'll model trading.  A trading model describes the rules and assumptions around buying and selling assets, including: trading costs we'll incur; our assumptions around how orders will be filled; and, any other features of the market which will affect our strategy.  We can use a simple trading model for this example because we're restricting ourselves to liquid types \(in which, by construction, orders are readily filled\), and because we're modeling relatively coarse behavior \(restricting our analysis to consistently profitable trades, and the large time scale of hauling assets between regions, makes market behavior on smaller time scales less relevant\).  The main aspect of our trading model is, therfore, cost.  We'll assume, for this example, that we're buying and selling assets using limit orders.  Limit orders usually guarantee the best prices in markets and are readily filled on liquid types.  When buying with limit orders, we'll incur a broker fee of no less than 2.5% at Non-Player Character \(NPC\) stations \(with maximum trading skills\).  This means that when buying an asset, the actual cost will be 1.025 times the actual cost of the asset.  When selling with limit orders, we'll incur a broker fee and sales tax.  Sales tax is no less than 1% at NPC stations \(with maximum trading skills\).  Therefore, the proceeds of an asset sale will be 0.965 times the actual sale price of the asset.  We refer to the buy cost multiplier as the "buy cost factor", and correspondingly the "sell cost factor" is the sale cost multplier.  For this simple example, these two factors make up the bulk of our trading model.
+Before we move to discovering profitable trades, we need to decide how we'll model trading.  A trading model describes the rules and assumptions around buying and selling assets, including: trading costs we'll incur; our assumptions around how orders will be filled; and, any other features of the market which will affect our strategy.  We can use a simple trading model for this example because we're restricting ourselves to liquid types \(in which, by construction, orders are readily filled\), and because we're modeling relatively coarse behavior \(restricting our analysis to consistently profitable trades, and the large time scale of hauling assets between regions, makes market behavior on smaller time scales less relevant\).  The main aspect of our trading model is, therefore, cost.  We'll assume, for this example, that we're buying and selling assets using limit orders.  Limit orders usually guarantee the best prices in markets and are readily filled on liquid types.  When buying with limit orders, we'll incur a broker fee of no less than 2.5% at Non-Player Character \(NPC\) stations \(with maximum trading skills\).  This means that when buying an asset, the actual cost will be 1.025 times the actual cost of the asset.  When selling with limit orders, we'll incur a broker fee and sales tax.  Sales tax is no less than 1% at NPC stations \(with maximum trading skills\).  Therefore, the proceeds of an asset sale will be 0.965 times the actual sale price of the asset.  We refer to the buy cost multiplier as the "buy cost factor", and correspondingly the "sell cost factor" is the sale cost multiplier.  For this simple example, these two factors make up the bulk of our trading model.
 
 As a final piece of configuration, we specify the following requirements on the performance of our strategy:
 
@@ -1091,7 +1091,7 @@ This DataFrame does not enforce the constraint that each type must trade profita
 
 ![Profitable Trades which Meet All Criteria](img/ex6_cell8.PNG)
 
-That may seem like a small set of tradeable instruments but keep in mind that we've only considered two regions.  We finish this two region comparison by adding code to summarize our trading opportunities:
+That may seem like a small set of tradable instruments but keep in mind that we've only considered two regions.  We finish this two region comparison by adding code to summarize our trading opportunities:
 
 ![Trading Opportunity Summary](img/ex6_cell9.PNG)
 
@@ -1188,14 +1188,14 @@ The environment settings allow you to add custom configuration for Jupyter or Ip
 [^5]: CCP has an interesting view on the legality of these efforts.  The End User License Agreement (EULA) explicitly forbids cache scraping.  However, CCP has consistently said that they enforce the EULA at their discretion and, practically speaking, they have tolerated scraping market data for many years.  More recently, CCP has said many of their new third party APIs are intended to eliminate the need for cache scraping.  The new market data APIs are a direct result of such efforts.
 [^6]: The size of the window for this average, and whether the average is over all regions is not documented anywhere.
 [^7]: Whereas iPython mainly supports the Python language, the Jupyter project is more inclusive and intends to provide support for numerous "data science" languages including [R](https://www.r-project.org/) and [Julia](http://julialang.org/).  At time of writing, however, Python is still the best supported language in Jupyter.
-[^8]: Currently, the upload process begins around 0200 UTC and takes serveral hours to assemble and upload data.  Order book data for the previous day is usually available by 0800 UTC.  Market history for the previous day is usually delayed one additional day because CCP does not immediately make the data available.  For example, the data for 2017-01-01 will be processed at 0200 UTC on 2017-01-02.  However, CCP will not provide the market history snapshot for 2017-01-01 until several hours into 2017-01-02 \(i.e. after we've already started processing data for the previous day\).  This data will instead be uploaded at 0200 UTC on 2017-01-03.
+[^8]: Currently, the upload process begins around 0200 UTC and takes several hours to assemble and upload data.  Order book data for the previous day is usually available by 0800 UTC.  Market history for the previous day is usually delayed one additional day because CCP does not immediately make the data available.  For example, the data for 2017-01-01 will be processed at 0200 UTC on 2017-01-02.  However, CCP will not provide the market history snapshot for 2017-01-01 until several hours into 2017-01-02 \(i.e. after we've already started processing data for the previous day\).  This data will instead be uploaded at 0200 UTC on 2017-01-03.
 [^9]: An obvious variant of this heuristic is to assume that most volume occurs at the most active station in the region, at which the top of book is well defined \(since the location is fixed\).  You can use the order matcher from [Example 3](#example-3---trading-rules-build-an-order-matching-algorithm) to derive the proper top of book at a given station.  We leave this variant as an exercise for the reader.
 
 # Arbitrage
 
-In real-world markets, arbitrage is the process of simultaneously purchasing and selling an asset \(or similar assets\) in different markets.  An arbitrage trade exploits price differences between the same asset in different markets, or between an asset and related assets in the same market.  Such differences occur because of market inefficiencies.  That is, when the price of an asset deviates from *fair market value*, which is the price at which "reasonably knowledgeable" investors are willing to trade an asset.  A "reasonably knowledgeable" investor is assumed to be implicitly aware of all the factors which influence an asset's price, which are then incorporated to select a fair price for trade.  Trading strategies we'll discuss in later chapters derive their profit from these price deviations and their eventual correction.  Price correction, however, is not required for arbitrage.  In fact, arbitrage strategies only profit while price discrepanices exist.  Can we ever be sure price discrepancies *do* exist?  Generally speaking, we don't know that this will ever be the case.  In particular, subscribers to the [Efficient-Market Hypothesis](https://en.wikipedia.org/wiki/Efficient-market_hypothesis), which states that asset prices always \(eventually\) converge to fair market value, might say that price discrepancies are either non-existent or too rare to be profitable in a modern market.  In EVE, however, we'll show that these opportunities do exist and make a respectable profit.
+In real-world markets, arbitrage is the process of simultaneously purchasing and selling an asset \(or similar assets\) in different markets.  An arbitrage trade exploits price differences between the same asset in different markets, or between an asset and related assets in the same market.  Such differences occur because of market inefficiencies.  That is, when the price of an asset deviates from *fair market value*, which is the price at which "reasonably knowledgeable" investors are willing to trade an asset.  A "reasonably knowledgeable" investor is assumed to be implicitly aware of all the factors which influence an asset's price, which are then incorporated to select a fair price for trade.  Trading strategies we'll discuss in later chapters derive their profit from these price deviations and their eventual correction.  Price correction, however, is not required for arbitrage.  In fact, arbitrage strategies only profit while price discrepancies exist.  Can we ever be sure price discrepancies *do* exist?  Generally speaking, we don't know that this will ever be the case.  In particular, subscribers to the [Efficient-Market Hypothesis](https://en.wikipedia.org/wiki/Efficient-market_hypothesis), which states that asset prices always \(eventually\) converge to fair market value, might say that price discrepancies are either non-existent or too rare to be profitable in a modern market.  In EVE, however, we'll show that these opportunities do exist and make a respectable profit.
 
-In EVE markets, an arbitrage trade of the same asset in different markets is not possible without hauling[^10].  Instead, arbitrage opportunites in EVE are based on assets which can be refined or reprocessed into related assets which are also sold on the market.  This type of arbitrage is similar to [Index Arbitrage](https://en.wikipedia.org/wiki/Index_arbitrage) in real-world markets.  For example, raw ores like Veldspar can be traded on the market.  But Veldspar can also be refined into Tritanium which can *also* be traded on the market.  Therefore, the fair market value of Veldspar is dependent on the price of Tritanium.  If the price of Veldspar deviates far enough below fair market value, it may become profitable to buy Veldspar, refine it to Tritanium, and sell the Tritanium.  This is the essence of the trading strategies we discuss in this chapter.
+In EVE markets, an arbitrage trade of the same asset in different markets is not possible without hauling[^10].  Instead, arbitrage opportunities in EVE are based on assets which can be refined or reprocessed into related assets which are also sold on the market.  This type of arbitrage is similar to [Index Arbitrage](https://en.wikipedia.org/wiki/Index_arbitrage) in real-world markets.  For example, raw ores like Veldspar can be traded on the market.  But Veldspar can also be refined into Tritanium which can *also* be traded on the market.  Therefore, the fair market value of Veldspar is dependent on the price of Tritanium.  If the price of Veldspar deviates far enough below fair market value, it may become profitable to buy Veldspar, refine it to Tritanium, and sell the Tritanium.  This is the essence of the trading strategies we discuss in this chapter.
 
 The rest of this chapter will explore arbitrage opportunities in EVE.  Impatient readers may wonder whether their time is well spent on this strategy.  Are arbitrage opportunities profitable?  If so, how much?  We won't make a habit of this, but let's take a look at performance we've been able to achieve here at Orbital Enterprises.  The following graph shows performance of our arbitrage based strategy from November 2016 through March 2017:
 
@@ -1205,7 +1205,7 @@ We seeded our portfolio with 2B ISK, then executed our arbitrage strategy across
 
 ## What Makes Arbitrage Possible?
 
-Before we get too far into analyzing arbitrage opportunites, it is worth briefly discussing why arbitrage is possible at all.  At its root, arbitrage is made possible by one or both of the following market behaviors:
+Before we get too far into analyzing arbitrage opportunities, it is worth briefly discussing why arbitrage is possible at all.  At its root, arbitrage is made possible by one or both of the following market behaviors:
 
 1. when the ask price of a source material falls below fair market value price as determined by the reprocessing equation \(see below\); and/or,
 2. when the bid price of one or more refined materials rises above fair market value price as determined by the reprocessing equation.
@@ -1240,12 +1240,12 @@ $\sum_i\left(v_i \times e \times p_b(c_i)\right) - \sum_i\left(v_i \times e \tim
 
 which is, respectively, the profit from selling the refined materials, less sales tax and less refinement tax.  The last term \($r_m \times p_a(r)$\) in the opportunity equation is the cost of buying the ore or ice to refine.
 
-The only factors in this equation which can be influenced by the player are efficiency and station refining tax.  Station refining tax is based on player standings towards the refining station and starts at 5%.  This tax is 0% if standing is 6.67 or better.  Efficiency is determined by the product of the following attributes:
+The only factors in this equation which can be influenced by the player are efficiency and station refining tax.  Station refining tax is based on player standings towards the refining station and starts at 5%.  At time of writing, this tax is 0% if standing is 6.67 or better.  Efficiency is determined by the product of the following attributes:
 
 * Station base refining efficiency \(a value between 0 and 1\).
 * Reprocessing skill multiplier which is $1.0 + 0.03 \times {level}$ for a maximum of $1.15$.
 * Reprocessing efficiency skill multiplier which is $1.0 + 0.02 \times {level}$ for a maximum of $1.10$.
-* Ore specific processing skill multiplier \(ores only\) which is $1.0 + 0.02 \times {level}$ for a maxium of $1.10$.
+* Ore specific processing skill multiplier \(ores only\) which is $1.0 + 0.02 \times {level}$ for a maximum of $1.10$.
 * Ice processing skill multiplier \(ice only\) which is $1.0 + 0.02 \times {level}$ for a maximum of $1.10$.
 * Refining implant multiplier if the refining player has an appropriate implant \(e.g. Zainou 'Beancounter' Reprocessing\).
 
@@ -1257,7 +1257,7 @@ With the theory established, we'll turn now to developing code to detect arbitra
 
 In this example, we'll develop code to look for arbitrage opportunities using a day of order book market data.  You can follow along with this example by downloading the [Jupyter Notebook](code/book/Example_7_Ore_and_Ice_Arbitrage.ipynb).
 
-The setup for this example is to choose a region, station and reference date.  Our goal is to find opportunities to buy ore or ice at our chosen station, then sell refined materials for a profit at the same station.  In this example, we'll use 'Jita IV - Moon 4 - Caldari Navy Assembly Plant' as our station in The Forge region.  Players familiar with EVE will no this is easily the busiest station in high security space.  The following cell shows our setup:
+The setup for this example is to choose a region, station and reference date.  Our goal is to find opportunities to buy ore or ice at our chosen station, then sell refined materials for a profit at the same station.  In this example, we'll use 'Jita IV - Moon 4 - Caldari Navy Assembly Plant' as our station in The Forge region.  Players familiar with EVE will know this is easily the busiest station in high security space.  The following cell shows our setup:
 
 ![Region and Station Setup](img/ex7_cell1.PNG)
 
@@ -1280,11 +1280,11 @@ As a last initialization step, we'll need to choose values for efficiency, sales
 * $salesTax = 0.01$ - this represents sales tax at a typical NPC station with maximum skills.
 * $stationTax = 0.04$ - this is an empirical estimation which accounts for replacing market reference prices with actual prices \(see below\).
 
-Now we're ready to look for arbtrage opportunities.  The equations we derived above are suitable for checking whether an arbitrage opportunity exists, but do not reflect how we'd typically go about looking for opportunities in data.  An actual strategy for finding arbitrage opportunities would need to simulate buying source material \(based on order book data\), then simulate refining and selling the refined materials \(also using order book data\).  We would execute this procedure on every snapshot of a historical day of data, or on the latest snapshot if we are running our strategy live.  The following pseudo-code describes a basic arbitrage opportunity finder for a day of order book data:
+Now we're ready to look for arbitrage opportunities.  The equations we derived above are suitable for checking whether an arbitrage opportunity exists, but do not reflect how we'd typically go about looking for opportunities in data.  An actual strategy for finding arbitrage opportunities would need to simulate buying source material \(based on order book data\), then simulate refining and selling the refined materials \(also using order book data\).  We would execute this procedure on every snapshot of a historical day of data, or on the latest snapshot if we are running our strategy live.  The following pseudo-code describes a basic arbitrage opportunity finder for a day of order book data:
 
 ```
 for each snapshot S:
-  for each refineable asset r:
+  for each refinable asset r:
     let r_m = minimum refinable volume for r
     while profitable:
       determine whether we can buy r_m units of r
@@ -1302,9 +1302,15 @@ for each snapshot S:
             break
         if gross > cost:
           record opportunity
+	else:
+	  # no longer profitable
+	  break
+      else:
+        # no more source material to buy
+        break
 ```
 
-This process considers all refinable assets for each snapshot.  The check for an opportunity consists of first attempting to buy enough volume of a refineable asset, then attempting to sell the refined materials.  If the gross proceeds from selling the refined materials exceeds the cost of buying the refined asset, plus reproccessing tax, then the opportunity is profitable.  We can determine whether it is possible to buy a refineable asset, or whether it is possible to sell a refined material, by consulting orders in the order book.  We maximize the profit for a given refineable asset by continuing to buy and refine until it is no longer profitable to do so.  Let's take a look at code which implements this process.
+This process considers all refinable assets for each snapshot.  The check for an opportunity consists of first attempting to buy enough volume of a refinable asset, then attempting to sell the refined materials.  If the gross proceeds from selling the refined materials exceeds the cost of buying the refined asset, plus reprocessing tax, then the opportunity is profitable.  We can determine whether it is possible to buy a refinable asset, or whether it is possible to sell a refined material, by consulting orders in the order book.  We maximize the profit for a given refinable asset by continuing to buy and refine until it is no longer profitable to do so.
 
 Maximizing each opportunity is complicated because the state of orders must be maintained between each refinement cycle.  That is, orders must be "used up" as we buy and sell material over several refinement cycles.  For now, we'll implement a much simpler process which only attempts to find the *first* opportunity in a snapshot for each refinable type.  We'll derive a maximizing process later in the example.  The first function we'll implement attempts to buy enough source material at the given station to allow reprocessing to occur.  The needed volume may be filled over multiple orders.  Thus, the result of this function is a list of order pairs $(p_1, v_1), ..., (p_n, v_n)$ representing the prices and volumes of orders which were filled to buy the necessary material.  An empty list is returned if sufficient material can't be purchased:
 
@@ -1347,7 +1353,7 @@ Our buy function has the side effect that orders in the order list we pass are u
 
 ![Sell Function on Order Lists](img/ex7_cell10.PNG)
 
-Our sell function has the same side effect as our buy function: orders in the order list are updated as they are consumed.  Since we'll be manipulating order lists frequently, our next cell \(not shown\) implements convenience functions for extracing buy and sell orders from a snapshot into an order list.  We're now ready to write a function which attempts to find and maximize an opportunity on a single refinable type:
+Our sell function has the same side effect as our buy function: orders in the order list are updated as they are consumed.  Since we'll be manipulating order lists frequently, our next cell \(not shown\) implements convenience functions for extracting buy and sell orders from a snapshot into an order list.  We're now ready to write a function which attempts to find and maximize an opportunity on a single refinable type:
 
 ![Maximizing an Opportunity on a Single Type](img/ex7_cell11.PNG)
 
@@ -1370,17 +1376,17 @@ Let's execute our new finder on our reference date.  Note that this execution wi
 
 The same number of opportunities are found as before, but now we have information on the full extent of each opportunity.  Opportunities early in our sample day look very promising.
 
-Based on our sample day, it looks like ore and ice arbitrage may be a viable trading strategy.  The next step is to perform a backtest over a longer date range to see if arbitrage opportunities are common, or if we were just fortunate to pick this particular sample date.  Our backtest should report the total value of opportunities for each day.  Note, however, that the same opportunity often persists over multiple consecutive snapshots.  Thus, simply adding all the opportunities for a day would be misleading.  Instead, we'd like to collapse multiple instances of the same opportunity into a single instance.  A simple way to do this is to collapse all consecutive opportunites for the same source material into one opportunity.  We can arbitrarily choose the first time the opportunity appears to be the representative for all consecutive appearances.  This approach isn't perfect.  It's possible that two consecutive opportunities for the same source material are, in fact, two different opportunities.  However, this simple approach will allow a reasonable approximation of the value of a day of opportunities.
+Based on our sample day, it looks like ore and ice arbitrage may be a viable trading strategy.  The next step is to perform a back test over a longer date range to see if arbitrage opportunities are common, or if we were just fortunate to pick this particular sample date.  Our back test should report the total value of opportunities for each day.  Note, however, that the same opportunity often persists over multiple consecutive snapshots.  Thus, simply adding all the opportunities for a day would be misleading.  Instead, we'd like to collapse multiple instances of the same opportunity into a single instance.  A simple way to do this is to collapse all consecutive opportunities for the same source material into one opportunity.  We can arbitrarily choose the first time the opportunity appears to be the representative for all consecutive appearances.  This approach isn't perfect.  It's possible that two consecutive opportunities for the same source material are, in fact, two different opportunities.  However, this simple approach will allow a reasonable approximation of the value of a day of opportunities.
 
 The next cell \(not shown\) defines the `clean_opportunities` function which "flattens" a list of opportunities as described above.  Flattening our maximized results produces the following list and summary statistics:
 
 ![Flattened Opportunities for Sample Date](img/ex7_cell14.PNG)
 
-From the summary results, ore and ice arbitrage seems like a promising strategy.  At 50M ISK per day, this strategy would be worth about 1.5B ISK per month with little risk \(more on that below\).  The next example constructs a backtest to determine whether the long term behavior of this strategy matches the results of our sample day.
+From the summary results, ore and ice arbitrage seems like a promising strategy.  At 50M ISK per day, this strategy would be worth about 1.5B ISK per month with little risk \(more on that below\).  Note, also, that we've only analyzed opportunities in one region.  Other regions are likely to present opportunities as well, although one would expect these to be less frequent based on overall volume levels.  The next example constructs a back test to determine whether the long term behavior of this strategy matches the results of our sample day.
 
-### Example 8 - Ore and Ice Arbitrage Backtest
+### Example 8 - Ore and Ice Arbitrage Back Test
 
-Our initial analysis in the previous example showed that ore and ice arbitrage may be a profitable strategy.  In this example, we'll backtest the strategy against a longer time range.  Our goal is to answer these key questions:
+Our initial analysis in the previous example showed that ore and ice arbitrage may be a profitable strategy.  In this example, we'll back test the strategy against a longer time range in the same region trading from the same station as in the previous example.  Our goal is to answer these key questions:
 
 1. What are the average and median daily returns?
 2. What are the average and median daily profits?
@@ -1390,17 +1396,17 @@ Our initial analysis in the previous example showed that ore and ice arbitrage m
 
 Answers to these questions will help determine the long term viability of our strategy.
 
-We'll conduct our backtest over the three month period from 2017-01-01 to 2017-03-31.  The date range is arbitrary.  We chose this date range because it is near time of writing.  Before using any strategy, it is prudent to conduct your own backtest with an appropriate date range.
+We'll conduct our back test over the three month period from 2017-01-01 to 2017-03-31.  The date range is arbitrary.  We chose this date range because it is near time of writing.  Before using any strategy, it is prudent to conduct your own back test with an appropriate date range.
 
-Unlike previous examples, we won't provide a Jupyter notebook which performs the backtest.  The reason is that this backtest is rather time intensive, especially if run linearly for each date in the date range \(as a simple Jupyter notebook would do\).  Moreover, this backtest is [embarrassingly parallel](https://en.wikipedia.org/wiki/Embarrassingly_parallel), making it much simpler to run offline with a simple script.  To that end, we provide the [`ore_ice_arb_backtest.py`](code/book/ore_ice_arb_backtest.py) script which has the following usage:
+Unlike previous examples, we won't provide a Jupyter notebook which performs the back test.  The reason is that this back test is rather time intensive, especially if run linearly for each date in the date range \(as a simple Jupyter notebook would do\).  Moreover, this back test is [embarrassingly parallel](https://en.wikipedia.org/wiki/Embarrassingly_parallel), making it much simpler to run offline with a simple script.  To that end, we provide the [`ore_ice_arb_backtest.py`](code/book/ore_ice_arb_backtest.py) script which has the following usage:
 
 ```bash
 $ python ore_ice_arb_backtest.py YYYY-MM-DD output.csv
 ```
 
-This command will find all ore and ice opportunities on the given date and write those opportunites in CSV format to the specified file.  To run the complete backtest, simply run this command for every date in the date range.  If you have a reasonably powerful machine, you will be able to run multiple dates in parallel.  When all dates complete, you can concatenate all the output files to make a single results file with all opportunities for our date range.
+This command will find all ore and ice opportunities on the given date and write those opportunities in CSV format to the specified file.  To run the complete back test, simply run this command for every date in the date range.  If you have a reasonably powerful machine, you will be able to run multiple dates in parallel.  When all dates complete, you can concatenate all the output files to make a single results file with all opportunities for our date range.
 
-Assuming you've generated concatenated backtest results, we now turn to a [Jupyter notebook](code/book/Example_8_Ore_Ice_Arbitrage_Backtest.ipynb) which shows our analysis of the results.  We start by reading the opportunities file into a simple array:
+Assuming you've generated back test data \(you can also use our data which is available at [ore_ice_arb_backtest_20170101_20170131.csv.gz](https://drive.google.com/open?id=0B6lvkwGmS7a2SDBYRmJwVjhiTm8)\), we now turn to a [Jupyter notebook](code/book/Example_8_Ore_Ice_Arbitrage_Backtest.ipynb) which shows our analysis of the results.  We start by reading the opportunities file into a simple array:
 
 ![Read Collected Opportunities](img/ex8_cell1.PNG)
 
@@ -1434,7 +1440,7 @@ We know from experience that EVE tends to be more active on weekends.  Do we see
 
 ![Opportunities (bar) and Profit (line) by Day of Week](img/ex8_cell8.PNG)
 
-With the caution that we're only looking at three months of data, we can draw some interesting conclusions from these results:
+With the caution that we're only looking at three months of data in a single region, we can draw some interesting conclusions from these results:
 
 * Tuesday has a slight edge in terms of number of opportunities, but is the clear favorite in terms of profitability.
 * Despite having a large opportunity count, the weekends are not as profitable as we might expect.
@@ -1444,44 +1450,190 @@ If you can only spend one day a week executing your strategy, then these results
 
 What about time of day?  Grouping by hour of the day answers that question:
 
-![Opportunities (bar) and Profit (line)  by Hour of Day](img/ex8_cell9.PNG)
+![Opportunities (bar) and Profit (line) by Hour of Day](img/ex8_cell9.PNG)
 
-The count of opportunities shows a very clear progression from fewest opportunites around midnight UTC, peaking with the most opportunities at 21:00 UTC.  Profit does not quite line up with the opportunity count, however.  It's not clear whether we can infer any guidelines for our trading from this data.  Note that we could combine our day of week results with hour of day results to attempt to infer the best time of day for opportunities on known high count days \(e.g. Tuesday\).  We leave this variant as an exercise for the reader.
+The count of opportunities shows a very clear progression from fewest opportunities around midnight UTC, peaking with the most opportunities at 21:00 UTC.  Profit does not quite line up with the opportunity count, however.  It's not clear whether we can infer any guidelines for our trading from this data.  Note that we could combine our day of week results with hour of day results to attempt to infer the best time of day for opportunities on known high count days \(e.g. Tuesday\).  We leave this variant as an exercise for the reader.
 
 For our final bit of analysis, let's look at the data grouped by source material type:
 
-![Opportunites (bar) and Profit (line) by Type](img/ex8_cell10.PNG)
+![Opportunities (bar) and Profit (line) by Type](img/ex8_cell10.PNG)
 
 We've sorted this graph by opportunity count as it seems likely that ore families will naturally group together.  In fact, we do see a distinct grouping in the plagioclase family.  This is perhaps not surprising given that plagioclase is a profitable ore in The Forge.  Conversely, an analysis in Domain might show Kernite as a more dominant ore for the same reason.  Some other pairs of ore also show grouping.  In terms of profitability, compressed dark glitter \(an ice\) is a clear outlier with a large number of opportunities as well.  This might be a focus for competitively priced bid orders to try to capture industrialists dumping excess stock on the market.
 
-Thus completes our backtest of our ore and ice arbitrage strategy.  Our results show that this strategy is profitable, but certainly not enough to be the main focus of any trader.  In our [Sample Trading Strategy](#a-sample-trading-strategy) section below, we recommend periodically checking for these opportunities in an automated fashion.
+This completes our back test of our ore and ice arbitrage strategy.  Our results show that this strategy is profitable, but certainly not enough to be the main focus of any trader.  In our [Sample Trading Strategy](#a-sample-trading-strategy) section below, we recommend periodically checking for these opportunities in an automated fashion.
 
 Now we turn our focus to scrapmetal reprocessing as an arbitrage strategy.
 
-## Scrapmetal Reproccessing Arbitrage
+## Scrapmetal Processing Arbitrage
 
-* Introduce reprocessable items
-* Many more opportunities since many more reprocessable types than ores
-* Derive reprocessing formulas
-  * Describe the skills that matter
-* Derive check to determine whether asset can be reprocessed for profit
-  * Must include trade model (sales tax)
-  * Demonstrate on a day of book data
-* Show results of three month backtest
+We started our discussion on arbitrage by looking at opportunities based on ore and ice. In fact, most asset types in EVE can processed through the "scrapmetal" game mechanic which is identical to ore and ice reprocessing except for efficiency, which is affected by different skills.  As above, we can describe the scrapmetal processing mechanic in terms of the following definitions:
+
+* $r$ - an asset type to be reprocessed (*not* ice or ore).
+* $r_m$ - the amount of material required for one reprocessing cycle.
+* $e$ - reprocessing efficiency computed from station efficiency and player skills.  This will be a value between 0 and 1.
+* $m(r) \rightarrow {(c_1, v_1), ..., (c_n, v_n)}$ - a map from source type to a set of reprocessed types $(c_i, v_i)$ where $c_i$ represents the reprocessed type, and $v_i$ represents the ideal quantity produced when reprocessing $r_m$ units of $r$.
+* $p_r(t)$ - the reference price for an asset \(i.e. a price computed daily by CCP, see below\).
+* $p_a(t)$ - the current best ask price for an asset \(i.e. the minimum price at which the asset can be purchased\).
+* $p_b(t)$ - the current best bid price for an asset \(i.e. the maximum price at which the asset can be sold\).
+* $t$ - sales tax for the reprocessing player.  This will be a value between 0 and 1.
+* $s_t$ - station reprocessing tax which is affected by player standings towards the station.  This will be a value between 0 and 0.05.
+
+Given these definitions, an arbitrage opportunity exists if the following equation is non-negative:
+
+$\sum_i\left(v_i \times e \times \left[(1 - t) \times p_b(c_i) - s_t \times p_r(c_i)\right] \right) -  r_m \times p_a(r)$
+
+Note that this equation is identical to the refining opportunity equation in the previous section.  What makes scrapmetal processing different is the computation of efficiency which is determined by the following attributes:
+
+* Station base refining efficiency \(a value between 0 and 1\).
+* Scrapmetal Processing skill multiplier which is $1.0 + 0.02 \times {level}$ for a maximum of $1.10$.
+
+There are currently no implants which affect scrapmetal processing.  As a result, maximum efficiency is much lower for scrapmetal processing as compared to ore and ice reprocessing.  However, there are many more asset types eligible for scrapmetal processing.  As we'll see below, this difference provides many more opportunities for market price imbalances which lead to arbitrage opportunities.  We'll take a look at a day of scrapmetal processing arbitrage opportunities in the next example.
+
+### Example 9 - Detecting Scrapmetal Arbitrage Opportunities
+
+In this example, we'll repeat the analysis we performed in [Example 7](example-7---detecting-ore-and-ice-arbitrage-opportunities), replacing ore and ice with all assets eligible for scrapmetal processing.  Because of the number of types eligible for processing, we won't generate opportunities using a Jupyter notebook.  At time of writing, there are about 8000 types we need to analyze to test for opportunities.  The most effective way to scan for opportunities is take take advantage of the embarrassingly parallel nature of the opportunity search.  Despite this optimization, analysis of a single day takes about four hours on our equipment, which is not very interesting as an illustrative example in a Jupyter notebook.  Instead, we'll use a script to generate a list of opportunities offline, then we'll load the data into a Jupyter notebook for analysis.  Our offline script, [`scrap_single_day.py`](code/book/scrap_single_day.py), has the following usage:
+
+```bash
+$ python scrap_single_day.py YYYY-MM-DD output.csv
+```
+
+As noted above, this script will take some time to execute.  Knowledgeable readers will find it beneficial to edit this script to take advantage of all available CPU cores on their particular system \(we use 10 cores on our equipment\).  We'll review the results of our single day opportunity finder for the remainder of this example.  You can follow along by downloading the [Jupyter Notebook](code/book/Example_9_Scrapmetal_Arbitrage.ipynb).
+
+We start by loading our offline results into our notebook \(if you haven't generated your own data, you can use our data at [scrap_backtest_20170110.csv.gz](https://drive.google.com/open?id=0B6lvkwGmS7a2ci1MMmZwRDdtX28)\):
+
+![Load and Sort Single Day Scrap Opportunities](img/ex9_cell1.PNG)
+
+A consequence of our offline script is that results for the day are not in order, so we sort results by time after loading.  Next, we "clean" our results, as in previous examples, by collapsing adjacent instances of the same opportunity into the first instance.  We do this in the next cell \(not shown\).  Once we have cleaned results, we can take a look at opportunities for the day:
+
+![Single Day Opportunities](img/ex9_cell2.PNG)
+
+Our results show almost 800 distinct opportunities for the day, more than we found on the same day for ore and ice.  Many of these opportunities are small, but there are also a few large results as well.  Computing a daily summary should give us an idea of the total opportunity available:
+
+![Single Day Summary](img/ex9_cell3.PNG)
+
+Returns are not much better than in the ore and ice case, but profit is about three times better.  If these results are typical, then we'd expect a run rate of about 4.5B ISK per month which is very respectable given the low risk and effort required to run this strategy.  The only way to increase our certainty is to run a longer back test.  We take on that task in our next example, including a more detailed analysis of the results.
+
+### Example 10 - Scrapmetal Arbitrage Back Test
+
+In this example, we continue our analysis from the previous example, this time extending our analysis over a three month back test.  We'll once again consider the same questions we considered in [Example 8](example-8---ore-and-ice-arbitrage-back-test):
+
+1. What are the average and median daily returns?
+2. What are the average and median daily profits?
+3. Are some days of the week more profitable \(or return better\) than others?
+4. Are certain times of day more profitable \(or return better\) than others?
+5. Are certain source materials more profitable \(or return better\) than others?
+6. What is the distribution of opportunities?
+7. Which opportunities are the most important to capture?
+
+We'll conduct our back test over the same three month period we used for ore and ice: 2017-01-01 to 2017-03-31, inclusive.  We'll use the same offline script we used in the previous example to generate opportunity data for our date range.  The execution of the script is the same as described in the previous example, except that we execute for every day in our date range.  On our equipment, each day of data takes about four hours to generate.  Fortunately, you can run all the days in parallel if you wish.  When all runs complete, you'll have separate output files which can be concatenated into a single file of results.  Note that opportunities will be unsorted if you use our script.  We sort the data as part of our Jupyter notebook below.
+
+Assuming you've generated back test data \(you can also use our data which is available at [scrap_backtest_20170101_20170331.csv.gz](https://drive.google.com/open?id=0B6lvkwGmS7a2dW90THBLWVRwTVU)\), we now turn to a [Jupyter notebook](code/book/Example_10_Scrapmetal_Arbitrage_Backtest.ipynb) which shows our analysis of the results.  We start by reading the opportunities file into a simple array:
+
+![Read Collection Opportunities](img/ex10_cell1.PNG)
+
+Next, we need to sort and "clean" opportunities as we've done in the previous example:
+
+![Sort and Clean Opportunities](img/ex10_cell2.PNG)
+
+We know from the previous example that there will be at least one outlier that will likely skew our results.  Skipping ahead to a graph of profit for all opportunities, we see two to three clear outliers:
+
+![Profit for All Opportunities](img/ex10_cell3.PNG)
+
+From inspection, removing opportunities above 250M ISK should be sufficient for our analysis.  After applying this adjustment, we can now consider daily views of profit \(all less outliers\):
+
+![Daily Profit](img/ex10_cell4.PNG)
+
+and return \(profit / cost\):
+
+![Daily Return](img/ex10_cell5.PNG)
+
+Profit is consistently strong until March, while returns remain fairly steady except for a few spikes in February.  The marked change in profit without a change in returns suggests the number of opportunities went down in March.  We can easily test this intuition by plotting opportunity count:
+
+![Daily Opportunity Count](img/ex10_cell6.PNG)
+
+From the graph, it is clear there is a strong drop in opportunities as we enter March.  Why would this be the case?  There are many possible explanations: seasonal effects; market activity moving elsewhere \(e.g. player-owned stations\); improved market efficiency \(unlikely\); etc.  Our back test doesn't cover enough a largest enough time range to reveal a seasonal effect.  Likewise, we would need to perform an analysis of data from player-owned stations to determine whether there is any correlation.  We'll leave these tasks for future work.
+
+The overall strategy seems more profitable than ore and ice.  We can confirm this intuition by considering aggregate measures:
+
+![Daily Aggregates](img/ex10_cell7.PNG)
+
+These numbers are, indeed, better than ore and ice, which is perhaps not surprising given how many opportunities we see.  On the other hand, maximum scrapmetal efficiency is much lower than ore and ice, so the profitability here is somewhat surprising.  The significant difference between average and median is a reflection of the slowdown in March, and the few large days early in the quarter.
+
+Let's turn now to investigating day of week behavior:
+
+![Opportunities (bar) and Profit (line) by Day of Week](img/ex10_cell8.PNG)
+
+These results are quite different than ore and ice in which opportunity and profit peaked on Tuesday.  Scrapmetal arbitrage opportunities are centered around the weekend which is what we would typically expect.  However, Monday has emerged as the peak profit day for this strategy, even though most opportunities occur on Sunday.  If you can only spend one day a week executing your strategy, then these results suggest Monday is the day you should choose.
+
+We can perform a similar analysis of time of day as well:
+
+![Opportunities (bar) and Profit (line) by Hour of Day](img/ex10_cell9.PNG)
+
+As is the case with ore and ice, there is a very clear runup from midnight to a peak at 20:00 (UTC).  Unlike ore and ice, however, the opportunity count peak aligns very closely with the profit peak.  Being ready to strike around 20:00 seems to be very profitable with this strategy.  The other two profitable peaks may coincide with timezone behavior.
+
+Finally, let's look at which asset types are most profitable during the back test.  Our back test discovered opportunities for over 700 distinct asset types, far too many to view all at once.  Instead, we'll focus on the top 50 \(this threshold can easily be changed in the sample notebook\).  Here are the top 50 opportunities by count:
+
+![Opportunities (bar) and Profit (line) Top 50 by Count](img/ex10_cell10.PNG)
+
+Profitability roughly follows opportunity count but it may also be useful to look at top 50 by total profit.  We can create this view by sorting by total profit:
+
+![Opportunities (bar) and Profit (line) Top 50 by Profit](img/ex10_cell11.PNG)
+
+There is no obvious relation between opportunity count and profit shown in this graph.  However, it is useful to highlight which asset types appear in both the top 50 by count as well as the top 50 by profit:
+
+![Opportunities (bar) and Profit (line) Top 50 by Profit - Top 50 by Count (green)](img/ex10_cell12.PNG)
+
+About 40% of the top 50 by count are also in the top 50 by profit.  Since we're most likely to capture a frequent opportunity, this indicates a good chance of also catching a profitable opportunity.
+
+To close out our analysis of arbitrage, let's take a look at the distribution of opportunities and see if there is any useful information that might guide the construction of a trading strategy.  We'll start by constructing the histogram of opportunities by profit up to opportunities worth 10M ISK or less:
+
+![Profit Histogram - 10M ISK or less](img/ex10_cell13.PNG)
+
+This graph doesn't tell us much other than that the majority of opportunities are well less than 200K ISK in value.  Those opportunities might add up to significant value, but it may get tedious to have to consume so many small opportunities.  Let's zoom in on the data for opportunities up to 2M ISK in value.  We can view this data by shrinking the range of opportunity count, and lowering the profit limit:
+
+![Profit Histogram - 2M ISK or less](img/ex10_cell14.PNG)
+
+We see from this zoomed in view that a reasonable number of examples exist up until 1M ISK, after which opportunity counts drop significantly.  How significant is this distribution?  One way to understand significance is to determine the count and profit of opportunites outside of this range:
+
+![Count and Profit above 1M ISK](img/ex10_cell15.PNG)
+
+As expected, the number of opportunities above 1M ISK is very small relative to all opportunities.  However, most of the profit also resides above this line.  This suggests a simple trading strategy where we only take opportunities above 1M ISK, leaving the others for someone else.  How many opportunities might we expect at this threshold?  Is there an even better threshold below 1M ISK?  We can answer these questions by simply iterating over other threshold choices:
+
+![Trading Statistics at Profit Thresholds up to 1M ISK](img/ex10_cell16.PNG)
+
+The data shows a significant drop in daily opportunity count, even at a threshold as low as 100K ISK.  However, the majority of daily profit is still captured.  This makes for an easy strategy to execute: while most EVE players, even those dedicated to trading, would find it tedious to process up to 400 \(median\) opportunities a day; however, processing 20 to 30 opportunities, while still capturing the majority of the profit, seems very reasonable.
+
+### Analysis Limitations
+
+The results from our analysis above carry a few caveats which are worth listing here.  Despite these limitations, our own real trading at Orbital Enterprises has been very profitable following these strategies.  Nonetheless, it is important to understand what analysis can and can't tell you:
+
+* **Single Region** - our analysis so far has only considered The Forge region.  Although The Forge is the largest high security region by volume, a more complete analysis should include the other four main market regions \(Domain, Sinq Laison, Heimatar and Metropolis\).
+* **Memoryless within Snapshots** - we treat each opportunity within a snapshot as completely independent.  In reality, opportunities often produce overlapping refined materials.  As a result, consuming one opportunity may limit the profit and return of other opportunities.  A more correct approach would be to optimize opportunities such that their order of consumption maximizes profit.  This is non-trivial to do.  We've ignored this for simplicity.
+* **Memoryless across Snapshots** - just as we are memoryless within a snapshot, we treat each snapshot independently.  That is, we ignore any opportunities that may have been consumed in a previous snapshot.  It would be more correct to track order state across all snapshots as opportunities in later snapshots will be affected by consumed opportunities in earlier snapshots.  Once again, we've ignored this detail for simplicity.
+* **Short History** - we've only considered three months of history in our back tests.  This is quite short by most standards although one could argue that at 288 snapshots per day, we've actually analyzed quite a bit of data.  The lack of history impacts the predictive powers of our analysis mainly in the sense that we can't forecast the nature of opportunities we're likely to see in the future.  We've provided some hand-wavy analysis around possible trading behavior \(e.g. data around most profitable days or most profitable times of day\), but a proper analysis might attempt to forecast the appearance of future opportunities \(as well as estimate the error in our predictions, which will be large given the short history\).  Instead of this analysis, we'll argue below that it's safe to simply add this strategy to your portfolio: if opportunities stop appearing, you lose nothing; when opportunities do appear, you'll incur short lived market risk as you consume, refine and sell.
+
+Our basic analysis complete, let's turn now to a discussion of strategy effectiveness.
 
 ## Strategy Effectiveness
 
-* Advantages
-  * Low risk in basic form, not necessary to leave station
-  * Market risk also low in basic form
-  * Not really influenced by investment amount.  You'll need sufficient capital to cover opportunities, but adding more ISK doesn't increase your returns (true of most arbitrage).
-  * Easy to figure out if there is competition.  You'll see opportunities, but someone else will take them first
-  * Even works in relatively inefficient NPC stations (player-owned stations can refine more efficiently)
-* Disadvantages
-  * Passive, there will be slow days
-  * Capturing all opportunities requires significant compute resources
+We've shown in the previous two sections that arbitrage can be profitable over a reasonable time range.  The main advantages of this approach are as follows:
+
+* **Low Risk** - in it's basic form, which is essentialy parking in a station waiting for opportunities, there is very little risk to this strategy.  The primary risk is *market risk* - meaning the chance that market prices will move away from profitability between buying your source asset and selling the refined assets.  Market risk increases over time, but since most arbitrage opportunities are executed very quickly, the exposure is quite low.  You're most likely to see market risk if you wait too long between detecting an opportunity and acting on it \(assuming you don't verify the opportunity again before taking it\).  A secondary risk is *data risk* - meaning the possibility that bad market data indicates an opportunity that doesn't really exist.  Here at Orbital Enterprises we've seen this a number of times, but incidents are relatively easy to detect and avoid \(see [Beware "Ghost" and Canceled Orders](#beware-ghost-and-canceled-orders) below\).
+* **Capital Insensitive** - Some might argue that this is a disadvantage, but arbitrage strategies are not influenced by the amount of capital you have to invest.  You'll need sufficient capital to cover buying and refining source material, but adding more ISK to this strategy will not increase your returns.  This is contrary to many other trading strategies in which returns are heavily influenced by the amount of capital invested.
+* **Easy To Detect Competition** - Most traders worry about other traders discovering their strategies.  As more traders pile on to the same strategy, the strategy becomes less effective and returns are lower for everyone.  In general, it can be very difficult to determine whether someone else is using your strategy \(they certainly won't tell you\).  With arbitrage, however, everyone sees the same opportunities.  At best, someone else can beat you to it.  It is, thus, very easy to determine when if the strategy is no longer effective.
+* **Works Almost Everywhere** - Our data shows that arbitrage opportunities exist even in relatively inefficient NPC stations.  It's true that player-owned stations can refine much more efficiently, but the state of the market at time of writing still allows many profitable opportunities in NPC stations.
+
+The main disadvantages of this approach are as follows:
+
+* **Passive** - arbitrage, as we've described it here, is completely passive.  There will be slow days with few or no opportunities.  You can't do much but wait these out.
+* **Skill Intensive** - to get the most value out of this approach, you'll need to train key skills to level five.  This is easier for ice and scrapmetal arbitrage because there are fewer skills.  For ore, however, there are ore-specific refining skills which all must be trained to level five to maximize returns[^12].
+* **Compute Intensive** - capturing all available opportunities across the main market centers of EVE is a resource intensive task.  Here at Orbital Enterprises we have one machine dedicated to collecting market data \(somewhat network and compute intensive\), and a second machine dedicated to finding arbitrage opportunities \(definitely compute intensive\).  You can use more modest resources if you're only interested in one region or less frequent checks for opportunities.
+
+In our own experience, this strategy has proven to be very profitable but not without a few mistakes along the way \(see [Practical Trading Tips](#practical-trading-tips)\).  Even with opportunities becoming less frequent in March of 2017, our average run rate is still a comfortable 100M ISK per day.  If nothing else, this is enough to pay for our monthly subscription cost \(via PLEX\).  We've thus kept arbitrage in our current portfolio of strategies.
 
 ## Variants
+
+In this section, we consider variants to the basic arbitrage strategy we described above.
 
 ### Selling with Limit Orders
 
@@ -1508,11 +1660,14 @@ Now we turn our focus to scrapmetal reprocessing as an arbitrage strategy.
 
 ### A Sample Trading Strategy
 
-### Beware "Ghost" Orders
+### Keep Up with Static Data Export Changes
+
+### Beware "Ghost" and Canceled Orders
 
 * Market implementation posts orders before execution
   * dumping shows up as someone willing to sell reproc targets at low price
   * buys show up as someone willing to buy reproc output at a high price
+* Market participants sometimes make limit order mistakes which they cancel ASAP
 * Occasionally these are captured in order book snapshots
 * Causes numerous bogus arb opportunities
 * Usually easy to detect as a large number of opportunities suddenly appearing
@@ -1521,7 +1676,7 @@ Now we turn our focus to scrapmetal reprocessing as an arbitrage strategy.
 
 * Many opportunities buy out several orders
 * 0.01 ISK effects cause order bunching
-* Can be bought out efficienctly with multi-buy with small effect on profit
+* Can be bought out efficiently with multi-buy with small effect on profit
 
 ## For Further Analysis
 
@@ -1531,5 +1686,6 @@ Now we turn our focus to scrapmetal reprocessing as an arbitrage strategy.
 
 [^10]: This is changing with the recently announced ["PLEX split"](https://community.eveonline.com/news/dev-blogs/plex-changes-on-the-way/) which allows PLEX to be moved into and out of a special cross region container \(called the "PLEX Vault"\) shared by all characters on a given account.  With this container, you could buy PLEX in one region with one character, move the PLEX to the vault, switch to a character in a different region \(on the same account\), then pull the PLEX from the vault and sell it.  This would allow cross-region arbitrage on PLEX prices without hauling.
 [^11]: At time of writing, this page is slightly out of date.  In current game mechanics, the station owner tax is charged as an ISK amount based on refining yield, station tax and reference price, *not* as an adjustment to yield as shown on the EVE University page.
+[^12]: Of course, a more careful analysis of opportunities may show it's not worth training certain ore-specific skills to level five due to lack of opportunities.  We leave this analysis as an exercise for the reader.
 
 # Market Making

@@ -146,6 +146,9 @@ class OrderBook:
             # Store new region
             if region_id is None or next_region in region_id:
                 self.region[next_region] = snaps
+            if region_id is not None and len(self.region.keys()) == len(region_id):
+                # Short circuit, we have all the regions we want
+                break
             # Iterate to next region
             next_region = __dline__(ps)
 
@@ -204,17 +207,46 @@ class OrderBook:
         try:
             max_offset = os.stat(bulk_file).st_size
             index_map = OrderBook.__read_index__(open(index_file, 'rb'), max_offset)
-            for next_type in types:
-                if next_type not in index_map:
-                    continue
-                start = index_map[next_type][0]
-                end = index_map[next_type][1]
+            # If the number of requested types is above some threshold, then linearly scan
+            # the bulk file as this will be substantially more efficient in time.
+            if len(types) > 1500:
+                # Scan the entire file, skipping types we don't care about
+                sorted_map = []
+                scanned = 0
+                for x in index_map.keys():
+                    sorted_map.append(dict(type=x, start=index_map[x][0], end=index_map[x][1]))
+                sorted_map = sorted(sorted_map, key=lambda k: k['start'])
                 fd = open(bulk_file, 'rb')
-                fd.seek(start)
-                buff = fd.read(end - start + 1)
-                ps = gzip.GzipFile(fileobj=io.BytesIO(buff))
-                results.append(OrderBook(target_date, ps=ps, region_id=regions))
-                ps.close()
+                for next_type in sorted_map:
+                    start = next_type['start']
+                    end = next_type['end']
+                    buff = fd.read(end - start + 1)
+                    scanned += 1
+                    if next_type['type'] not in types:
+                        continue
+                    ps = gzip.GzipFile(fileobj=io.BytesIO(buff))
+                    results.append(OrderBook(target_date, ps=ps, region_id=regions))
+                    ps.close()
+                    if scanned % 1000 == 0:
+                        print("+", end='')
+                    if len(results) == len(types):
+                        # All types loaded, short circuit
+                        break
+                fd.close()
+            else:
+                # Handle one type at a type
+                for next_type in types:
+                    if next_type not in index_map:
+                        continue
+                    start = index_map[next_type][0]
+                    end = index_map[next_type][1]
+                    fd = open(bulk_file, 'rb')
+                    fd.seek(start)
+                    buff = fd.read(end - start + 1)
+                    ps = gzip.GzipFile(fileobj=io.BytesIO(buff))
+                    results.append(OrderBook(target_date, ps=ps, region_id=regions))
+                    ps.close()
+                    fd.close()
         except OSError:
             return []
         return results
@@ -275,7 +307,7 @@ class OrderBook:
             new_book.region = {}
             for next_region in regions:
                 snapshots = []
-                current_time = target_date.replace(hour=0, minute=0, second=0, microsecond=0, tzinfo='UTC')
+                current_time = target_date.replace(hour=0, minute=0, second=0, microsecond=0, tzinfo=datetime.timezone.utc)
                 for _ in range(288):
                     try:
                         result, response = client.MarketData.book(typeID=next_type, regionID=next_region,
