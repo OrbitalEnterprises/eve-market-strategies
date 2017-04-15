@@ -108,6 +108,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#strategy-effectiveness">Strategy Effectiveness</a></li>
 <li><a href="#variants">Variants</a><ul>
 <li><a href="#selling-with-limit-orders">Selling with Limit Orders</a></li>
+<li><a href="#example-11---ore-and-ice-arbitrage-with-limit-orders">Example 11 - Ore and Ice Arbitrage with Limit Orders</a></li>
 <li><a href="#capture-dumping-with-buy-orders">Capture “Dumping” with Buy Orders</a></li>
 <li><a href="#cross-region-reprocessing-arbitrage">Cross-Region Reprocessing Arbitrage</a></li>
 </ul></li>
@@ -1155,7 +1156,7 @@ $ <span class="ex">conda</span> create -n book_exp_1 --clone book_base</code></p
 <li>when the bid price of one or more refined materials rises above fair market value price as determined by the reprocessing equation.</li>
 </ol>
 <p>There are many reasons why prices may move. Given our knowledge of EVE player behavior, we know that some players regularly dispose of unwanted assets at cheap prices on the market. We also know that some players focused on mining choose to trade raw ores directly as they may lack the skills to make trading refined materials possible. Finally, we know that there are regular spikes in refined material prices as these materials are used to build the favored assets needed for wars and general PvP.</p>
-<p>The fact that arbitrage depends on market price moves means it is possible in some cases to actually <em>predict</em> when good opportunities will occur. We discuss once such strategy <a href="#capturing-dumping-with-buy-orders">below</a>. More generally, any price forecast algorithm has the potential to be used to predict arbitrage opportunities.</p>
+<p>The fact that arbitrage depends on market price moves means it is possible in some cases to actually <em>predict</em> when good opportunities will occur. We discuss once such strategy <a href="#capture-dumping-with-buy-orders">below</a>. More generally, any price forecast algorithm has the potential to be used to predict arbitrage opportunities.</p>
 <h2 id="ore-and-ice-refinement-arbitrage">Ore and Ice Refinement Arbitrage</h2>
 <p>We first consider arbitrage on ore and ice. These asset types are organized into families of which there are six variants for each family. The first three variants differ in refining yield and output (for ice). The second three variants are “compressed” versions of the first three in which the same yield and output is achieved from a smaller volume of raw material. There are currently sixteen ore families and four ice families, giving a total of 120 variants which can be refined into minerals and other raw materials. An arbitrage opportunity exists if a variant can be purchased at a low enough price such that refining and selling the refined materials yields a profit.</p>
 <p>We won’t describe ore and ice refinement in detail here. We refer interested readers to the <a href="https://wiki.eveuniversity.org/Reprocessing">Reprocessing page</a> at EVE University<a href="#fn11" class="footnoteRef" id="fnref11"><sup>11</sup></a>. For our discussion, it suffices to know that each ore or ice variant has an “ideal” refining output which is adjusted by the efficiency of the refining station and the skills of the refining player. The refining process is taxed at a rate computed from a reference price, a station tax rate and the yield of raw materials. We can combine the yield and tax of the refinement process with market data to determine whether an arbitrage opportunity exists, as well as the expected profit. We can describe this process in formal terms using the following definitions:</p>
@@ -1286,7 +1287,7 @@ $ <span class="ex">conda</span> create -n book_exp_1 --clone book_base</code></p
 <li><em>gross</em> - gross proceeds from selling refined materials (less sales tax).</li>
 <li><em>cost</em> - total cost of purchasing source material, including reprocessing tax.</li>
 <li><em>profit</em> - i.e. <em>gross</em> - <em>cost</em>.</li>
-<li><em>margin</em> - <em>cost</em> / <em>profit</em>.</li>
+<li><em>margin</em> - <em>profit</em> / <em>cost</em>.</li>
 <li><em>buy orders</em> - the list of all buy orders of source material. Orders are aggregated by price.</li>
 <li><em>sell orders</em> - a map from refined material type ID to the list of all sell orders for that type. Orders are aggregated by price.</li>
 </ul>
@@ -1445,7 +1446,7 @@ $ <span class="ex">conda</span> create -n book_exp_1 --clone book_base</code></p
 <figure>
 <img src="img/ex10_cell6.PNG" alt="Daily Opportunity Count" /><figcaption>Daily Opportunity Count</figcaption>
 </figure>
-<p>From the graph, it is clear there is a strong drop in opportunities as we enter March. Why would this be the case? There are many possible explanations: seasonal effects; market activity moving elsewhere (e.g. player-owned stations); improved market efficiency (unlikely); etc. Our back test doesn’t cover enough a largest enough time range to reveal a seasonal effect. Likewise, we would need to perform an analysis of data from player-owned stations to determine whether there is any correlation. We’ll leave these tasks for future work.</p>
+<p>From the graph, it is clear there is a strong drop in opportunities as we enter March. Why would this be the case? There are many possible explanations: seasonal effects; market activity moving elsewhere (e.g. player-owned stations); improved market efficiency (unlikely); etc. Our back test doesn’t cover a large enough time range to reveal a seasonal effect. Likewise, we would need to perform an analysis of data from player-owned stations to determine whether there is any correlation. We’ll leave these tasks for future work.</p>
 <p>The overall strategy seems more profitable than ore and ice. We can confirm this intuition by considering aggregate measures:</p>
 <figure>
 <img src="img/ex10_cell7.PNG" alt="Daily Aggregates" /><figcaption>Daily Aggregates</figcaption>
@@ -1473,7 +1474,7 @@ $ <span class="ex">conda</span> create -n book_exp_1 --clone book_base</code></p
 <figure>
 <img src="img/ex10_cell12.PNG" alt="Opportunities (bar) and Profit (line) Top 50 by Profit - Top 50 by Count (green)" /><figcaption>Opportunities (bar) and Profit (line) Top 50 by Profit - Top 50 by Count (green)</figcaption>
 </figure>
-<p>About 40% of the top 50 by count are also in the top 50 by profit. Since we’re most likely to capture a frequent opportunity, this indicates a good chance of also catching a profitable opportunity.</p>
+<p>About 40% of the top 50 by count are also in the top 50 by profit. Since we’re most likely to capture a frequently occurring opportunity, this indicates a good chance of also catching a profitable opportunity.</p>
 <p>To close out our analysis of arbitrage, let’s take a look at the distribution of opportunities and see if there is any useful information that might guide the construction of a trading strategy. We’ll start by constructing the histogram of opportunities by profit up to opportunities worth 10M ISK or less:</p>
 <figure>
 <img src="img/ex10_cell13.PNG" alt="Profit Histogram - 10M ISK or less" /><figcaption>Profit Histogram - 10M ISK or less</figcaption>
@@ -1490,7 +1491,7 @@ $ <span class="ex">conda</span> create -n book_exp_1 --clone book_base</code></p
 <figure>
 <img src="img/ex10_cell16.PNG" alt="Trading Statistics at Profit Thresholds up to 1M ISK" /><figcaption>Trading Statistics at Profit Thresholds up to 1M ISK</figcaption>
 </figure>
-<p>The data shows a significant drop in daily opportunity count, even at a threshold as low as 100K ISK. However, the majority of daily profit is still captured. This makes for an easy strategy to execute: while most EVE players, even those dedicated to trading, would find it tedious to process up to 400 (median) opportunities a day; however, processing 20 to 30 opportunities, while still capturing the majority of the profit, seems very reasonable.</p>
+<p>The data shows a significant drop in daily opportunity count ratio, even at a threshold as low as 100K ISK. However, the majority of daily profit ratio is still captured. Thus, while an obvious trading strategy is to simply take every opportunity we find; these results show that this isn’t necessary. In particular, while even dedicated EVE traders may find it tedious to capture 400 (median) opportunities a day, they need not bother. Instead, we can reduce the opportunity count significantly (by choosing an appropriate threshold), and still capture a substantial portion of daily profit.</p>
 <h3 id="analysis-limitations">Analysis Limitations</h3>
 <p>The results from our analysis above carry a few caveats which are worth listing here. Despite these limitations, our own real trading at Orbital Enterprises has been very profitable following these strategies. Nonetheless, it is important to understand what analysis can and can’t tell you:</p>
 <ul>
@@ -1505,7 +1506,7 @@ $ <span class="ex">conda</span> create -n book_exp_1 --clone book_base</code></p
 <ul>
 <li><strong>Low Risk</strong> - in it’s basic form, which is essentialy parking in a station waiting for opportunities, there is very little risk to this strategy. The primary risk is <em>market risk</em> - meaning the chance that market prices will move away from profitability between buying your source asset and selling the refined assets. Market risk increases over time, but since most arbitrage opportunities are executed very quickly, the exposure is quite low. You’re most likely to see market risk if you wait too long between detecting an opportunity and acting on it (assuming you don’t verify the opportunity again before taking it). A secondary risk is <em>data risk</em> - meaning the possibility that bad market data indicates an opportunity that doesn’t really exist. Here at Orbital Enterprises we’ve seen this a number of times, but incidents are relatively easy to detect and avoid (see <a href="#beware-ghost-and-canceled-orders">Beware “Ghost” and Canceled Orders</a> below).</li>
 <li><strong>Capital Insensitive</strong> - Some might argue that this is a disadvantage, but arbitrage strategies are not influenced by the amount of capital you have to invest. You’ll need sufficient capital to cover buying and refining source material, but adding more ISK to this strategy will not increase your returns. This is contrary to many other trading strategies in which returns are heavily influenced by the amount of capital invested.</li>
-<li><strong>Easy To Detect Competition</strong> - Most traders worry about other traders discovering their strategies. As more traders pile on to the same strategy, the strategy becomes less effective and returns are lower for everyone. In general, it can be very difficult to determine whether someone else is using your strategy (they certainly won’t tell you). With arbitrage, however, everyone sees the same opportunities. At best, someone else can beat you to it. It is, thus, very easy to determine when if the strategy is no longer effective.</li>
+<li><strong>Easy To Detect Competition</strong> - Most traders worry about other traders discovering their strategies. As more traders pile on to the same strategy, the strategy becomes less effective and returns are lower for everyone. In general, it can be very difficult to determine whether someone else is using your strategy (they certainly won’t tell you). With arbitrage, however, everyone sees the same opportunities regardless of how many are trying to act on them. At best, someone else can beat you to an opportunity. It is, thus, very easy to determine when you have competition with this strategy.</li>
 <li><strong>Works Almost Everywhere</strong> - Our data shows that arbitrage opportunities exist even in relatively inefficient NPC stations. It’s true that player-owned stations can refine much more efficiently, but the state of the market at time of writing still allows many profitable opportunities in NPC stations.</li>
 </ul>
 <p>The main disadvantages of this approach are as follows:</p>
@@ -1518,12 +1519,65 @@ $ <span class="ex">conda</span> create -n book_exp_1 --clone book_base</code></p
 <h2 id="variants">Variants</h2>
 <p>In this section, we consider variants to the basic arbitrage strategy we described above.</p>
 <h3 id="selling-with-limit-orders">Selling with Limit Orders</h3>
+<p>The strategies we have described so far have bought source assets and sold refined material at the market (i.e. at the current best price, instead of using a limit order). However, seasoned market professionals would typically use limit orders to sell refined materials in order to maximize profit. This practice increases risk, since market prices may move away from your fill price, but also increases profit, since your orders will capture the spread (the difference between the best bid and best ask for an asset). Should we be selling refined materials with limit orders instead of simply selling into the current best bid? Assuming spread prices are favorable, there are at least two reasons why it may be safe to sell with more profitable limit orders:</p>
+<ol type="1">
+<li>Refined materials from arbitrage are usually highly liquid commodity items; and</li>
+<li>Highly liquid assets usually incur lower market risk because they are in demand (i.e. they sell quickly).</li>
+</ol>
+<p>In other words, in liquid markets there should be little risk that our refined materials won’t sell in a reasonable time frame. However, there is one important caveat: we need to avoid flooding the market with atypical volumes of an asset. As discussed in <a href="#example-6---a-simple-strategy-cross-region-trading">Example 6</a>, a simple rule of thumb is to avoid limit orders which sum to more than 10% of the daily volume of a refined material.</p>
+<p>When would we expect limit orders to be more profitable then selling at the market? To discover these opportunities, we need to adjust our opportunity equation from above to include a new term, <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?b" alt="b" title="b" />, which is the brokerage fee percentage charged for placing a limited order. With this new term, the opportunity equation becomes:</p>
+<p><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?%5Csum_i%5Cleft%28v_i%20%5Ctimes%20e%20%5Ctimes%20%5Cleft%5B%281%20-%20t%20-%20b%29%20%5Ctimes%20p_a%28c_i%29%20-%20s_t%20%5Ctimes%20p_r%28c_i%29%5Cright%5D%20%5Cright%29%20-%20r_m%20%5Ctimes%20p_a%28r%29" alt="\sum_i\left(v_i \times e \times \left[(1 - t - b) \times p_a(c_i) - s_t \times p_r(c_i)\right] \right) - r_m \times p_a(r)" title="\sum_i\left(v_i \times e \times \left[(1 - t - b) \times p_a(c_i) - s_t \times p_r(c_i)\right] \right) - r_m \times p_a(r)" /></p>
+<p>There are two changes from the original equation:</p>
+<ol type="1">
+<li>Brokerage fee, <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?b" alt="b" title="b" />, reduces sale proceeds in the <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?%281%20-%20t%20-%20b%29" alt="(1 - t - b)" title="(1 - t - b)" /> term; and,</li>
+<li>Sale proceeds are now based on the best ask price of the refined material, <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?p_a%28c_i%29" alt="p_a(c_i)" title="p_a(c_i)" />, instead of the best bid price.</li>
+</ol>
+<p>An opportunity using sell limit orders is profitable if the above equation is greater than zero. In general, selling with limit orders instead of at the market is more profitable if the following inequality is true:</p>
+<p><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?%281%20-%20t%20-%20b%29%20%5Ctimes%20p_a%28c_i%29%20%3E%20%281%20-%20t%29%20%5Ctimes%20p_b%28c_i%29" alt="(1 - t - b) \times p_a(c_i) &gt; (1 - t) \times p_b(c_i)" title="(1 - t - b) \times p_a(c_i) &gt; (1 - t) \times p_b(c_i)" /></p>
+<p>This equation can be reduced to the following inequality:</p>
+<p><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?%7B%7Bp_a%28c_i%29%20-%20p_b%28c_i%29%7D%5Cover%7Bp_b%28c_i%29%7D%7D%20%3E%20%7Bb%20%5Cover%20%7B1%20-%20t%20-%20b%7D%7D" alt="{{p_a(c_i) - p_b(c_i)}\over{p_b(c_i)}} &gt; {b \over {1 - t - b}}" title="{{p_a(c_i) - p_b(c_i)}\over{p_b(c_i)}} &gt; {b \over {1 - t - b}}" /></p>
+<p>The term on the left is the “return on the spread”, while the term on the right is constant. This equation can be evaluated for each refined material to determine whether to sell with limit or market orders. In the next example, we’ll investigate what affect this modified strategy has on arbitrage. We’ll arbitrarily modify our ore and ice arbitrage strategy. The changes are identical for scrapmetal arbitrage.</p>
+<h3 id="example-11---ore-and-ice-arbitrage-with-limit-orders">Example 11 - Ore and Ice Arbitrage with Limit Orders</h3>
+<p>In this example, we’ll modify our ore and ice arbitrage strategy to sell refined material with limit orders when it is more profitable do this. This is a minor change to the original strategy. We’ll evaluate the modified strategy on a sample day of data. We leave it to the reader to perform a more comprehensive back test. You can follow along with this example by downloading the <a href="code/book/Example_11_Ore_and_Ice_Arbitrage_with_Limit_Orders.ipynb">Jupyter Notebook</a>.</p>
+<p>We’ll use the same setup as for <a href="example-7---detecting-ore-and-ice-arbitrage-opportunities">Example 7</a>, where we loaded data for a target date in The Forge trading out of the station Jita IV - Moon 4 - Caldari Navy Assembly Plant. If you’ve executed the notebook in Example 7, then you should already have the required market data. If not, you may consider going back to Example 7 for a moment and executing the cell which downloads market data. A key part of using limit orders is controlling volume so that we don’t flood the market with orders which are unlikely to fill. We propose basing these limits on a fraction of daily volume for each type. Volume data is available from market summary data. Thus, we use the following cell to load this data for our types of interest:</p>
+<figure>
+<img src="img/ex11_cell1.PNG" alt="Load Market History" /><figcaption>Load Market History</figcaption>
+</figure>
+<p>We’re cheating a bit in the sense that a live trading strategy wouldn’t have summary information available for the current day. In that case, summary information can be sampled from prior history (e.g. weighted average of the previous week of summary data). We need to introduce two new constants for limit orders as well:</p>
+<ol type="1">
+<li><em>broker_rate</em> - this is the percentage fee charged for placing a limit order; and,</li>
+<li><em>volume_limit</em> - this is the fraction of daily volume which can not be exceeded by sell orders for a particular type, and for a particular opportunity.</li>
+</ol>
+<p>We set these, and other constants in the next cell:</p>
+<figure>
+<img src="img/ex11_cell2.PNG" alt="Constants" /><figcaption>Constants</figcaption>
+</figure>
+<p>We ended Example 7 by adding code which maximized profit from each opportunity we found. That’s where we’ll start for this example. Therefore, we include the same functions for buying from or selling two orders in the order book, including related helper functions. The first new function we need to add is a function which computes the “spread return”. As we described above, an limit order opportunity is indicated when this return value is greater than a constant based on tax rate and broker fee. The following function computes spread return information for a given type:</p>
+<figure>
+<img src="img/ex11_cell3.PNG" alt="Spread Return Computation" /><figcaption>Spread Return Computation</figcaption>
+</figure>
+<p>This function works by finding the best bid and ask, then computing the return as described above. It is possible then either the best bid or best ask does not exist (e.g. due to lack of orders in the book). When this happens, no spread return is computed and all orders for this material will be market orders.</p>
+<p>We’re now ready to modify our opportunity finder. We start by modifying the <code>attempt_opportunity</code> function as follows:</p>
 <ul>
-<li>changes math on profit</li>
-<li>incurs more market risk (covered in later chapter), but on high volume assets so lower risk</li>
-<li>need to be aware of volumes on sold assets and effect of market participation (e.g. market impact)</li>
-<li>define market impact</li>
+<li>We compute a total volume limit for each refined material based on a fraction of the historic volume for this type. The sum of all limit orders for a refined material can not exceed the volume limit.</li>
+<li>When selling a refined material, we use spread return to decide whether to place limit or market orders. For limit orders, the price of the order is based on the best ask price in the order book, volume gated by the volume limit. Market orders are unchanged.</li>
+<li>If an order is a limit order, then we include the broker fee when computing gross proceeds from a cell.</li>
 </ul>
+<p>Our <code>find_opportunities</code> function is unmodified except that we pass new arguments for broker fee, market summary and volume limit. With these changes in place, we’re now ready to look for opportunities on our sample date.</p>
+<p>Maximizing opportunities, along with the limit order modification, takes a significant amount of time. It takes about an hour on our equipment to execute the next cell:</p>
+<figure>
+<img src="img/ex11_cell4.PNG" alt="Executing Opportunity Finder" /><figcaption>Executing Opportunity Finder</figcaption>
+</figure>
+<p>Once this cell completes, we can have a look at the results. Note that we have modified the results display to include whether limit orders were used in an opportunity:</p>
+<figure>
+<img src="img/ex11_cell5.PNG" alt="Opportunity Results" /><figcaption>Opportunity Results</figcaption>
+</figure>
+<p>Every single opportunity used limit orders for some or all refined materials. We also generated a few more opportunities than before (43 versus 36). Return and profit is also higher in many cases. Aggregates for our sample day confirm our results are better when using limit orders:</p>
+<figure>
+<img src="img/ex11_cell6.PNG" alt="Summary" /><figcaption>Summary</figcaption>
+</figure>
+<p>Comparable numbers from Example 7 are 47,584,077.92 ISK profit, and a return of 0.63%. Our results from using limit orders more than doubles profit and more than triples return. We’ve made the argument that these results are reasonable because we’re dealing with highly liquid refined materials in volumes small enough to sell without difficulty. However, a more careful analysis would consider market variance and try to predict how long it will take to fill all limit orders. Despite our liquidity argument, it is still likely that one or more orders will need to be re-priced down in order to deal with the usual competition that occurs in the market.</p>
+<p>In our own trading here at Orbital Enterprises, we’ve been satisfied with our results without resorting to limit orders. Nonetheless, the strategy seems sound. After conducting a proper back test, you may consider enabling this variant for your own trading.</p>
 <h3 id="capture-dumping-with-buy-orders">Capture “Dumping” with Buy Orders</h3>
 <ul>
 <li>take advantage of “dumping” by players needing cash fast</li>
