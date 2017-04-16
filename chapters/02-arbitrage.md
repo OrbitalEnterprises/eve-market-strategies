@@ -267,9 +267,7 @@ For our final bit of analysis, let's look at the data grouped by source material
 
 We've sorted this graph by opportunity count as it seems likely that ore families will naturally group together.  In fact, we do see a distinct grouping in the plagioclase family.  This is perhaps not surprising given that plagioclase is a profitable ore in The Forge.  Conversely, an analysis in Domain might show Kernite as a more dominant ore for the same reason.  Some other pairs of ore also show grouping.  In terms of profitability, compressed dark glitter \(an ice\) is a clear outlier with a large number of opportunities as well.  This might be a focus for competitively priced bid orders to try to capture industrialists dumping excess stock on the market.
 
-This completes our back test of our ore and ice arbitrage strategy.  Our results show that this strategy is profitable, but certainly not enough to be the main focus of any trader.  In our [Sample Trading Strategy](#a-sample-trading-strategy) section below, we recommend periodically checking for these opportunities in an automated fashion.
-
-Now we turn our focus to scrapmetal reprocessing as an arbitrage strategy.
+This completes our back test of our ore and ice arbitrage strategy.  Our results show that this strategy is profitable, but certainly not enough to be the main focus of any trader.  We now turn our focus to scrapmetal reprocessing as an arbitrage strategy.
 
 ## Scrapmetal Processing Arbitrage
 
@@ -528,38 +526,66 @@ In our own trading here at Orbital Enterprises, we've been satisfied with our re
   * volume weighted average closer to low price is a good sign?
   * check data to verify
 
-### Cross-Region Reprocessing Arbitrage
-
-* buy in one market, then transport and reprocess in another market
-* incurs both market and transport risk (covered in later chapter)
-
 ## Practical Trading Tips
-
-### A Sample Trading Strategy
 
 ### Keep Up with Static Data Export Changes
 
+Arbitrage opportunities are sensitive to the ideal refined material output of source assets.  Output values are retrieved from the Static Data Export and are normally stable.  However, CCP does, periodically, rebalance the refining process, particularly for newly introduced asset types.  Missing a change can be very costly.  At Orbital Enterprises, our own trading was victimized by one such change:
+
+![What Happens When You Miss an SDE Change](img/ch2_fig2.PNG)
+
+In December of 2016, CCP rebalanced refining output for one of the new Citadel modules.  We missed this update to the SDE and lost about 1B ISK between December 18th and 19th due to a miscomputed opportunity.  We misdiagnosed this problem as a transient refined material order \(see next section\).  As a result, the same problem bit us again on December 24th, this time costing us about 500M ISK.  At that point, we properly diagnosed the problem.  Long story short, don't miss SDE updates!
+
 ### Beware "Ghost" and Canceled Orders
 
-* Market implementation posts orders before execution
-  * dumping shows up as someone willing to sell reproc targets at low price
-  * buys show up as someone willing to buy reproc output at a high price
-* Market participants sometimes make limit order mistakes which they cancel ASAP
-* Occasionally these are captured in order book snapshots
-* Causes numerous bogus arb opportunities
-* Usually easy to detect as a large number of opportunities suddenly appearing
+Transient orders can sometimes fool an arbitrage strategy into thinking there is an opportunity when no such opportunity exists.  We've seen this effect manifest itself in two ways:
+
+1. Market participant mistakes in which an order is placed at the wrong price, then canceled before it can be completely filled; and,
+2. "Ghost" orders \(our term, not an official EVE designation\) which appear in market data, but are actually a side effect of the way EVE's implementation fills market orders.
+
+Canceled sell orders are easy to avoid: when you attempt to take the opportunity you simply won't find anything to buy because the order has already been canceled.  Cancelled buy orders of refined materials are harder to avoid.  We'll touch on this again below.
+
+"Ghost" orders are market orders which appear in market data momentarily before being filled.  We believe these occur because EVE's order matching algorithm places all market orders in the order book first, then executes any fills which should occur.  Occasionally, you'll see these orders in the EVE client.  For example:
+
+![Ghost Buy Order](img/ghost_sell_order.PNG)
+
+The blue colored order is a buy market order we placed against the current best ask \(at the top of the image\).  In most cases, the buy order will be immediately filled and will never appear in market data \(much less the client\).  However, these orders are occasionally captured in market data.  When such an order for a refined material is captured, the arbitrage opportunity finder will see an order willing to buy a refined material at the best ask.  This price may be large enough to trigger an opportunity which, of course, will no longer be available when we attempt to take it.
+
+As noted above, bogus sell orders for source materials are easy to avoid as they won't be available when you attempt to take the opportunity.  Bogus buy orders for refined materials are harder to detect.  However, such orders usually cause a large number of opportunities to suddenly appear.  We've seen as many as ten or more opportunities appear out of nowhere as the result of a bogus buy order.  This gives us a way to possibly detect these false positives: if a large number of opportunities suddenly appear, consider waiting one or two market data cycles before taking any opportunities.  Another strategy is to only take the first opportunity, and be prepared to sell with limit orders if the opportunity is not profitable when selling at the market.  When we've been caught by these opportunities, we've usually found that the spread in refined material prices is large enough to at least break even with limit orders.
 
 ### Use Multi-buy
 
-* Many opportunities buy out several orders
-* 0.01 ISK effects cause order bunching
-* Can be bought out efficiently with multi-buy with small effect on profit
+As you start to capture opportunities, you'll find that many opportunities buy out several orders on the sell side which differ by a small amount.  This is often a side effect of [0.01 ISK games](https://wiki.eveuniversity.org/Trading#0.01_ISK-ing) in which market competitors strive to position their orders at the best ask price.  When this occurs, you'll see opportunities like the following \(an excerpt from a tool we've developed for our own trading\):
 
-## For Further Analysis
+```
+Location: Jita
+Type: Mega Afocal Maser I
+Profit: 1,594,440.68
+Tax: 3,305,299.44
+Buy Orders:
+10  @ 335,999.89
+72  @ 335,999.90
+38  @ 335,999.97
+36  @ 335,999.98
+2   @ 336,000.00
+3   @ 336,160.00
+6   @ 336,160.13
+6   @ 339,850.00
+10  @ 339,900.77
+101 @ 339,900.78
+4   @ 339,900.89
+4   @ 340,000.00
+2   @ 342,998.89
+6   @ 342,999.00
+1   @ 342,999.98
+2   @ 343,000.00
+```
 
-* Analyze the expected lifetime of a strategy
-* After accumulating history, look for common buyers and sellers and their behavior
-* Analyze which types produce the most opportunities.  May be highly region dependent.
+As you can see, the first five orders differ by a very small amount.  Buying these orders out one by one can get rather tedious.  To save our sanity, we use the "multi-buy" feature in the client.  A multi-buy order specifies a quantity to buy which is then purchased at the highest price needed to buy the requested quantity.  All orders are filled at the highest price which means you're overpaying for all but the last order, but not by much since the price difference is so small.  Here's an example from the client:
+
+![Using Multi-Buy to Buy Out a Range of Orders](img/ch2_fig3.PNG)
+
+In this example, we'll buy out the first four orders at price 258,899.01 ISK with fewer steps than it would take to fill the orders one at a time.  Since multi-buy always buys at the local station, you can use this same technique to buy out the entire opportunity if needed.  This may eat into profits, so use care if you decide to do this.  In the opportunity above, if we had chosen to buy out the opportunity for 303 units at 343,000 ISK we would be overpaying by 1,554,887.58 ISK which is almost as large as our expected profit.  Obviously, that would not be wise.  However, buying the first four orders with multi-buy would cost just a few ISK and would save us some time.  We leave it to the reader to devise an appropriate strategy for when to use multi-buy for their own opportunities.
 
 [^10]: This is changing with the recently announced ["PLEX split"](https://community.eveonline.com/news/dev-blogs/plex-changes-on-the-way/) which allows PLEX to be moved into and out of a special cross region container \(called the "PLEX Vault"\) shared by all characters on a given account.  With this container, you could buy PLEX in one region with one character, move the PLEX to the vault, switch to a character in a different region \(on the same account\), then pull the PLEX from the vault and sell it.  This would allow cross-region arbitrage on PLEX prices without hauling.
 [^11]: At time of writing, this page is slightly out of date.  In current game mechanics, the station owner tax is charged as an ISK amount based on refining yield, station tax and reference price, *not* as an adjustment to yield as shown on the EVE University page.
