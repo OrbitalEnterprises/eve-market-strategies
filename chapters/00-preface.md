@@ -19,9 +19,11 @@ The remainder of the book is organized as follows:
 
 ## Change Log
 
-* 2017-02-12: Beyond the initial three chapters, we have three additional chapters planned:
+* 2017-02-12: Beyond the initial two chapters, we have four additional chapters planned:
+  * "Market Making" - an analysis of market making strategies \(a.k.a. statoin trading\).
   * "Simulating Trading Strategies" - eventually this will describe a simple back test simulator we're developing.
   * "Risk" - this chapter will give a more careful treatment to risk around trading \(and EVE in general\).
   * "Trend Trading" - this chapter will discuss trend-based trading strategies.
+* 2017-04-21: Finished first two chapters.  Removed placeholder for Chapter 3.  Public announcement on forums.
 
 [^1]: I'm not claiming CCP intended to enable specific trading strategies, only that the data available now makes this possible.
