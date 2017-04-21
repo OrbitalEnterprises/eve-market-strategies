@@ -15,15 +15,15 @@ The remainder of the book is organized as follows:
   This chapters describes key features of the EVE markets and introduces tools and data sources used to describe trading strategies.  This chapter concludes with several examples introducing the tools.
 * [Chapter 2 - Arbitrage](#arbitrage)
   This chapter describes arbitrage trading which is the process of discovering undervalued market items which can be purchased and turned into profit very quickly.
-* [Chapter 3 - Market Making](#market-making)
-  This chapter describes market making strategies, better known as station trading, which profits from market participants willing to "cross the spread" instead of waiting for better prices through limit orders.
 
 ## Change Log
 
-* 2017-02-12: Beyond the initial three chapters, we have three additional chapters planned:
+* 2017-02-12: Beyond the initial two chapters, we have four additional chapters planned:
+  * "Market Making" - an analysis of market making strategies \(a.k.a. statoin trading\).
   * "Simulating Trading Strategies" - eventually this will describe a simple back test simulator we're developing.
   * "Risk" - this chapter will give a more careful treatment to risk around trading \(and EVE in general\).
   * "Trend Trading" - this chapter will discuss trend-based trading strategies.
+* 2017-04-21: Finished first two chapters.  Removed placeholder for Chapter 3.  Public announcement on forums.
 
 [^1]: I'm not claiming CCP intended to enable specific trading strategies, only that the data available now makes this possible.
 
@@ -1591,7 +1591,7 @@ This graph doesn't tell us much other than that the majority of opportunities ar
 
 ![Profit Histogram - 2M ISK or less](img/ex10_cell14.PNG)
 
-We see from this zoomed in view that a reasonable number of examples exist up until 1M ISK, after which opportunity counts drop significantly.  How significant is this distribution?  One way to understand significance is to determine the count and profit of opportunites outside of this range:
+We see from this zoomed in view that a reasonable number of examples exist up until 1M ISK, after which opportunity counts drop significantly.  How significant is this distribution?  One way to understand significance is to determine the count and profit of opportunities outside of this range:
 
 ![Count and Profit above 1M ISK](img/ex10_cell15.PNG)
 
@@ -1616,7 +1616,7 @@ Our basic analysis complete, let's turn now to a discussion of strategy effectiv
 
 We've shown in the previous two sections that arbitrage can be profitable over a reasonable time range.  The main advantages of this approach are as follows:
 
-* **Low Risk** - in it's basic form, which is essentialy parking in a station waiting for opportunities, there is very little risk to this strategy.  The primary risk is *market risk* - meaning the chance that market prices will move away from profitability between buying your source asset and selling the refined assets.  Market risk increases over time, but since most arbitrage opportunities are executed very quickly, the exposure is quite low.  You're most likely to see market risk if you wait too long between detecting an opportunity and acting on it \(assuming you don't verify the opportunity again before taking it\).  A secondary risk is *data risk* - meaning the possibility that bad market data indicates an opportunity that doesn't really exist.  Here at Orbital Enterprises we've seen this a number of times, but incidents are relatively easy to detect and avoid \(see [Beware "Ghost" and Canceled Orders](#beware-ghost-and-canceled-orders) below\).
+* **Low Risk** - in it's basic form, which is essentially parking in a station waiting for opportunities, there is very little risk to this strategy.  The primary risk is *market risk* - meaning the chance that market prices will move away from profitability between buying your source asset and selling the refined assets.  Market risk increases over time, but since most arbitrage opportunities are executed very quickly, the exposure is quite low.  You're most likely to see market risk if you wait too long between detecting an opportunity and acting on it \(assuming you don't verify the opportunity again before taking it\).  A secondary risk is *data risk* - meaning the possibility that bad market data indicates an opportunity that doesn't really exist.  Here at Orbital Enterprises we've seen this a number of times, but incidents are relatively easy to detect and avoid \(see [Beware "Ghost" and Canceled Orders](#beware-ghost-and-canceled-orders) below\).
 * **Capital Insensitive** - Some might argue that this is a disadvantage, but arbitrage strategies are not influenced by the amount of capital you have to invest.  You'll need sufficient capital to cover buying and refining source material, but adding more ISK to this strategy will not increase your returns.  This is contrary to many other trading strategies in which returns are heavily influenced by the amount of capital invested.
 * **Easy To Detect Competition** - Most traders worry about other traders discovering their strategies.  As more traders pile on to the same strategy, the strategy becomes less effective and returns are lower for everyone.  In general, it can be very difficult to determine whether someone else is using your strategy \(they certainly won't tell you\).  With arbitrage, however, everyone sees the same opportunities regardless of how many are trying to act on them.  At best, someone else can beat you to an opportunity.  It is, thus, very easy to determine when you have competition with this strategy.
 * **Works Almost Everywhere** - Our data shows that arbitrage opportunities exist even in relatively inefficient NPC stations.  It's true that player-owned stations can refine much more efficiently, but the state of the market at time of writing still allows many profitable opportunities in NPC stations.
@@ -1710,24 +1710,126 @@ In our own trading here at Orbital Enterprises, we've been satisfied with our re
 
 ### Capture "Dumping" with Buy Orders
 
+Players in need of fast cash will often skip limit orders and instead "dump" assets by selling to the current best bid.  The prices at which these assets are sold are often favorable for arbitrage.  Unfortunately, we'll never see these opportunities because they are sold directly to the market.  However, if we were to place a buy limit order at or near the best bid, then we may occasionally capture some of these opportunities.  This variant of arbitrage is similar to market making \(which we discuss in the next chapter\), except that instead of trying to make the spread \(i.e. selling assets at the best ask, which were purchased at the best bid\) we're trying to create a favorable opportunity for arbitrage.
 
+To implement this variant, we need to answer two questions:
 
-* take advantage of "dumping" by players needing cash fast
-* takes advantage of sale prices below fair market value
-* minor change to math to include limit order pricing
-* need to do trade analysis to find good liquid dumping targets
-  * volume weighted average closer to low price is a good sign?
-  * check data to verify
+1. which assets should we attempt to buy? and,
+2. at what price should we attempt to buy these assets?
+
+Let's answer the second question first, since this is the easier of the two to resolve.  To determine an appropriate buy price, we first need to decide how much return we require from any fill on our buy order which we then refine and sell.  Let $g$ be the return we expect from our investment in a buy limit order.  Return is just profit divided by cost, so we can use our opportunity function once again and solve for $p_b$, the best bid price for an asset, constrained so that the return is at least $g$.  To solve this new form of our opportunity function, we also need to include the brokerage fee, $b$, since we'll be placing buy limit orders.  The modified form of our opportunity function is then:
+
+$\sum_i\left(v_i \times e \times \left[(1 - t) \times p_b(c_i) - s_t \times p_r(c_i)\right] \right) -  r_m \times p_b(r) \times (1 + b)$
+
+There are two changes from the original equation:
+
+1. Brokerage fee, $b$, increases the cost of purchasing the source material, scaling the purchase price by the term $(1 + b)$; and,
+2. Purchase price is now based on the best bid price of the source material, $p_b(r)$, instead of the best ask price.
+
+When the above equation is positive, then the opportunity is profitable.  Find the correct buy price for our limit orders, we need to create an equation in terms of our target return, $g$, and then solve for $p_b(r)$.  Return is just profit divided by cost.  Profit, in turn, is gross proceeds minus cost.  As a result:
+
+${return} = {{profit}\over{cost}} = {{{gross} - {cost}}\over{cost}} = {{gross}\over{cost}} - 1$
+
+We can restructure our original opportunity function to put the gross proceeds terms on the left, and the cost terms on the right as follows:
+
+$\sum_i\left(v_i \times e \times (1 - t) \times p_b(c_i)\right) - \left(\left[\sum_i v_i \times e \times s_t \times p_r(c_i) \right]  +  r_m \times p_b(r) \times (1 + b)\right)$
+
+We can now write this equation in terms of return, $g$:
+
+$g = {{\sum_i\left(v_i \times e \times (1 - t) \times p_b(c_i)\right)}\over{\left[\sum_i v_i \times e \times s_t \times p_r(c_i) \right]  +  r_m \times p_b(r) \times (1 + b)}} - 1$
+
+Solving in terms of $p_b(r)$ gives:
+
+$p_b(r) = {{\sum_i\left(v_i \times e \times \left[(1 - t) \times p_b(c_i) - s_t \times (1 + g) \times p_r(c_i) \right]\right)}\over{r_m \times (1 + b) \times (1 + g)}}$
+
+This equation looks complicated, but on any given day every term is a constant except $p_b(c_i)$ which is the current best bid for a refined material in a given market data snapshot.
+
+Now that we know the price we should buy at to achieve our target return, let's consider the question of determining which assets to buy.  An ideal asset to buy would have at least two properties:
+
+1. The best bid regularly hovers around our target price; and,
+2. A reasonable volume of the asset is sold at the best bid (this implies the asset liquid).
+
+We can use a back test similar to what we have done earlier to check which assets regularly bid close to the appropriate target price for our desired return.  To check how much volume is sold at the best bid, we need to estimate trades as we did previously in [Example 4](#example-4---unpublished-data-build-a-trade-heuristic).  We'll implement both of these tests in the next example.
+
+### Example 12 - Finding Bid Targets
+
+In this example, we'll perform a back test on a single day of market data as we've done in Example 9, except this time we'll look for assets with the following properties:
+
+1. The assets are liquid.  We'll define liquidity more carefully below.
+2. At least 30% of daily orders are sold into the best bid.
+3. The best bid in each snapshot is at or below our target price for scrapmetal arbitrage at a given return target, $g$.
+
+This example will not be sufficient to suggest a long term strategy for arbitrage opportunities triggered by bid limit orders.  You will need to run a proper back test over a longer time range in order to find assets which regularly present good opportunities.  However, the techniques will be the same as those described here.  You can follow along with this example by downloading the [Jupyter Notebook](code/book/Example_12_Finding_Bid_Targets.ipynb).
+
+This example is divided into three parts.  In the first part, we find liquid assets using the same technique we used in [Example 5](#example-5---important-concepts-build-a-liquidity-filter).  In the second part, we then infer trades on these liquid assets for a target date using the technique described in [Example 4](#example-4---unpublished-data-build-a-trade-heuristic), and eliminate any assets in which less than 30% of orders were sells to the bid side.  Finally, in the last part, we perform a back test on our test date using a modified version of our arbitrage opportunity finder which finds snapshots where the current best bid was less than or equal to our target price for our target return.  When the bid price is lower than the target price, then any orders sold into the bid will be profitable with arbitrage returning at least our target rate.
+
+As in previous examples, the first several cells in the notebook set up our region \(The Forge\) and our station \(Jita IV - Moon 4 - Caldari Navy Assembly Plant\) where we'll conduct our analysis.  In this example, we'll find bid targets for assets eligible for scrapmetal processing.  Therefore, we'll need to collect type information for these assets including the materials they refine to \(cell not shown\).  Our liquidity filter operates on a range of market history summaries.  For this example, we use the 90 days up to, but not including, our target date.  We'll discuss why we exclude the current date further below.  The next cell \(not shown\), loads the appropriate range of market history summary.
+
+You may recall from [Example 5](#example-5---important-concepts-build-a-liquidity-filter) that our liquidity filter is based on generic application function \(not shown\), which is invoked with a specific liquidity filter function:
+
+![Liquidity Filter](img/ex12_cell1.PNG)
+
+Our filter passes assets which have a minimum required days of data \(87 days in this example\); a minimum required average ISK volume threshold \(meaning $avgPrice \times volume \geq threshold$, 100M ISK in this example\); and, a minimum required volume per day \(1000 units in this example\).  These liquidity settings attempt to make it likely that enough interesting volume is traded in a day to make an asset profitable.  There are likely many assets which bid below our target price, but which trade infrequently, making it less interesting to tie up capital on bid orders for these assets[^13].  We apply our liquidity filter to our market history to extract the liquid types:
+
+![Computing Liquid Instruments](img/ex12_cell2.PNG)
+
+Given that there are about 8000 scrapmetal eligible assets, our liquidity filter reduced this set substantially.  The reader is invited to change the liquidity filter as needed to generate a larger set of potential assets.  This completes step 1.
+
+In step 2, we'll infer trades for the purpose of filtering out assets which don't sell often enough into the best bid at our target station.  To create this filter, we need order book data which we load in the next cell \(not shown\).  Note that unlike our earlier scrapmetal arbitrage experiments, this order book should easily fit into memory since we've filtered down to 130 types plus their refined materials.  Once our data is loaded, we'll setup trade inference logic as we did in [Example 4](#example-4---unpublished-data-build-a-trade-heuristic).  We use a slightly modified trade inference function from that example:
+
+![Trade Inference Function](img/ex12_cell3.PNG)
+
+As you may recall from Example 4, a key problem with trade inference is detecting whether an order has been canceled or completely filled when it disappears from the book.  For this example, we use the heuristic that any order with a volume less than the rolling 5-day per-order average volume will be counted as a fill instead of a cancel.  This is a reasonable, but not perfect heuristic.  The consequences of being wrong here are that we may tie up funds in bid limit orders which are unlikely to be filled \(thus costing us the brokerage fee for placement\).  We can mitigate that risk by changing the size of our bid orders, and being prepared to place new orders when existing orders fill \(so we don't miss out on opportunities\).  We infer trades using our function in the next cell \(not shown\).
+
+Once we have inferred trades, we can remove the instruments which do not have enough sell trades into the bid.  This is a simple matter of computing the ratio of sell trades to all trades at our target station:
+
+![Filtering Types which Infrequently Sell into the Bid](img/ex12_cell4.PNG)
+
+In this example, our filter eliminates one additional asset type.  This completes step 2.
+
+Finally, we are ready to determine which of the remaining assets bid below the target price for our target return.  At this point, we need to choose a target return.  We'll use 5% for this example.  You can lower your target return if you are finding it difficult to discover good buy limit order candidates.  Our asset checker operates on the same principle as our opportunity finder, except that instead of checking whether a profitable arbitrage opportunity exists, we compute the target price for our target return and check whether the current best bid is at or below this target price.  The function which performs this operation for a single type is:
+
+![Checking Target Price for a Single Asset Type](img/ex12_cell5.PNG)
+
+The computation of target price is based on the formula given above.  Occasionally, there may be insufficient data to compute a target price.  If there is data, however, then we return the computed target price and the current best bid for the asset in this snapshot.  We call our price checker over all snapshots and asset types:
+
+![Finding All Acceptable Target Prices](img/ex12_cell6.PNG)
+
+If best bid is at or below target price, then we record the data for the asset at the given timestamp.  When the finder completes, we return a Pandas DataFrame with all valid target price entries.  The next two cells set efficiency and tax rate appropriately for scrapmetal arbitrage, then execute the finder:
+
+![Executing the Finder](img/ex12_cell7.PNG)
+
+Let's look at the results in table form first \(full table not shown for space reasons\):
+
+![Results Table](img/ex12_cell8.PNG)
+
+From our filtered set of 129 types, only five have profitable target price regions for our target date \(names of types shown in the next cell\).  When will it be profitable to place a bid order for one of these types?  We can answer this question by graphing bid and target price for the day \(this is a graph of the first type: 500MN Cold-Gas Enduring Microwarpdrive\):
+
+![Profitable Times for 500MN Cold-Gas Enduring Microwarpdrive](img/ex12_cell9.PNG)
+
+Target price \(blue diamonds\) changes throughout the day, while best bid \(orange diamonds\) stays constant until late in the day.  There are two clear regions where limit orders would be profitable, and sporadic times throughout the day where this would also be true.  Note also that the bid price for the two regions are slightly different, suggesting you would need to modify your bid order at least once to stay on top.  One strategy might be to bid at the lowest target price of the day and hope to catch enough orders so that you can arbitrage when it is profitable to do so.  Given the sparseness of opportunities outside the two main reasons, it's unlikely you'll miss later opportunities by not changing your bid price throughout the day.
+
+That profitable ranges are sensitive to target return is made obvious by running the finder with a lower target.  Let's look at results when we lower our target return by 1%:
+
+![Executing the Finder with a Lower Target](img/ex12_cell10.PNG)
+
+Interestingly, the set of profitable types does not change, but the profitable range for the first type increases substantially:
+
+![Profitable Times for 500MN Cold-Gas Enduring Microwarpdrive at Lower Target](img/ex12_cell11.PNG)
+
+We now see a large profitable range for about half the day.  Lowering the target further might yield a full day of profitability.  It would seem that a strategy based on strategically placed buy limit orders would likely generate some opportunities.  Determining the actual number of opportunities \(and hence expected profitability\) would require further analysis beyond the scope of this example.
+
+We've only considered one day of history in this example. A proper analysis would consider a longer time range before concluding that certain types can be traded profitably with limit buy orders.  Also, we have only considered scrapmetal processing, whereas similar opportunities may be available for ore and ice types.  We leave these straightforward variants as exercises for the reader.
 
 ## Practical Trading Tips
 
 ### Keep Up with Static Data Export Changes
 
-Arbitrage opportunities are sensitive to the ideal refined material output of source assets.  Output values are retrieved from the Static Data Export and are normally stable.  However, CCP does, periodically, rebalance the refining process, particularly for newly introduced asset types.  Missing a change can be very costly.  At Orbital Enterprises, our own trading was victimized by one such change:
+Arbitrage opportunities are sensitive to the ideal refined material output of source assets.  Output values are retrieved from the Static Data Export and are normally stable.  However, CCP does, periodically, re-balance the refining process, particularly for newly introduced asset types.  Missing a change can be very costly.  At Orbital Enterprises, our own trading was victimized by one such change:
 
 ![What Happens When You Miss an SDE Change](img/ch2_fig2.PNG)
 
-In December of 2016, CCP rebalanced refining output for one of the new Citadel modules.  We missed this update to the SDE and lost about 1B ISK between December 18th and 19th due to a miscomputed opportunity.  We misdiagnosed this problem as a transient refined material order \(see next section\).  As a result, the same problem bit us again on December 24th, this time costing us about 500M ISK.  At that point, we properly diagnosed the problem.  Long story short, don't miss SDE updates!
+In December of 2016, CCP re-balanced refining output for one of the new Citadel modules.  We missed this update to the SDE and lost about 1B ISK between December 18th and 19th due to a miscomputed opportunity.  We misdiagnosed this problem as a transient refined material order \(see next section\).  As a result, the same problem bit us again on December 24th, this time costing us about 500M ISK.  At that point, we properly diagnosed the problem.  Long story short, don't miss SDE updates!
 
 ### Beware "Ghost" and Canceled Orders
 
@@ -1736,7 +1838,7 @@ Transient orders can sometimes fool an arbitrage strategy into thinking there is
 1. Market participant mistakes in which an order is placed at the wrong price, then canceled before it can be completely filled; and,
 2. "Ghost" orders \(our term, not an official EVE designation\) which appear in market data, but are actually a side effect of the way EVE's implementation fills market orders.
 
-Canceled sell orders are easy to avoid: when you attempt to take the opportunity you simply won't find anything to buy because the order has already been canceled.  Cancelled buy orders of refined materials are harder to avoid.  We'll touch on this again below.
+Canceled sell orders are easy to avoid: when you attempt to take the opportunity you simply won't find anything to buy because the order has already been canceled.  Canceled buy orders of refined materials are harder to avoid.  We'll touch on this again below.
 
 "Ghost" orders are market orders which appear in market data momentarily before being filled.  We believe these occur because EVE's order matching algorithm places all market orders in the order book first, then executes any fills which should occur.  Occasionally, you'll see these orders in the EVE client.  For example:
 
@@ -1778,10 +1880,11 @@ As you can see, the first five orders differ by a very small amount.  Buying the
 
 ![Using Multi-Buy to Buy Out a Range of Orders](img/ch2_fig3.PNG)
 
-In this example, we'll buy out the first four orders at price 258,899.01 ISK with fewer steps than it would take to fill the orders one at a time.  Since multi-buy always buys at the local station, you can use this same technique to buy out the entire opportunity if needed.  This may eat into profits, so use care if you decide to do this.  In the opportunity above, if we had chosen to buy out the opportunity for 303 units at 343,000 ISK we would be overpaying by 1,554,887.58 ISK which is almost as large as our expected profit.  Obviously, that would not be wise.  However, buying the first four orders with multi-buy would cost just a few ISK and would save us some time.  We leave it to the reader to devise an appropriate strategy for when to use multi-buy for their own opportunities.
+In this example, we'll buy out the first four orders at price 258,899.01 ISK with fewer steps than it would take to fill the orders one at a time.  Since multi-buy always buys at the local station, you can use this same technique to buy out the entire opportunity if needed.  This may eat into profits, so use care if you decide to do this.  In the opportunity above, if we had chosen to buy out all orders for 303 units at 343,000 ISK we would be overpaying by 1,554,887.58 ISK which is almost as large as our expected profit.  Obviously, that would not be wise.  However, buying the first four orders with multi-buy would cost just a few ISK and would save us some time.  We leave it to the reader to devise an appropriate strategy for when to use multi-buy for their own opportunities.
 
 [^10]: This is changing with the recently announced ["PLEX split"](https://community.eveonline.com/news/dev-blogs/plex-changes-on-the-way/) which allows PLEX to be moved into and out of a special cross region container \(called the "PLEX Vault"\) shared by all characters on a given account.  With this container, you could buy PLEX in one region with one character, move the PLEX to the vault, switch to a character in a different region \(on the same account\), then pull the PLEX from the vault and sell it.  This would allow cross-region arbitrage on PLEX prices without hauling.
 [^11]: At time of writing, this page is slightly out of date.  In current game mechanics, the station owner tax is charged as an ISK amount based on refining yield, station tax and reference price, *not* as an adjustment to yield as shown on the EVE University page.
 [^12]: Of course, a more careful analysis of opportunities may show it's not worth training certain ore-specific skills to level five due to lack of opportunities.  We leave this analysis as an exercise for the reader.
+[^13]: Unless, of course, the profit you from such trades is large enough to justify tying up ISK.  More careful analysis is required here.  We're using a less precise criteria to keep the example simple.
 
 # Market Making
