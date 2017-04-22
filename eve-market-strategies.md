@@ -1886,5 +1886,3 @@ In this example, we'll buy out the first four orders at price 258,899.01 ISK wit
 [^11]: At time of writing, this page is slightly out of date.  In current game mechanics, the station owner tax is charged as an ISK amount based on refining yield, station tax and reference price, *not* as an adjustment to yield as shown on the EVE University page.
 [^12]: Of course, a more careful analysis of opportunities may show it's not worth training certain ore-specific skills to level five due to lack of opportunities.  We leave this analysis as an exercise for the reader.
 [^13]: Unless, of course, the profit you from such trades is large enough to justify tying up ISK.  More careful analysis is required here.  We're using a less precise criteria to keep the example simple.
-
-# Market Making
