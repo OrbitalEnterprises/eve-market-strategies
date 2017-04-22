@@ -10,7 +10,7 @@ This book attempts to be a systematic discussion of data driven analysis and tra
 
 ## Downloads
 
-The latest fully assembled Markdown version of the book will always be available in the repository [here](eve-market-strategies.md).  You can also view the latest version in web page format [here](https://rawgit.com/OrbitalEnterprises/eve-market-strategies/master/index.html).  Other versions of the book will be available in our public Google Drive folder [here](https://drive.google.com/open?id=0B6lvkwGmS7a2NWkyc21zbHVmbEE).  Cloning and building the repository is always the best way to get the most recent version of the book.
+The latest fully assembled Markdown version of the book will always be available in the repository [here](eve-market-strategies.md).  You can also view the latest version in web page format [here](https://orbitalenterprises.github.io/eve-market-strategies/index.html).  Other versions of the book will be available in our public Google Drive folder [here](https://drive.google.com/open?id=0B6lvkwGmS7a2NWkyc21zbHVmbEE).  Cloning and building the repository is always the best way to get the most recent version of the book.
 
 ## Contributing
 
