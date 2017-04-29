@@ -118,6 +118,13 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#use-multi-buy">Use Multi-buy</a></li>
 </ul></li>
 </ul></li>
+<li><a href="#market-making-station-trading">Market Making (Station Trading)</a><ul>
+<li><a href="#market-making-basics">Market Making Basics</a></li>
+<li><a href="#elements-of-a-market-making-strategy">Elements of a Market Making Strategy</a></li>
+<li><a href="#strategy-effectiveness-1">Strategy Effectiveness</a></li>
+<li><a href="#variants-1">Variants</a></li>
+<li><a href="#practical-trading-tips-1">Practical Trading Tips</a></li>
+</ul></li>
 </ul>
 </nav>
 <h1 id="preface">Preface</h1>
@@ -129,6 +136,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <ul>
 <li><a href="#preliminaries">Chapter 1 - Preliminaries</a> This chapters describes key features of the EVE markets and introduces tools and data sources used to describe trading strategies. This chapter concludes with several examples introducing the tools.</li>
 <li><a href="#arbitrage">Chapter 2 - Arbitrage</a> This chapter describes arbitrage trading which is the process of discovering undervalued market items which can be purchased and turned into profit very quickly.</li>
+<li><a href="#market-making">Chapter 3 - Market Making</a> This chapter describes market making strategies, better known as station trading, which profits from market participants willing to “cross the spread” instead of waiting for better prices through limit orders.</li>
 </ul>
 <h2 id="change-log">Change Log</h2>
 <ul>
@@ -1712,6 +1720,53 @@ Buy Orders:
 <img src="img/ch2_fig3.PNG" alt="Using Multi-Buy to Buy Out a Range of Orders" /><figcaption>Using Multi-Buy to Buy Out a Range of Orders</figcaption>
 </figure>
 <p>In this example, we’ll buy out the first four orders at price 258,899.01 ISK with fewer steps than it would take to fill the orders one at a time. Since multi-buy always buys at the local station, you can use this same technique to buy out the entire opportunity if needed. This may eat into profits, so use care if you decide to do this. In the opportunity above, if we had chosen to buy out all orders for 303 units at 343,000 ISK we would be overpaying by 1,554,887.58 ISK which is almost as large as our expected profit. Obviously, that would not be wise. However, buying the first four orders with multi-buy would cost just a few ISK and would save us some time. We leave it to the reader to devise an appropriate strategy for when to use multi-buy for their own opportunities.</p>
+<h1 id="market-making-station-trading">Market Making (Station Trading)</h1>
+<p>In real-world markets, a market maker is a market participant that maintains an inventory of assets (e.g. stock) so that they are able to buy or sell assets to other market participants as required. Market makers help keep real-world markets running efficiently by providing <em>liquidity</em>, which is the ability to readily trade assets at stable prices. Real-world market makers are compensated for the risk they take in maintaining an inventory of assets. In some markets, this compensation takes the form of rebates offered to market participants willing to provide liquidity. In most markets, however, market makers profit by maintaining a <em>spread</em> which is the difference in price between the current best bid and best ask. A market maker can buy assets at the best bid (assuming a willing counterparty), then turn around and sell those assets at the best ask, pocketing the <em>spread</em> (or vice versa for selling at the ask and buying at the bid). As long as the spread is greater than associated trading fees, the market maker will make a profit. Note, however, that profit margins are typically very thin. In real world markets, market making is a volume game.</p>
+<p>EVE markets do not have sponsored market makers like real-world markets. However, many players perform a similar function and profit in a similar fashion. These players are referred to as “station traders” because they typically never leave the station they are trading in: all assets are bought and sold in the same station. For all intents and purposes, however, station traders are really market makers: they compete with other players to have the best bid or ask, and they profit when they can buy assets at the best bid and re-sell those assets at the best ask (or vice-versa). Besides hauling, market making is one of the most popular occupations for players pursuing a market trader play style. Part of market making’s popularity stems from the fact that little capital is required to get started. To wit, there are numerous online videos explaining how to make quick ISK by market making.</p>
+<p>In this chapter, we’ll analyze market making as a market strategy in EVE. We’ll discuss the basics of profitability, and then work through the discovery of which assets provide good market making opportunities. As market making is a time consuming activity, we’ll also attempt to estimate how frequently you’ll need to monitor your orders. Less active players may want to use the results from this section to choose market making opportunities which fit better with their play styles. We’ll also talk briefly about market risk as this is the most significant risk factor for market making. As in earlier chapters, we provide several examples illustrating how we derive opportunities and predict outcomes. We conclude this chapter with a brief discussion of variants and practical trading tips.</p>
+<h2 id="market-making-basics">Market Making Basics</h2>
+<p>A simple EVE market making strategy first buys assets at the best bid, then sells these assets at the best ask. All trading occurs within a single station. Limit orders are placed for both the bid and ask (incurring broker fees), and sales tax is charged when ask orders are filled.</p>
+<p>Given the following definitions:</p>
+<ul>
+<li><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?p_a" alt="p_a" title="p_a" /> - the best ask price for an asset</li>
+<li><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?p_b" alt="p_b" title="p_b" /> - the best bid price for an asset</li>
+<li><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?n" alt="n" title="n" /> - the number of assets bought and sold</li>
+<li><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?s_t" alt="s_t" title="s_t" /> - station sales tax</li>
+<li><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?b" alt="b" title="b" /> - station broker fee</li>
+<li><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?r" alt="r" title="r" /> - total profit of the transaction</li>
+</ul>
+<p>the profitability of market making for a given asset type is:</p>
+<p><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?r%20%3D%20p_a%20%5Ctimes%20n%20-%20p_a%20%5Ctimes%20s_t%20%5Ctimes%20n%20-%20p_a%20%5Ctimes%20b%20%5Ctimes%20n%20-%20p_b%20%5Ctimes%20b%20%5Ctimes%20n%20-%20p_b%20%5Ctimes%20n" alt="r = p_a \times n - p_a \times s_t \times n - p_a \times b \times n - p_b \times b \times n - p_b \times n" title="r = p_a \times n - p_a \times s_t \times n - p_a \times b \times n - p_b \times b \times n - p_b \times n" /></p>
+<p>where the first term is the gross profit, and the remaining terms reflect sales tax, broker fees for placing limit orders, and the cost of buying assets at the best bid. A market making transaction is profitable when <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?r%20%3E%200" alt="r &gt; 0" title="r &gt; 0" />. That is, when:</p>
+<p><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?p_a%20%5Ctimes%20n%20-%20p_a%20%5Ctimes%20s_t%20%5Ctimes%20n%20-%20p_a%20%5Ctimes%20b%20%5Ctimes%20n%20-%20p_b%20%5Ctimes%20b%20%5Ctimes%20n%20-%20p_b%20%5Ctimes%20n%20%3E%200" alt="p_a \times n - p_a \times s_t \times n - p_a \times b \times n - p_b \times b \times n - p_b \times n &gt; 0" title="p_a \times n - p_a \times s_t \times n - p_a \times b \times n - p_b \times b \times n - p_b \times n &gt; 0" /></p>
+<p>or, by re-arranging terms:</p>
+<p><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?%7Bp_a%20%5Cover%20p_b%7D%20%3E%20%7B%7B1%20%2B%20b%7D%5Cover%7B1%20-%20t%20-%20b%7D%7D" alt="{p_a \over p_b} &gt; {{1 + b}\over{1 - t - b}}" title="{p_a \over p_b} &gt; {{1 + b}\over{1 - t - b}}" /></p>
+<p>This last expression gives us a simple test to determine whether an asset is currently profitable for market making (the terms on the right are all constant).</p>
+<p>If an asset is profitable for market making, then we’d also like to determine the expected return for this strategy. From the last chapter, we know that return is <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?%7B%7Bgross%7D%5Cover%7Bcost%7D%7D%20-%201" alt="{{gross}\over{cost}} - 1" title="{{gross}\over{cost}} - 1" />. Given the same definitions above, the expected return is therefore:</p>
+<p><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?%7B%7Bp_a%7D%5Cover%7Bp_a%20%5Ctimes%20s_t%20%2B%20b%20%5Ctimes%20%28p_a%20%2B%20p_b%29%20%2B%20p_b%7D%7D%20-%201" alt="{{p_a}\over{p_a \times s_t + b \times (p_a + p_b) + p_b}} - 1" title="{{p_a}\over{p_a \times s_t + b \times (p_a + p_b) + p_b}} - 1" /></p>
+<ul>
+<li>Definition and technical introduction ** how market makers profit ** mathematics of profitable market making *** spread must overcome bid/ask broker fee and sales tax ** Example 13 - how much market making is there?</li>
+</ul>
+<h2 id="elements-of-a-market-making-strategy">Elements of a Market Making Strategy</h2>
+<ul>
+<li>Elements of a market making strategy ** which assets to trade? *** liquid assets *** spreads must be profitable *** trade volume reasonable balanced between bid and ask ** what does the competition look like? ** how often do I need to change my orders?</li>
+<li>Example 14 - finding market making targets</li>
+<li>Example 15 - simple trade simulator</li>
+<li>Example 16 - computing order change velocity ** managing risk (maintaining stock)</li>
+<li>Example 17 - simple risk projection</li>
+</ul>
+<h2 id="strategy-effectiveness-1">Strategy Effectiveness</h2>
+<ul>
+<li>strategy effectiveness ** pros: *** One of the easiest and cheapest first strategies ** cons: *** Highly competitive, many 0.01 ISK games *** Ties up cash in orders (except - margin trading skill)</li>
+</ul>
+<h2 id="variants-1">Variants</h2>
+<ul>
+<li>variants ** luring the ask down *** find agressive ask side *** buy a few items *** continually 0.01 ISK sellers to draw ask price down *** buy out sellers and place ask ** Example 18 - finding competitive ask candidates ** cyclical market making *** look for ask cycles, buy at low end of cycle and resell *** OR: look for bid cycles, bid at low end of cycle and resell ** Example 19 - finding bid and ask cycles</li>
+</ul>
+<h2 id="practical-trading-tips-1">Practical Trading Tips</h2>
+<ul>
+<li>practical trading tips ** tools almost mandatory - fortunately there are many available ** Multi-day positions require risk management ** order layering to stay at the top of the book</li>
+</ul>
 <section class="footnotes">
 <hr />
 <ol>
