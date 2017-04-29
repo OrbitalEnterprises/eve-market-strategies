@@ -895,7 +895,7 @@ We begin our analysis using a single day of book data.  A quick review of EVE ma
 * The order can be partially filled.  This reduces volume for the order, but otherwise the order remains in the order book.
 * The order can be completely filled.  This removes the order from the order book.
 
-Since a partially filled order is the only unambiguous indication of a trade, let's start buy building our heuristic to catch those events.  The following function does just that:
+Since a partially filled order is the only unambiguous indication of a trade, let's start by building our heuristic to catch those events.  The following function does just that:
 
 ![Initial Trade Heuristic](img/ex4_cell1.PNG)
 
