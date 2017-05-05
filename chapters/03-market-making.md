@@ -148,8 +148,7 @@ In this example, we've introduced a simple filter for finding asset types for wh
 *** liquid assets
 *** spreads must be profitable
 *** trade volume reasonable balanced between bid and ask
-*** how much competition do we want?
-*** how often can we change our orders?
+*** how much competition do we want (i.e. how often do we need to update our orders)?
 ** Example 14 - finding market making targets
 ** how can I test my strategy?
 *** modeling order books and fills
