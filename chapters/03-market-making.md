@@ -148,21 +148,26 @@ In this example, we've introduced a simple filter for finding asset types for wh
 *** liquid assets
 *** spreads must be profitable
 *** trade volume reasonable balanced between bid and ask
-** what does the competition look like?
-** how often do I need to change my orders?
-* Example 14 - finding market making targets
-* Example 15 - simple trade simulator
-* Example 16 - computing order change velocity
-** managing risk (maintaining stock)
-* Example 17 - simple risk projection
+*** how much competition do we want?
+*** how often can we change our orders?
+** Example 14 - finding market making targets
+** how can I test my strategy?
+*** modeling order books and fills
+** Example 15 - modeling order books and trades
+*** simple backtest against model
+** Example 16 - backtest a sample strategy
+** managing risk (bought items waiting to be sold)
+*** how long should I hold unsold assets?
+** Example 17 - simple risk projection
 
 ## Strategy Effectiveness
 * strategy effectiveness
 ** pros:
-*** One of the easiest and cheapest first strategies
+*** Easy to execute once you've chosen your targets
+*** Cheap, can start small
 ** cons:
 *** Highly competitive, many 0.01 ISK games
-*** Ties up cash in orders (except - margin trading skill)
+*** Volume game, need to play a lot to make a lot
 
 ## Variants
 * variants
