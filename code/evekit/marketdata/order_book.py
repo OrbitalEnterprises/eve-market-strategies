@@ -34,6 +34,20 @@ class MarketOrder:
         self.location_id = int(vals[8])
         self.duration = int(vals[9])
 
+    def copy(self):
+        new_order = MarketOrder()
+        new_order.order_id = self.order_id
+        new_order.buy = self.buy
+        new_order.issued = self.issued           
+        new_order.price = self.price            
+        new_order.volume_entered = self.volume_entered   
+        new_order.min_volume = self.min_volume       
+        new_order.volume = self.volume           
+        new_order.order_range = self.order_range      
+        new_order.location_id = self.location_id      
+        new_order.duration = self.duration         
+        return new_order
+        
     def __str__(self):
         return "MarkerOrder[%d, %s, %s, %s, %d, %d, %d, %s, %d, %d]" % (self.order_id, self.buy, self.issued,
                                                                         self.price, self.volume_entered,
@@ -62,11 +76,40 @@ class MarketSnapshot:
         self.bid = []
         self.ask = []
 
+    def contains(self, order):
+        return order.order_id in [x.order_id for x in self.bid + self.ask]
+    
     def add_bid(self, bid):
         self.bid.append(bid)
 
     def add_ask(self, ask):
         self.ask.append(ask)
+
+    def insert_bid(self, bid):
+        # Bids ordered by price descending
+        if len(self.bid) == 0:
+            self.add_bid(bid)
+        else:
+            for i in range(len(self.bid)):
+                if self.bid[i].price < bid.price:
+                    break
+            self.bid[i:i] = [bid]
+
+    def insert_ask(self, ask):
+        # Asks ordered by price ascending
+        if len(self.ask) == 0:
+            self.add_ask(ask)
+        else:
+            for i in range(len(self.ask)):
+                if self.ask[i].price > ask.price:
+                    break
+            self.ask[i:i] = [ask]
+
+    def insert_order(self, order):
+        if order.buy:
+            self.insert_bid(order)
+        else:
+            self.insert_ask(order)
 
     def __str__(self):
         result = "MarketSnapshot[time=%s, bidCount=%d, askCount=%d,\n" % (
@@ -163,6 +206,45 @@ class OrderBook:
     def __repr__(self):
         return str(self)
 
+    """
+    Copy an order into previous snapshots starting from index and working
+    backwards until we find a snapshot that either already contains the order,
+    or has a timestamp before the issue date of the new order.
+    """
+    def __backfill_order__(self, order, region_id, index):
+        issued = order.issued
+        snaps = self.region[region_id]
+        for i in range(index, -1, -1):
+            next_snap = snaps[i]
+            if next_snap.snapshot_time < issued or next_snap.contains(order):
+                return
+            order_copy = order.copy()
+            next_snap.insert_order(order_copy)
+    
+    """
+    Look for order gapping and backfill to fix.
+    """
+    def fill_gaps(self):
+        for region_id in self.region.keys():
+            # Cycle through snapshots in pairs, look for orders we need to backfill
+            snap_list = self.region[region_id]
+            for i in range(0, len(snap_list) - 1):
+                current_snap = snap_list[i]
+                current_time = current_snap.snapshot_time
+                next_snap = snap_list[i+1]
+                next_time = next_snap.snapshot_time
+                #
+                # Look for new orders added in the next snapshot
+                #
+                all_current_orders = current_snap.bid + current_snap.ask
+                all_new_orders = next_snap.bid + next_snap.ask
+                new_id_set = set([x.order_id for x in all_new_orders]).difference(set([x.order_id for x in all_current_orders]))
+                if len(new_id_set) > 0:
+                    for next_order in all_new_orders:
+                        if next_order.order_id in new_id_set and next_order.issued < current_time:
+                            # Gap - backfill
+                            self.__backfill_order__(next_order, region_id, i)
+    
     @staticmethod
     def __read_index__(fobj, max_offset):
         """
@@ -388,10 +470,12 @@ class OrderBook:
           local_storage - if present, gives the parent directory for local storage containing order book data
           tree - if True, then local storage is organized as a date tree
           use_online - if True, use either the online archive or market data service to fill missing dates.
+          fill_gaps - if True, fill gaps of missing orders
         :return: DataFrame containing the requested data indexed by book snapshot time.
         """
         config = {} if config is None else config
         verbose = config.get('verbose', False)
+        fill_gaps = config.get('fill_gaps', False)
         # Turn off verbose in called methods
         config['verbose'] = False
         results = []
@@ -401,6 +485,10 @@ class OrderBook:
             results.extend(OrderBook.get_day(next_date, types, regions, config))
             if verbose:
                 print("done")
+        # Fix gaps if requested
+        if fill_gaps:
+            for ob in results:
+                ob.fill_gaps()
         # Flatten order book snapshots into an array
         order_list = []
         for next_book in results:

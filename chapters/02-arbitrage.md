@@ -150,7 +150,7 @@ We've defined a simple opportunity display function in the next cell.  Let's tak
 
 ![Opportunity Results](img/ex7_cell8.PNG)
 
-If you scroll down in the notebook, you'll see we detected 654 total opportunities.  For each opportunity, we report profit and *return* which is profit divided by total cost.  Return is the payout you get for risking your money on an opportunity.  All things being equal, a higher return is better.  However, arbitrage is somewhat unique in that we can tolerate low return if we can take advantage of an opportunity quickly enough \(more on this below\).
+If you scroll down in the notebook, you'll see we detected 669 total opportunities.  For each opportunity, we report profit and *return* which is profit divided by total cost.  Return is the payout you get for risking your money on an opportunity.  All things being equal, a higher return is better.  However, arbitrage is somewhat unique in that we can tolerate low return if we can take advantage of an opportunity quickly enough \(more on this below\).
 
 There seem to be many opportunities on our reference date, but to really value these opportunities, we need to maximize each one by buying and refining until it is no longer possible to do so.  Maximizing this way will tell us the value of each opportunity, and give us some idea of the total value of the entire day.  As we noted above, executing multiple refinement cycles for an opportunity requires that we keep order book state so we can update orders as we consume them.  The main modification, therefore, will be to our functions for buying source material and selling refined material.  We modify our "buy" function by passing in an order list instead of a snapshot.  We assume this order list represents the available sell orders for a given source material at a given location:
 
@@ -212,6 +212,10 @@ $ python ore_ice_arb_backtest.py YYYY-MM-DD output.csv
 ```
 
 This command will find all ore and ice opportunities on the given date and write those opportunities in CSV format to the specified file.  To run the complete back test, simply run this command for every date in the date range.  If you have a reasonably powerful machine, you will be able to run multiple dates in parallel.  When all dates complete, you can concatenate all the output files to make a single results file with all opportunities for our date range.
+
+> ### NOTE
+>
+> This back test was run *before* we discovered gapping problems in order book data \(see [Example 4](#example-4---unpublished-data-build-a-trade-heuristic)\).  We did not re-run the back test due to time constraints.  We believe our conclusions here are not adversely affected by back testing on gapped data.  We did, however, fix our back test scripts to fill gaps so that future runs \(or your own experiments\) will be as correct as possible.
 
 Assuming you've generated back test data \(you can also use our data which is available at [ore_ice_arb_backtest_20170101_20170131.csv.gz](https://drive.google.com/open?id=0B6lvkwGmS7a2SDBYRmJwVjhiTm8)\), we now turn to a [Jupyter notebook](code/book/Example_8_Ore_Ice_Arbitrage_Backtest.ipynb) which shows our analysis of the results.  We start by reading the opportunities file into a simple array:
 
@@ -304,6 +308,10 @@ $ python scrap_single_day.py YYYY-MM-DD output.csv
 
 As noted above, this script will take some time to execute.  Knowledgeable readers will find it beneficial to edit this script to take advantage of all available CPU cores on their particular system \(we use 10 cores on our equipment\).  We'll review the results of our single day opportunity finder for the remainder of this example.  You can follow along by downloading the [Jupyter Notebook](code/book/Example_9_Scrapmetal_Arbitrage.ipynb).
 
+> ### NOTE
+>
+> This back test was run *before* we discovered gapping problems in order book data \(see [Example 4](#example-4---unpublished-data-build-a-trade-heuristic)\).  We did not re-run the back test due to time constraints.  We believe our conclusions here are not adversely affected by back testing on gapped data.  We did, however, fix our back test scripts to fill gaps so that future runs \(or your own experiments\) will be as correct as possible.
+
 We start by loading our offline results into our notebook \(if you haven't generated your own data, you can use our data at [scrap_backtest_20170110.csv.gz](https://drive.google.com/open?id=0B6lvkwGmS7a2ci1MMmZwRDdtX28)\):
 
 ![Load and Sort Single Day Scrap Opportunities](img/ex9_cell1.PNG)
@@ -331,6 +339,10 @@ In this example, we continue our analysis from the previous example, this time e
 7. Which opportunities are the most important to capture?
 
 We'll conduct our back test over the same three month period we used for ore and ice: 2017-01-01 to 2017-03-31, inclusive.  We'll use the same offline script we used in the previous example to generate opportunity data for our date range.  The execution of the script is the same as described in the previous example, except that we execute for every day in our date range.  On our equipment, each day of data takes about four hours to generate.  Fortunately, you can run all the days in parallel if you wish.  When all runs complete, you'll have separate output files which can be concatenated into a single file of results.  Note that opportunities will be unsorted if you use our script.  We sort the data as part of our Jupyter notebook below.
+
+> ### NOTE
+>
+> This back test was run *before* we discovered gapping problems in order book data \(see [Example 4](#example-4---unpublished-data-build-a-trade-heuristic)\).  We did not re-run the back test due to time constraints.  We believe our conclusions here are not adversely affected by back testing on gapped data.  We did, however, fix our back test scripts to fill gaps so that future runs \(or your own experiments\) will be as correct as possible.
 
 Assuming you've generated back test data \(you can also use our data which is available at [scrap_backtest_20170101_20170331.csv.gz](https://drive.google.com/open?id=0B6lvkwGmS7a2dW90THBLWVRwTVU)\), we now turn to a [Jupyter notebook](code/book/Example_10_Scrapmetal_Arbitrage_Backtest.ipynb) which shows our analysis of the results.  We start by reading the opportunities file into a simple array:
 
@@ -485,16 +497,16 @@ We set these, and other constants in the next cell:
 
 ![Constants](img/ex11_cell2.PNG)
 
-We ended Example 7 by adding code which maximized profit from each opportunity we found.  That's where we'll start for this example.  Therefore, we include the same functions for buying from or selling two orders in the order book, including related helper functions.  The first new function we need to add is a function which computes the "spread return".  As we described above, an limit order opportunity is indicated when this return value is greater than a constant based on tax rate and broker fee.  The following function computes spread return information for a given type:
+We ended Example 7 by adding code which maximized profit from each opportunity we found.  That's where we'll start for this example.  Therefore, we include the same functions for buying from or selling to orders in the order book, including related helper functions.  The first new function we need to add is a function which computes the "spread return".  As we described above, an limit order opportunity is indicated when this return value is greater than a constant based on tax rate and broker fee.  The following function computes spread return information for a given type:
 
 ![Spread Return Computation](img/ex11_cell3.PNG)
 
-This function works by finding the best bid and ask, then computing the return as described above.  It is possible then either the best bid or best ask does not exist \(e.g. due to lack of orders in the book\).  When this happens, no spread return is computed and all orders for this material will be market orders.
+This function works by finding the best bid and ask, then computing the return as described above.  It is possible that a best bid or best ask does not exist \(e.g. due to lack of orders in the book\).  When this happens, no spread return is computed and all orders for this material will be market orders.
 
 We're now ready to modify our opportunity finder.  We start by modifying the `attempt_opportunity` function as follows:
 
 * We compute a total volume limit for each refined material based on a fraction of the historic volume for this type.  The sum of all limit orders for a refined material can not exceed the volume limit.
-* When selling a refined material, we use spread return to decide whether to place limit or market orders.  For limit orders, the price of the order is based on the best ask price in the order book, volume gated by the volume limit.  Market orders are unchanged.
+* When selling a refined material, we use spread return to decide whether to place limit or market orders.  For limit orders, the price of the order is based on the best ask price in the order book, with volume gated by the volume limit.  Market orders are unchanged.
 * If an order is a limit order, then we include the broker fee when computing gross proceeds from a cell.
 
 Our `find_opportunities` function is unmodified except that we pass new arguments for broker fee, market summary and volume limit.  With these changes in place, we're now ready to look for opportunities on our sample date.
@@ -511,7 +523,7 @@ Every single opportunity used limit orders for some or all refined materials.  W
 
 ![Summary](img/ex11_cell6.PNG)
 
-Comparable numbers from Example 7 are 47,584,077.92 ISK profit, and a return of 0.63%.  Our results from using limit orders more than doubles profit and more than triples return.  We've made the argument that these results are reasonable because we're dealing with highly liquid refined materials in volumes small enough to sell without difficulty.  However, a more careful analysis would consider market variance and try to predict how long it will take to fill all limit orders.  Despite our liquidity argument, it is still likely that one or more orders will need to be re-priced down in order to deal with the usual competition that occurs in the market.
+Comparable numbers from Example 7 are 47,787,151.48 ISK profit, and a return of 0.64%.  Our results from using limit orders roughly doubles profit and more than triples return.  We've made the argument that these results are reasonable because we're dealing with highly liquid refined materials in volumes small enough to sell without difficulty.  However, a more careful analysis would consider market variance and try to predict how long it will take to fill all limit orders.  Despite our liquidity argument, it is still likely that one or more orders will need to be re-priced down in order to deal with the usual competition that occurs in the market.
 
 In our own trading here at Orbital Enterprises, we've been satisfied with our results without resorting to limit orders.  Nonetheless, the strategy seems sound.  After conducting a proper back test, you may consider enabling this variant for your own trading.
 
@@ -586,13 +598,13 @@ In step 2, we'll infer trades for the purpose of filtering out assets which don'
 
 ![Trade Inference Function](img/ex12_cell3.PNG)
 
-As you may recall from Example 4, a key problem with trade inference is detecting whether an order has been canceled or completely filled when it disappears from the book.  For this example, we use the heuristic that any order with a volume less than the rolling 5-day per-order average volume will be counted as a fill instead of a cancel.  This is a reasonable, but not perfect heuristic.  The consequences of being wrong here are that we may tie up funds in bid limit orders which are unlikely to be filled \(thus costing us the brokerage fee for placement\).  We can mitigate that risk by changing the size of our bid orders, and being prepared to place new orders when existing orders fill \(so we don't miss out on opportunities\).  We infer trades using our function in the next cell \(not shown\).
+As you may recall from Example 4, a key problem with trade inference is detecting whether an order has been canceled or completely filled when it disappears from the book.  For this example, we use the heuristic that any order with a volume less than the rolling 5-day average volume times a scale multiplier \(4% in this example\) will be counted as a fill instead of a cancel.  This is a reasonable, but not perfect heuristic.  The consequences of being wrong here are that we may tie up funds in bid limit orders which are unlikely to be filled \(thus costing us the brokerage fee for placement\).  We can mitigate that risk by changing the size of our bid orders, and being prepared to place new orders when existing orders fill \(so we don't miss out on opportunities\).  We infer trades using our function in the next cell \(not shown\).
 
 Once we have inferred trades, we can remove the instruments which do not have enough sell trades into the bid.  This is a simple matter of computing the ratio of sell trades to all trades at our target station:
 
 ![Filtering Types which Infrequently Sell into the Bid](img/ex12_cell4.PNG)
 
-In this example, our filter eliminates one additional asset type.  This completes step 2.
+In this example, our filter eliminates two additional asset types.  This completes step 2.
 
 Finally, we are ready to determine which of the remaining assets bid below the target price for our target return.  At this point, we need to choose a target return.  We'll use 5% for this example.  You can lower your target return if you are finding it difficult to discover good buy limit order candidates.  Our asset checker operates on the same principle as our opportunity finder, except that instead of checking whether a profitable arbitrage opportunity exists, we compute the target price for our target return and check whether the current best bid is at or below this target price.  The function which performs this operation for a single type is:
 
@@ -610,7 +622,7 @@ Let's look at the results in table form first \(full table not shown for space r
 
 ![Results Table](img/ex12_cell8.PNG)
 
-From our filtered set of 129 types, only five have profitable target price regions for our target date \(names of types shown in the next cell\).  When will it be profitable to place a bid order for one of these types?  We can answer this question by graphing bid and target price for the day \(this is a graph of the first type: 500MN Cold-Gas Enduring Microwarpdrive\):
+From our filtered set of 128 types, only five have profitable target price regions for our target date \(names of types shown in the next cell\).  When will it be profitable to place a bid order for one of these types?  We can answer this question by graphing bid and target price for the day.  Consider the plot for 500MN Cold-Gas Enduring Microwarpdrive, our first profitable type:
 
 ![Profitable Times for 500MN Cold-Gas Enduring Microwarpdrive](img/ex12_cell9.PNG)
 
