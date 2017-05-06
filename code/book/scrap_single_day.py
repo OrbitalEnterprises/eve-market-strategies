@@ -336,7 +336,7 @@ def execution_chunk(chunk):
         book_batch = book_batch.union(source_types[next_type]['material_map'].keys())
         book_types[next_type] = source_types[next_type]
     order_book = OrderBook.get_data_frame(dates=[compute_date], types=book_batch, regions=[region_id], 
-                                          config=dict(local_storage=".", tree=True, skip_missing=True, verbose=True))
+                                          config=dict(local_storage=".", tree=True, skip_missing=True, fill_gaps=True, verbose=True))
     return find_opportunities(order_book, book_types, station_id, region_id, efficiency, tax_rate, station_tax, verbose=True)    
 
 # The first actual change we need to make for scrapmetal processing is dealing with the large

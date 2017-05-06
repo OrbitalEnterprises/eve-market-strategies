@@ -18,12 +18,13 @@ The remainder of the book is organized as follows:
 
 ## Change Log
 
+* 2017-05-05: Found gap problem in order book data.  Updated examples and text in Chapters 1 and 2 with work around.
+* 2017-04-21: Finished first two chapters.  Removed placeholder for Chapter 3.  Public announcement on forums.
 * 2017-02-12: Beyond the initial two chapters, we have four additional chapters planned:
   * "Market Making" - an analysis of market making strategies \(a.k.a. statoin trading\).
   * "Simulating Trading Strategies" - eventually this will describe a simple back test simulator we're developing.
   * "Risk" - this chapter will give a more careful treatment to risk around trading \(and EVE in general\).
   * "Trend Trading" - this chapter will discuss trend-based trading strategies.
-* 2017-04-21: Finished first two chapters.  Removed placeholder for Chapter 3.  Public announcement on forums.
 
 [^1]: I'm not claiming CCP intended to enable specific trading strategies, only that the data available now makes this possible.
 
@@ -121,7 +122,7 @@ While CREST was an important upgrade for third party developers \(as compared to
 1. A facility for resolving the location of certain player-owned structures; and,
 2. Access to order book data local to player-owned structures.
 
-The ESI uses the same OAuth based authorization scheme as CREST.  At time of writing, CCP has declared ESI as the API of the future and has deprecate both CREST and the XML API.  However, CCP has stated they will keep the XML API and CREST active at least until ESI reaches feature parity.  Unless otherwise indicated, examples in this book which require direct access to live market data will use the ESI endpoints.
+The ESI uses the same OAuth based authorization scheme as CREST.  At time of writing, CCP has declared ESI as the API of the future and has deprecated both CREST and the XML API.  However, CCP has stated they will keep the XML API and CREST active at least until ESI reaches feature parity.  Unless otherwise indicated, examples in this book which require direct access to live market data will use the ESI endpoints.
 
 The remainder of this section describes the main market data ESI endpoints in more detail.  
 
@@ -218,6 +219,10 @@ Order book data is the most current out of game view of the markets and is there
 * At time of writing, order book data is refreshed every five minutes.  That is, your view of market data may be up to five minutes old.  You can refer to the *expires* response header to determine when the order book will be refreshed.
 * Order book data for most active regions can not be returned in a single API call \(unless filtering for a single type\).  Instead, book data is "paged" across multiple calls.  The requested page is controlled by the "page" argument as shown in the URL above.  The ESI does not report how many total pages are available.  The normal solution is to continue to retrieve pages until a page is returned containing less than 10000 orders.  This indicates the last page available for the query.  The "page" argument is ignored for requests filtered by type.
 * Order book data may include orders from player-owned structures, some of which may be non-public.  Orders from non-public structures cause problems for out of game analysis because the ESI currently provides no way to discover the location of these structures.  Crowd sourced data can be used in these cases \(see [Example 3 - Trading Rules: Build an Order Matching Algorithm](#example-3---trading-rules-build-an-order-matching-algorithm) below\).
+
+> ### Order Book Data Gaps
+>
+> At various points in time, CCP's order book endpoints have had gaps in the data they provide.  These gaps take the form of orders missing from snapshots.  A common pattern is to see an order appear in one snapshot, then disappear, then appear again in a later snapshot.  The only cases where an order should exit the order book is if it is canceled or completely filled.  Also, an order which leaves the order book should never re-appear as order IDs are unique.  We'll see this problem, and a work-around, in [Example 4](#example-4---unpublished-data-build-a-trade-heuristic) below.  At time of writing, this problem was still occurring, even in the new ESI based endpoints.
 
 Order book data can also be requested directly from player-owned structures.  This is done using the ["get markets structures"](https://esi.tech.ccp.is/latest/#!/Market/get_markets_structures_structure_id) endpoint.  Some player-owned markets are not public, despite their buy orders appearing the regional market, but for those that allow access, the format of the results is identical to the format returned by the ["get market region orders"](https://esi.tech.ccp.is/latest/#!/Market/get_markets_region_id_orders) endpoint.
 
@@ -884,11 +889,33 @@ As currently implemented, our matcher makes frequent calls to the SDE which can 
 
 The CCP provided EVE market data endpoints provide quote and aggregated trade information.  For some trading strategies \(e.g. market making\), finer grained detail is often required.  For example, which trades matched a buy market order versus a sell market order?  What time of day do most trades occur?  Because CCP does not yet provide individual trade information, we're left to infer trade activity ourselves.  In some cases, we can deduce trades based on changes to existing marker orders, as long as those orders are not completely filled \(i.e. appear in the next order book snapshot\).  Orders which are removed, however, could either be canceled or completely filled by a trade.  As a result, we're left to use heuristics to infer trading behavior.
 
-In this example, we develop a simple trade inference heuristic.  This will be our first taste of the type of analysis we'll perform many times in later chapters in the book.  Specifically, we'll need to derive one or more hypotheses to explain some market behavior; we'll need to do some basic testing to convince ourselves we're on the right track; then, we'll need to perform a back test over historical data to confirm the validity of our hypothesis.  Of course, performing well in a back test is no guarantee of future results, and back tests themselves can be misused \(e.g. over-fitting\).  A discussion of proper back testing is beyond the scope of this example.  We'll touch on this topic as needed in later chapters \(there are also numerous external sources which discuss the topic\).
+In this example, we develop a simple trade inference heuristic.  This will be our first taste of the type of analysis we'll perform many times in later chapters in the book.  Specifically, we'll need to derive a hypotheses to explain some market behavior; we'll need to do some basic testing to convince ourselves we're on the right track; then, we'll need to perform a back test over historical data to confirm the validity of our hypothesis.  Of course, performing well in a back test is no guarantee of future results, and back tests themselves can be misused \(e.g. over-fitting\).  A discussion of proper back testing is beyond the scope of this example.  We'll touch on this topic as needed in later chapters \(there are also numerous external sources which discuss the topic\).
 
-We'll use a day of order book snapshots for Tritanium in The Forge to test our heuristic.  This example dives more deeply into analysis than previous examples.  We'll find that the "obvious" choice for estimating trades does not work very well, and we'll briefly discuss two hypotheses for how to make a better choice.  We'll show how to perform a basic analysis of these hypotheses, then we'll choose one and show a simple back test evaluating our strategy.  You can follow along with this example by downloading the [Jupyter Notebook](code/book/Example_4_Trade_Heuristic.ipynb).
+We'll use a day of order book snapshots for Tritanium in The Forge to test our heuristic.  This example dives more deeply into analysis than previous examples.  We'll find that the "obvious" choice for estimating trades does not work very well, and we'll briefly discuss a hypothesis on how to make a better choice.  We'll show how to perform a basic analysis of our hypothesis, then show a simple back test evaluating our strategy.  You can follow along with this example by downloading the [Jupyter Notebook](code/book/Example_4_Trade_Heuristic.ipynb).
 
-We begin our analysis using a single day of book data.  A quick review of EVE market mechanics tells us that once an order is placed, it can only be changed in the following ways:
+Earlier in this chapter we noted that one problem with order book data is that CCP's endpoint sometimes omits orders leading to gaps.  Since trades are inferred from order book snapshots, we first need to deal with the gapping problem.  Such issues are not uncommon in the real world of data science.  Fortunately, we can fix most of these problems although we don't have enough information to claim we've fixed all such gaps.  Once we've applied our fix to the data, we continue with our analysis on trade estimation.
+
+The nature of the gapping problem is that, occasionally, orders will disappear from order book snapshots, only to re-appear again in a later snapshot. This can confuse our trade heuristic which attempts to infer trades by looking at differences between subsequent snapshots.  We can illustrate this problem by looking for orders with this behavior.  In fact, we don't have to look much further than the first snapshot in this particular example.  The following code finds orders which are missing from some snapshots:
+
+![Finding Missing Orders](img/ex4_cell1.PNG)
+
+If we take a look at the first order we found \(e.g. 4720076544\), we can verify this order is missing by checking the issue date:
+
+![Missing Order Issue Date](img/ex4_cell2.PNG)
+
+The issue date is clearly before our target date so this order should definitely be in the first snapshot.  In fact, in turns out this order is missing from many snapshots:
+
+![Order Gaps](img/ex4_cell3.PNG)
+
+To fix this problem, we've added a "fill_gaps" option to the EveKit order book loader which will backfill gaps when it's clear an order is missing.  When the order loader detects a gap, it works backwards from the snapshot where the gap was detected, inserting the order into any missing snapshot until it finds a snapshot with a timestamp before the issue date of the order, or it finds a snapshot where the order already exists.
+
+If we reload the order book, this time with `fill_gaps=True`, we see that all gaps have been repaired:
+
+![Order Gaps Fixed](img/ex4_cell4.PNG)
+
+Henceforth, we'll use the "fill_gaps" feature any time having gap free data is important.  Let's move now to inferring trades from the order book.
+
+A quick review of EVE market mechanics tells us that once an order is placed, it can only be changed in the following ways:
 
 * The price can be changed.  Changing price also resets the issue date of the order.
 * The order can be canceled.  This removes the order from the order book.
@@ -897,61 +924,46 @@ We begin our analysis using a single day of book data.  A quick review of EVE ma
 
 Since a partially filled order is the only unambiguous indication of a trade, let's start by building our heuristic to catch those events.  The following function does just that:
 
-![Initial Trade Heuristic](img/ex4_cell1.PNG)
+![Initial Trade Heuristic](img/ex4_cell5.PNG)
 
 This function reports the set of inferred trades as a DataFrame:
 
-![Partial Fill Trades](img/ex4_cell2.PNG)
+![Partial Fill Trades](img/ex4_cell6.PNG)
 
 Note that the trade price may not be correct as market orders only guarantee a minimum price \(in the case of a sell\), or a maximum price \(in the case of a buy\).  The actual price of an order depends on the price of the matching order and could be higher or lower.  Note also that we can only be certain of location for sell orders since these always transact at the location of the seller, *unless* a buy order happens to list a range of `station`.
 
-The best way to test our heuristic is to compute trades for a day where market history is also available.  We've done that in this example so that we can load the relevant market history and compare results.  From that comparison, we see that partial only account for a fraction of the volume for our target day:
+The best way to test our heuristic is to compute trades for a day where market history is also available.  We've done that in this example so that we can load the relevant market history and compare results.  From that comparison, we see that partial fills only account for a fraction of the volume for our target day:
 
-![Difference Between Trade Heuristic and Historic Data](img/ex4_cell3.PNG)
+![Difference Between Trade Heuristic and Historic Data](img/ex4_cell7.PNG)
 
-In this example, partial fills only account for about one third of the trade volume for the day.  That means complete fills make up the majority of daily volume and thus it is important to have a good estimate of these fills.  There are many ways we can estimate complete fills, but a simple strategy is to start with the naive approach of assuming any order which is removed between book snapshots must be a completed fill.  We know this will rarely be correct, but it's possible that the number of removed orders which are actually cancels is small enough to not be significant.  Let's update our trade heuristic to capture these fills in addition to the partial fills we already capture:
+In this example, partial fills account for about 40% of the daily volume for this day.  That leaves us to estimate complete fills, but it also tells us this is an important estimate as more than half of this day's trading volume came from complete fills.  There are many ways we can estimate complete fills, but a simple strategy is to start with the naive approach of assuming any order which is removed between book snapshots must be a completed fill.  We know this will rarely be correct, but it is possible that the number of removed orders which are actually cancels is small enough to not be significant.  Let's update our trade heuristic to capture these fills in addition to the partial fills we already capture:
 
-![Naive Capture of Complete Fills](img/ex4_cell4.PNG)
+![Naive Capture of Complete Fills](img/ex4_cell8.PNG)
 
 How does this version compare?
 
-![Naive Capture Results](img/ex4_cell5.PNG)
+![Naive Capture Results](img/ex4_cell9.PNG)
 
-As you can see, the naive approach significantly overshoots volume.  This tells us that in fact a significant number of removed orders are actually cancels \(or expiry\).  We'll have to more carefully estimate complete fills.  A careful and complete solution to this problem is beyond the scope of this example.  Instead, we'll now turn to the evaluation of two different strategies for capturing complete fills.  Each strategy starts with a hypothesis which attempts to characterize complete fills.  We conduct a simple analysis of each hypothesis, then implement the idea that seems most promising and show how to set up a simple back test.
+The naive approach overshoots volume by almost 200%.  This tells us that in fact a significant amount of removed order volume is due to cancels \(or expiry\) instead of complete fills.  The results also show that we're only able to recover about 30% of the trades for the day.  This is important because the naive algorithm captures all possible trades visible in the data and yet still misses a significant number \(by count\).  This tells us that a substantial number of trades are occurring between snapshots.  If these trades are partial fills, then we're already capturing the volume but we have no mechanism to capture the individual trades.  It's also possible that limit orders are being placed and completely filled between snapshots.  We have no way to capture these trades as they are not visible in the data.  Given the short duration between snapshots \(5 minutes at time of writing\), it seems unlikely we're missing very short lived limit orders.
 
-Our first hypothesis is that removed orders near the "top of book" are more likely to be fills than cancels.  The "top of book" is the current best bid and ask for a given asset.  In real-world markets, this is a well defined concept because all trading happens at a single location.  In EVE, however, buy orders have ranges so the current top of book varies according to station and the range of buy orders.[^9]  For simplicity, we'll ignore the location issue for now.  We'll define a threshold, `N`, such that a removed order within the first `N` top of book orders will be considered as a complete fill and thus listed as a trade.  The top `N` buy orders are simply the first `N` buy orders sorted by price \(highest price first\).  For sell orders, we can do slightly better since we know a removed sell order must be transacted at the location of the seller.  Therefore, given a sell order at location `L`, we define the top `N` sell orders to be the first `N` sell orders at location `L` sorted by price \(lowest price first\).
+Since we can't match trade count, we'll instead focus on trying to more closely match volume for the day.  We know that some removed orders must be cancels and not complete fills.  Perhaps this is related to volume.  Let's take a look at a histogram of the volume of the data from inferred trades \(i.e. trades which are either complete fills or cancels\):
 
-This hypothesis sounds promising but let's test it before we commit to adding it to our trade heuristic.  The following functions count the number of trade orders and resulting volume that would be included for a given value of `N`:
+![Histogram of Inferred Trades](img/ex4_cell10.PNG)
 
-![Top N Strategy Test Functions](img/ex4_cell6.PNG)
+From this plot, we can see that there are very clear outliers.  In fact, it looks like trades with volume above 500 million may actually be cancels instead of trades.  Why would we draw this conclusion?  Because trades this large would represent a substantial portion of daily volume.  In fact, by doing a simple calculation in the next cell, we see that the sum of the volume of trades above 500 million accounts for about 80% of total daiily volume.  Morevoer, *removing* these trades from our set of inferred trades gives us an inferred volume very close to actual volume.
 
-The following results show the performance of this strategy on our test order book for several values of `N`:
+This analysis suggests a very simple strategy for distinguishing complete fills from cancels:
 
-![Top N Strategy Test Results](img/ex4_cell7.PNG)
+1. if an inferred trade has volume less than some threshold, it's a complete fill.
+2. otherwise, the trade is actually a cancel.
 
-The first three columns in the results report the value of `N`, the number of complete fills reported, and the volume of complete fills reported.  The fourth column shows the number of fills remaining based on the historic order count after subtracting partial fills and the complete fills reported by this strategy.  Likewise, the fifth column reports remaining volume.  The results of this strategy are not very promising.  We can capture a large portion of the missing volume, but a relatively small portion of the order count.  It is likely that we're capturing a few large cancels with this strategy, thus skewing our results.  Let's look at another strategy.
-
-A second hypotheses is that large fills should be relatively rare.  We would expect that most fills stay within a relatively tight range.  Removed orders with large volume are therefore more likely to be cancels instead of fills.  Taking this hypothesis a step further, we might expect order size to cluster around the simple average of all order volumes \(e.g. an assumption that amounts to order sizes being normally distributed\).  We can spot check this hypothesis by viewing the naive set of trades as a histogram \(recall that this set treats every removed order as a completed fill\):
-
-![Histogram of Volumes for Naive Trade Set](img/ex4_cell8.PNG)
-
-The histogram does show significant clustering near the simple order volume average \(around 4 million in this example\).  A simple strategy, then, would be to set a volume threshold such that any removed order with a volume less than the threshold would be treated as a completed fill; and, any order with a volume greater than the threshold would be treated as a cancel \(and dropped\).  As in the previous example, we can write a simple function to count the number of orders and total volume that would result from this strategy for a given volume threshold:
-
-![Volume Threshold Test Function](img/ex4_cell9.PNG)
-
-We can then test this strategy as before using various thresholds.  Historic average volume for the day seems to be a reasonable threshold, so we'll test with multiples of that volume:
-
-![Volume Threshold Test Results](img/ex4_cell10.PNG)
-
-This strategy does a better job of capturing volume, but overshoots order count.  Neither strategy seems very effective but, arguably, the threshold strategy is the better of the two.  As discussed above, trade estimation is a difficult task the further analysis of which is beyond the scope of this example.  Let us assume that we'll adopt the threshold strategy for now and turn to a back test analysis of this strategy against historic data.
-
-Before we begin our back test, we need to determine the volume threshold to use.  Our analysis used multiples of the historic average volume for testing.  If we did the same for our trade heuristic, then we could only apply the heuristic once historic volume is known.  This would preclude us from inferring trades on the current day which is not ideal for many trading strategies.  Therefore, we will arbitrarily use the moving average of average volume for the previous 10 days of trading.  This allows us to infer trades for the current day once the previous day's historic volume is known.  Based on our analysis above, we will set our volume threshold to be five times the 10-day moving average of average trading volume.  This threshold seemed to capture a reasonable amount of completed fill volume without excessively overshooting the order count.
-
-For reference, here's the final version of our trade inference function:
+If we adopt this strategy, what value should we use for a threshold?  We can't conclude that 500 million will always be an appropriate threshold.  For one thing, each asset type will almost certainly have a different threshold.  For another, as volume changes daily, it's likely the appropriate threshold will change daily as well.  A better choice might be to base our threshold on a percentage of daily volume.  That way, our threshold will adjust as volume changes over time.  If we arbitrarily choose our threshold for this example as a starting point, then our target threshold is approximatley 4%.  We don't have much data to suggest that 4% of daily volume is the right threshold.  But, for the sake of completing this example, let's assume this is the correct ratio.  This is our final version of our trade inference function which treats orders above a certain volume as cancels:
 
 ![Final Version of Trade Heuristic](img/ex4_cell11.PNG)
 
-A "back test" is simply an evaluation of an algorithm over some period of historical data.  For this example, we'll test our strategy over the thirty days prior to our original test date.  The example [Jupyter Notebook](code/book/Example_4_Trade_Heuristic.ipynb) provides cells you can evaluate to download sufficient market data to local storage.  We strongly recommend you do this as book data will take significantly longer to fetch on demand over a network connection.  Once data has been downloaded, our back test is then a simple iteration over the appropriate date range:
+We'll now turn to back testing our new strategy.  A "back test" is simply an evaluation of an algorithm over some period of historical data.  For this example, we'll test our strategy over the thirty days prior to our original test date.  The example [Jupyter Notebook](code/book/Example_4_Trade_Heuristic.ipynb) provides cells you can evaluate to download sufficient market data to local storage.  We strongly recommend you do this as book data will take significantly longer to fetch on demand over a network connection.
+
+Since we may want to be able to infer trades on a day for which we don't yet have historic data \(e.g. the current day\), we'll set the volume threshold for the current day to be 4% of the average volume for the preceeding five days \(i.e. five day moving average of daily volume\).  Market making, discussed in a later chapter, is an example strategy where it's important to be able to infer trades before historic data is tabulated for the day.  Now that we have all required data, our back test is then a simple iteration over the appropriate date range:
 
 ![Back Test Loop](img/ex4_cell12.PNG)
 
@@ -964,9 +976,9 @@ We can then view the results of our test comparing inferred trade count and volu
 ![Inferred Count vs. Historic Count as Percentage](img/ex4_cell14.PNG)
 ![Inferred Volume vs. Historic Volume as Percentage](img/ex4_cell15.PNG)
 
-Somewhat surprisingly, inferred trade counts perform better over longer stretches than inferred trade volume.  Regardless, we would need to perform a more detailed analysis over a larger set of historical data to have any real confidence in our heuristic.
+We know that we are unlikely to capture trade count accurately and the first plot confirms those results.  However, the volume plot is surprisingly good, with many days within 20% of actual which is likely good enough for our use.  If computing trades before history is available is less important, then another strategy would be to sort inferred trades descending by volume and iteratively remove large trades until within some set threshold of actual historic volume.  We leave that variant as an exercise for the reader.
 
-The EveKit libraries do not attempt to provide any general functions for inferring trades.  The highly heuristic nature of this analysis makes it difficult to provide a standard offering for broad use.  However, the point of this example was to introduce basic analysis techniques which we expect you'll find useful as you develop your own strategies.
+The EveKit libraries do not include any explcit support for trade analysis such as we described above.  The highly heuristic nature of this analsyis makes it difficult to provide a standard offering.  As we'll see in later chapters, the basic analysis above can be adapted to the specific needs of a particular trading strategy.
 
 ### Example 5 - Important Concepts: Build a Liquidity Filter
 
@@ -1343,7 +1355,7 @@ We've defined a simple opportunity display function in the next cell.  Let's tak
 
 ![Opportunity Results](img/ex7_cell8.PNG)
 
-If you scroll down in the notebook, you'll see we detected 654 total opportunities.  For each opportunity, we report profit and *return* which is profit divided by total cost.  Return is the payout you get for risking your money on an opportunity.  All things being equal, a higher return is better.  However, arbitrage is somewhat unique in that we can tolerate low return if we can take advantage of an opportunity quickly enough \(more on this below\).
+If you scroll down in the notebook, you'll see we detected 669 total opportunities.  For each opportunity, we report profit and *return* which is profit divided by total cost.  Return is the payout you get for risking your money on an opportunity.  All things being equal, a higher return is better.  However, arbitrage is somewhat unique in that we can tolerate low return if we can take advantage of an opportunity quickly enough \(more on this below\).
 
 There seem to be many opportunities on our reference date, but to really value these opportunities, we need to maximize each one by buying and refining until it is no longer possible to do so.  Maximizing this way will tell us the value of each opportunity, and give us some idea of the total value of the entire day.  As we noted above, executing multiple refinement cycles for an opportunity requires that we keep order book state so we can update orders as we consume them.  The main modification, therefore, will be to our functions for buying source material and selling refined material.  We modify our "buy" function by passing in an order list instead of a snapshot.  We assume this order list represents the available sell orders for a given source material at a given location:
 
@@ -1405,6 +1417,10 @@ $ python ore_ice_arb_backtest.py YYYY-MM-DD output.csv
 ```
 
 This command will find all ore and ice opportunities on the given date and write those opportunities in CSV format to the specified file.  To run the complete back test, simply run this command for every date in the date range.  If you have a reasonably powerful machine, you will be able to run multiple dates in parallel.  When all dates complete, you can concatenate all the output files to make a single results file with all opportunities for our date range.
+
+> ### NOTE
+>
+> This back test was run *before* we discovered gapping problems in order book data \(see [Example 4](#example-4---unpublished-data-build-a-trade-heuristic)\).  We did not re-run the back test due to time constraints.  We believe our conclusions here are not adversely affected by back testing on gapped data.  We did, however, fix our back test scripts to fill gaps so that future runs \(or your own experiments\) will be as correct as possible.
 
 Assuming you've generated back test data \(you can also use our data which is available at [ore_ice_arb_backtest_20170101_20170131.csv.gz](https://drive.google.com/open?id=0B6lvkwGmS7a2SDBYRmJwVjhiTm8)\), we now turn to a [Jupyter notebook](code/book/Example_8_Ore_Ice_Arbitrage_Backtest.ipynb) which shows our analysis of the results.  We start by reading the opportunities file into a simple array:
 
@@ -1497,6 +1513,10 @@ $ python scrap_single_day.py YYYY-MM-DD output.csv
 
 As noted above, this script will take some time to execute.  Knowledgeable readers will find it beneficial to edit this script to take advantage of all available CPU cores on their particular system \(we use 10 cores on our equipment\).  We'll review the results of our single day opportunity finder for the remainder of this example.  You can follow along by downloading the [Jupyter Notebook](code/book/Example_9_Scrapmetal_Arbitrage.ipynb).
 
+> ### NOTE
+>
+> This back test was run *before* we discovered gapping problems in order book data \(see [Example 4](#example-4---unpublished-data-build-a-trade-heuristic)\).  We did not re-run the back test due to time constraints.  We believe our conclusions here are not adversely affected by back testing on gapped data.  We did, however, fix our back test scripts to fill gaps so that future runs \(or your own experiments\) will be as correct as possible.
+
 We start by loading our offline results into our notebook \(if you haven't generated your own data, you can use our data at [scrap_backtest_20170110.csv.gz](https://drive.google.com/open?id=0B6lvkwGmS7a2ci1MMmZwRDdtX28)\):
 
 ![Load and Sort Single Day Scrap Opportunities](img/ex9_cell1.PNG)
@@ -1524,6 +1544,10 @@ In this example, we continue our analysis from the previous example, this time e
 7. Which opportunities are the most important to capture?
 
 We'll conduct our back test over the same three month period we used for ore and ice: 2017-01-01 to 2017-03-31, inclusive.  We'll use the same offline script we used in the previous example to generate opportunity data for our date range.  The execution of the script is the same as described in the previous example, except that we execute for every day in our date range.  On our equipment, each day of data takes about four hours to generate.  Fortunately, you can run all the days in parallel if you wish.  When all runs complete, you'll have separate output files which can be concatenated into a single file of results.  Note that opportunities will be unsorted if you use our script.  We sort the data as part of our Jupyter notebook below.
+
+> ### NOTE
+>
+> This back test was run *before* we discovered gapping problems in order book data \(see [Example 4](#example-4---unpublished-data-build-a-trade-heuristic)\).  We did not re-run the back test due to time constraints.  We believe our conclusions here are not adversely affected by back testing on gapped data.  We did, however, fix our back test scripts to fill gaps so that future runs \(or your own experiments\) will be as correct as possible.
 
 Assuming you've generated back test data \(you can also use our data which is available at [scrap_backtest_20170101_20170331.csv.gz](https://drive.google.com/open?id=0B6lvkwGmS7a2dW90THBLWVRwTVU)\), we now turn to a [Jupyter notebook](code/book/Example_10_Scrapmetal_Arbitrage_Backtest.ipynb) which shows our analysis of the results.  We start by reading the opportunities file into a simple array:
 
@@ -1678,16 +1702,16 @@ We set these, and other constants in the next cell:
 
 ![Constants](img/ex11_cell2.PNG)
 
-We ended Example 7 by adding code which maximized profit from each opportunity we found.  That's where we'll start for this example.  Therefore, we include the same functions for buying from or selling two orders in the order book, including related helper functions.  The first new function we need to add is a function which computes the "spread return".  As we described above, an limit order opportunity is indicated when this return value is greater than a constant based on tax rate and broker fee.  The following function computes spread return information for a given type:
+We ended Example 7 by adding code which maximized profit from each opportunity we found.  That's where we'll start for this example.  Therefore, we include the same functions for buying from or selling to orders in the order book, including related helper functions.  The first new function we need to add is a function which computes the "spread return".  As we described above, an limit order opportunity is indicated when this return value is greater than a constant based on tax rate and broker fee.  The following function computes spread return information for a given type:
 
 ![Spread Return Computation](img/ex11_cell3.PNG)
 
-This function works by finding the best bid and ask, then computing the return as described above.  It is possible then either the best bid or best ask does not exist \(e.g. due to lack of orders in the book\).  When this happens, no spread return is computed and all orders for this material will be market orders.
+This function works by finding the best bid and ask, then computing the return as described above.  It is possible that a best bid or best ask does not exist \(e.g. due to lack of orders in the book\).  When this happens, no spread return is computed and all orders for this material will be market orders.
 
 We're now ready to modify our opportunity finder.  We start by modifying the `attempt_opportunity` function as follows:
 
 * We compute a total volume limit for each refined material based on a fraction of the historic volume for this type.  The sum of all limit orders for a refined material can not exceed the volume limit.
-* When selling a refined material, we use spread return to decide whether to place limit or market orders.  For limit orders, the price of the order is based on the best ask price in the order book, volume gated by the volume limit.  Market orders are unchanged.
+* When selling a refined material, we use spread return to decide whether to place limit or market orders.  For limit orders, the price of the order is based on the best ask price in the order book, with volume gated by the volume limit.  Market orders are unchanged.
 * If an order is a limit order, then we include the broker fee when computing gross proceeds from a cell.
 
 Our `find_opportunities` function is unmodified except that we pass new arguments for broker fee, market summary and volume limit.  With these changes in place, we're now ready to look for opportunities on our sample date.
@@ -1704,7 +1728,7 @@ Every single opportunity used limit orders for some or all refined materials.  W
 
 ![Summary](img/ex11_cell6.PNG)
 
-Comparable numbers from Example 7 are 47,584,077.92 ISK profit, and a return of 0.63%.  Our results from using limit orders more than doubles profit and more than triples return.  We've made the argument that these results are reasonable because we're dealing with highly liquid refined materials in volumes small enough to sell without difficulty.  However, a more careful analysis would consider market variance and try to predict how long it will take to fill all limit orders.  Despite our liquidity argument, it is still likely that one or more orders will need to be re-priced down in order to deal with the usual competition that occurs in the market.
+Comparable numbers from Example 7 are 47,787,151.48 ISK profit, and a return of 0.64%.  Our results from using limit orders roughly doubles profit and more than triples return.  We've made the argument that these results are reasonable because we're dealing with highly liquid refined materials in volumes small enough to sell without difficulty.  However, a more careful analysis would consider market variance and try to predict how long it will take to fill all limit orders.  Despite our liquidity argument, it is still likely that one or more orders will need to be re-priced down in order to deal with the usual competition that occurs in the market.
 
 In our own trading here at Orbital Enterprises, we've been satisfied with our results without resorting to limit orders.  Nonetheless, the strategy seems sound.  After conducting a proper back test, you may consider enabling this variant for your own trading.
 
@@ -1779,13 +1803,13 @@ In step 2, we'll infer trades for the purpose of filtering out assets which don'
 
 ![Trade Inference Function](img/ex12_cell3.PNG)
 
-As you may recall from Example 4, a key problem with trade inference is detecting whether an order has been canceled or completely filled when it disappears from the book.  For this example, we use the heuristic that any order with a volume less than the rolling 5-day per-order average volume will be counted as a fill instead of a cancel.  This is a reasonable, but not perfect heuristic.  The consequences of being wrong here are that we may tie up funds in bid limit orders which are unlikely to be filled \(thus costing us the brokerage fee for placement\).  We can mitigate that risk by changing the size of our bid orders, and being prepared to place new orders when existing orders fill \(so we don't miss out on opportunities\).  We infer trades using our function in the next cell \(not shown\).
+As you may recall from Example 4, a key problem with trade inference is detecting whether an order has been canceled or completely filled when it disappears from the book.  For this example, we use the heuristic that any order with a volume less than the rolling 5-day average volume times a scale multiplier \(4% in this example\) will be counted as a fill instead of a cancel.  This is a reasonable, but not perfect heuristic.  The consequences of being wrong here are that we may tie up funds in bid limit orders which are unlikely to be filled \(thus costing us the brokerage fee for placement\).  We can mitigate that risk by changing the size of our bid orders, and being prepared to place new orders when existing orders fill \(so we don't miss out on opportunities\).  We infer trades using our function in the next cell \(not shown\).
 
 Once we have inferred trades, we can remove the instruments which do not have enough sell trades into the bid.  This is a simple matter of computing the ratio of sell trades to all trades at our target station:
 
 ![Filtering Types which Infrequently Sell into the Bid](img/ex12_cell4.PNG)
 
-In this example, our filter eliminates one additional asset type.  This completes step 2.
+In this example, our filter eliminates two additional asset types.  This completes step 2.
 
 Finally, we are ready to determine which of the remaining assets bid below the target price for our target return.  At this point, we need to choose a target return.  We'll use 5% for this example.  You can lower your target return if you are finding it difficult to discover good buy limit order candidates.  Our asset checker operates on the same principle as our opportunity finder, except that instead of checking whether a profitable arbitrage opportunity exists, we compute the target price for our target return and check whether the current best bid is at or below this target price.  The function which performs this operation for a single type is:
 
@@ -1803,7 +1827,7 @@ Let's look at the results in table form first \(full table not shown for space r
 
 ![Results Table](img/ex12_cell8.PNG)
 
-From our filtered set of 129 types, only five have profitable target price regions for our target date \(names of types shown in the next cell\).  When will it be profitable to place a bid order for one of these types?  We can answer this question by graphing bid and target price for the day \(this is a graph of the first type: 500MN Cold-Gas Enduring Microwarpdrive\):
+From our filtered set of 128 types, only five have profitable target price regions for our target date \(names of types shown in the next cell\).  When will it be profitable to place a bid order for one of these types?  We can answer this question by graphing bid and target price for the day.  Consider the plot for 500MN Cold-Gas Enduring Microwarpdrive, our first profitable type:
 
 ![Profitable Times for 500MN Cold-Gas Enduring Microwarpdrive](img/ex12_cell9.PNG)
 

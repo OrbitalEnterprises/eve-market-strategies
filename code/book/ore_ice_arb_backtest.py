@@ -306,7 +306,7 @@ def find_opportunities(order_book, type_map, station_id, region_id, efficiency, 
 # Load the order book for the target day
 order_book = OrderBook.get_data_frame(dates=[compute_date], types=download_types, regions=[region_id], 
                                       config=dict(local_storage=".", tree=True, skip_missing=True, 
-                                                  use_online=False, verbose=True))
+                                                  use_online=False, fill_gaps=True, verbose=True))
     
 # Find opportunities
 all_opportunities = find_opportunities(order_book, source_types, station_id, region_id, 
