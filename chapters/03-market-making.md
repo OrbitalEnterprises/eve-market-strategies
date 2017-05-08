@@ -67,31 +67,31 @@ We'll attempt to determine how many assets are subject to market making by count
 
 Our first task will be to filter for liquid assets since such assets are most likely to be good targets for market making.  We use the same liquidity filter framework from previous examples, but with a much simpler liquidity filter predicate function:
 
-![Market Making Liquidity Filter](img/ch3_fig1.PNG)
+![Market Making Liquidity Filter](img/ex13_cell1.PNG)
 
 For market making, we'll test for assets which trade for a minimum number of days, and have a minimum number of orders each day.  For this example, we'll filter across 30 days of market history leading up to our target date.  We'll require at least 500 orders for each trading day as well.  Given these constraints, we can then filter for liquid assets:
 
-![Liquid Asset Filter Results](img/ch3_fig2.PNG)
+![Liquid Asset Filter Results](img/ex13_cell2.PNG)
 
 Our results show about 100 assets which meet our criteria.  You can change these criteria as needed for your own trading.  Note, however, that admitting more assets will increase analysis time and likely require more memory.
 
-Now that we have our target assets, we're ready to load order book data for our target date.  Since we're analyzing market making specifically, we can filter the book down to just those orders placed at our target station:
+Now that we have our target assets, we're ready to load order book data for our target date \(note, also, that we're filling order book gaps as described in [Example 4](#example-4---unpublished-data-build-a-trade-heuristic)\).  Since we're analyzing market making specifically, we can filter the book down to just those orders placed at our target station:
 
-![Order Book for Market Making](img/ch3_fig3.PNG)
+![Order Book for Market Making](img/ex13_cell3.PNG)
 
 Our first task is to determine which assets have the most active bid and ask orders.  Frequent changes to the best bid or ask show competition in the market.  We can compute change frequency simply by checking for changes to the best bid or ask between order book snapshots.  We'll define three simple functions to compute best bids, best asks, and to check whether orders are identical.  For the purposes of market activity, the best bid or ask has changed if a new order has replaced the previous order, or if the price has changed:
 
-![Best Bid, Best Ask and Order Equivalence Check](img/ch3_fig4.PNG)
+![Best Bid, Best Ask and Order Equivalence Check](img/ex13_cell4.PNG)
 
 We can then compute change frequency for each type by tabulating best bid/ask changes between snapshots.  The following function performs this calculation and returns a Pandas DataFrame with the change time for every asset:
 
-![Function to Compute Best Bid/Ask Changes](img/ch3_fig5.PNG)
+![Function to Compute Best Bid/Ask Changes](img/ex13_cell5.PNG)
 
 The next two cells invoke this function on the order book over our liquid assets.  We can view the most active assets by counting the number of times each asset changes.  Let's take a look at the top 10 results:
 
-![Top 10 Most Active Assets](img/ch3_fig6.PNG)
+![Top 10 Most Active Assets](img/ex13_cell6.PNG)
 
-You may recall there are 288 order book snapshots in a day.  None of our liquid assets has a change count equal to this value, so we know none of these assets change every snapshot.  However, there are 23 assets which changed more than 144 times, or once every other snapshot \(on average\).  There are almost certainly active market makers trading on these assets.
+You may recall there are 288 order book snapshots in a day.  None of our liquid assets has a change count equal to this value, so we know none of these assets change every snapshot.  However, there are 23 assets which changed at least 144 times, or once every other snapshot \(on average\).  There are almost certainly active market makers trading on these assets.
 
 An asset which changes more than 48 times is, on average, changing every 30 minutes.  All but 13 of our asset list meet this criteria.  However, as we lower the change frequency, it becomes more likely that changes may be grouped together over a smaller time period.  There are at least two ways we can improve our intuition around the spacing of changes for an asset:
 
@@ -100,15 +100,15 @@ An asset which changes more than 48 times is, on average, changing every 30 minu
 
 As an example, let's look at "Conductive Polymer" which changed 63 times on our target day.  The following plot shows the time of each change during the trading day:
 
-![Best Bid/Ask Changes for Conductive Polymer](img/ch3_fig7.PNG)
+![Best Bid/Ask Changes for Conductive Polymer](img/ex13_cell7.PNG)
 
 The plot shows an obvious gap of about two hours at mid day.  Also, there appear to be clusters of trades and certain times of day.  One way to better understand clustering effects is to resample the data and count the number of bid/ask changes in each re-sampled interval.  This is also a way to determine the most active times of day for a given asset.  The next cell computes cluster size for three different re-sampling frequencies:
 
-![Change Clusters for Conductive Polymer at 60, 30 and 15 minutes](img/ch3_fig8.PNG)
+![Change Clusters for Conductive Polymer at 60, 30 and 15 minutes](img/ex13_cell8.PNG)
 
 The mid day gap is very obvious in the 15 minute re-sampled data.  Conversely, the 60 minute sampled data shows the most active times of day (at about 05:00, 17:00 and 20:00).  As you might expect, active times are most relevant for less active instruments.  Very active assets show no real gaps.  To see this, we can look at the plot of changes for "Prototype Cloaking Device I", the most active asset on our list:
 
-![Best Bid/Ask Changes for Prototype Cloaking Device I](img/ch3_fig9.PNG)
+![Best Bid/Ask Changes for Prototype Cloaking Device I](img/ex13_cell9.PNG)
 
 Astute readers may have noticed that both Conductive Polymers and Prototype Cloaking Devices show a very similar gap around 12:00 UTC.  This time range corresponds to daily downtime for EVE when no trading can occur.  Although down time is typically less than 30 minutes, trading on most assets consistently lags around this time.
 
@@ -118,25 +118,25 @@ One way to identify an active market maker is to look for an order which changes
 
 A function to compute the number of orders changing for each type in a sampling interval is just a slight variant of our function for counting best bid/ask changes:
 
-![Function to Count Changing Orders per Interval](img/ch3_fig10.PNG)
+![Function to Count Changing Orders per Interval](img/ex13_cell10.PNG)
 
 The result of this function is a Pandas DataFrame which gives the number of orders which changed at least once in a given resampling interval.  Let's look again at Conductive Polymers to see what this data looks like for an infrequently traded asset.  To provide more context, we'll overlay a plot of the change count data we computed above, resampled to the same interval we used for market participants.  Here's the plot for Conductive Polymers:
 
-![Conductive Polymers Participants (bar - left axis) vs. Best Bid/Ask Changes (line - right axis) (1 hour samples)](img/ch3_fig11.PNG)
+![Conductive Polymers Participants (bar - left axis) vs. Best Bid/Ask Changes (line - right axis) (1 hour samples)](img/ex13_cell11.PNG)
 
 The peaks in the graphs do not quite line up and the sampled participant count is quite low.  One conclusion we might draw from this data is that market making is not really happening for Conductive Polymer.  Another possible conclusion is that the change cycle is much slower than one hour.  We can check out intuition by resampling for a larger change interval.  Here's the same plot for Conductive Polymer re-sampled over two hour intervals:
 
-![Conductive Polymers Participants (bar - left axis) vs. Best Bid/Ask Changes (line - right axis) (2 hour samples)](img/ch3_fig12.PNG)
+![Conductive Polymers Participants (bar - left axis) vs. Best Bid/Ask Changes (line - right axis) (2 hour samples)](img/ex13_cell12.PNG)
 
 Changing the sample interval has not captured more market participants which reinforces the hypothesis that market making is probably not occuring on this asset.  Instead, this could be one large order competing with a regular flow of small orders placed by casual players throughout the day.  The owner of the large order must regularly re-position to capture the best bid or ask.  We can confirm our hypothesis by looking more carefully at the order book snapshots for the day.  We leave that task as an exercise for the reader.
 
 What do participants look like for a more actively traded asset?  Let's look at the same plot for Prototype Cloaking Device I, sampled at one hour intervals:
 
-![Prototype Cloaking Device I Participants (bar - left axis) vs. Best Bid/Ask Changes (line - right axis) (1 hour samples)](img/ch3_fig13.PNG)
+![Prototype Cloaking Device I Participants (bar - left axis) vs. Best Bid/Ask Changes (line - right axis) (1 hour samples)](img/ex13_cell13.PNG)
 
 From this plot, we see that there may be as many as 14 active market participants in a given hour of trading for this asset.  That's a lot of competition!  If we decide to trade this asset, we likely won't be successful if we plan on updating our prices once an hour.  What if we update our orders every 30 minutes?  We'll finish this example by looking at the sample plot sampled at 30 minute intervals:
 
-![Prototype Cloaking Device I Participants (bar - left axis) vs. Best Bid/Ask Changes (line - right axis) (30 minute samples)](img/ch3_fig14.PNG)
+![Prototype Cloaking Device I Participants (bar - left axis) vs. Best Bid/Ask Changes (line - right axis) (30 minute samples)](img/ex13_cell14.PNG)
 
 The number of participants per interval has gone down by 30-50% in most cases, but is still quite large in some intervals.  It seems unlikely that you'll get away with updating your orders once every 30 minutes in this asset type.  If you want to trade this asset successfully, you'll likely need to be watching it all day \(more on this later\).
 
