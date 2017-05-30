@@ -1930,32 +1930,32 @@ Given the following definitions:
 * $p_a$ - the best ask price for an asset
 * $p_b$ - the best bid price for an asset
 * $n$ - the number of assets bought and sold
-* $s_t$ - station sales tax
+* $t$ - station sales tax
 * $b$ - station broker fee
 
 the total profit, $r$, obtained by making a market for a given asset type is:
 
-$r = p_a \times n - p_a \times s_t \times n - p_a \times b \times n - p_b \times b \times n - p_b \times n$
+$r = p_a \times n - p_a \times t \times n - p_a \times b \times n - p_b \times b \times n - p_b \times n$
 
 where the first term is the gross profit, and the remaining terms reflect sales tax, broker fees for placing limit orders, and the cost of buying assets at the best bid.  A market making transaction is profitable when $r > 0$. That is, when:
 
-$p_a \times n - p_a \times s_t \times n - p_a \times b \times n - p_b \times b \times n - p_b \times n > 0$
+$p_a \times n - p_a \times t \times n - p_a \times b \times n - p_b \times b \times n - p_b \times n > 0$
 
 or, by re-arranging terms:
 
 ${p_a \over p_b} > {{1 + b}\over{1 - t - b}}$
 
-This last expression gives us a simple test to determine whether an asset is currently profitable for market making \(the terms on the right are all constant\).
+This last expression gives us a simple test to determine whether an asset is currently profitable for market making \(the terms on the right are all constant\).  It also tells us that if we buy the asset at the bid price, $p_b$, then we must in turn sell the asset for at least ${{1 + b}\over{1 - t - b}} \times p_b$ in order to make a profit.
 
 If an asset is profitable for market making, then we'd also like to determine the expected return for this strategy.  From the last chapter, we know that return is ${{gross}\over{cost}} - 1$.  Given the same definitions above, the expected return is therefore:
 
-${{p_a}\over{p_a \times s_t + b \times (p_a + p_b) + p_b}} - 1$
+${{p_a}\over{p_a \times t + b \times (p_a + p_b) + p_b}} - 1$
 
-Beyond profitability, this last expression allows us to filter for market making opportunities which exceed a certain return.
+Beyond profitability, this last expression allows us to filter for market making opportunities which exceed a certain return.  Note that neither the profitability formula, nor the return formula contain a term describing the number of assets bought or sold.  In reality, the volume transacted is an important factor as markets have a fixed capacity which can change over time.  We'll consider the volume question again later in the chapter.
 
-Active market making in EVE has two important limitations which must also be taken into consideration:
+Market making as a trading strategy in EVE has two important limitations which must be taken into consideration:
 
-* The price of an order can be changed without canceling the order \(which incurs a fee, see below\).
+* The price of an order can be changed without canceling the order \(which may incur a fee, see below\).
 * Orders may be changed \(including cancels\) at most once every 5 minutes.
 
 It is common for market makers to periodically change order prices to capture the best bid or ask.  At time of writing, each such change costs 100 ISK plus an additional broker fee if the original fee charged for the order does not cover the fee that would be charged for a new order at the new price.  For example, suppose a player places a buy order at 10 ISK which incurs a broker fee of 0.25 ISK per unit of asset.  If the player later changes the price of this order to 20 ISK, then the player will pay an additional 0.25 ISK in brokers fees for each asset.  This is to prevent players from "low balling" orders by placing them at a price optimized for low fees, then later changing the price.
@@ -1982,31 +1982,31 @@ We'll attempt to determine how many assets are subject to market making by count
 
 Our first task will be to filter for liquid assets since such assets are most likely to be good targets for market making.  We use the same liquidity filter framework from previous examples, but with a much simpler liquidity filter predicate function:
 
-![Market Making Liquidity Filter](img/ch3_fig1.PNG)
+![Market Making Liquidity Filter](img/ex13_cell1.PNG)
 
 For market making, we'll test for assets which trade for a minimum number of days, and have a minimum number of orders each day.  For this example, we'll filter across 30 days of market history leading up to our target date.  We'll require at least 500 orders for each trading day as well.  Given these constraints, we can then filter for liquid assets:
 
-![Liquid Asset Filter Results](img/ch3_fig2.PNG)
+![Liquid Asset Filter Results](img/ex13_cell2.PNG)
 
 Our results show about 100 assets which meet our criteria.  You can change these criteria as needed for your own trading.  Note, however, that admitting more assets will increase analysis time and likely require more memory.
 
-Now that we have our target assets, we're ready to load order book data for our target date.  Since we're analyzing market making specifically, we can filter the book down to just those orders placed at our target station:
+Now that we have our target assets, we're ready to load order book data for our target date \(note, also, that we're filling order book gaps as described in [Example 4](#example-4---unpublished-data-build-a-trade-heuristic)\).  Since we're analyzing market making specifically, we can filter the book down to just those orders placed at our target station:
 
-![Order Book for Market Making](img/ch3_fig3.PNG)
+![Order Book for Market Making](img/ex13_cell3.PNG)
 
 Our first task is to determine which assets have the most active bid and ask orders.  Frequent changes to the best bid or ask show competition in the market.  We can compute change frequency simply by checking for changes to the best bid or ask between order book snapshots.  We'll define three simple functions to compute best bids, best asks, and to check whether orders are identical.  For the purposes of market activity, the best bid or ask has changed if a new order has replaced the previous order, or if the price has changed:
 
-![Best Bid, Best Ask and Order Equivalence Check](img/ch3_fig4.PNG)
+![Best Bid, Best Ask and Order Equivalence Check](img/ex13_cell4.PNG)
 
 We can then compute change frequency for each type by tabulating best bid/ask changes between snapshots.  The following function performs this calculation and returns a Pandas DataFrame with the change time for every asset:
 
-![Function to Compute Best Bid/Ask Changes](img/ch3_fig5.PNG)
+![Function to Compute Best Bid/Ask Changes](img/ex13_cell5.PNG)
 
 The next two cells invoke this function on the order book over our liquid assets.  We can view the most active assets by counting the number of times each asset changes.  Let's take a look at the top 10 results:
 
-![Top 10 Most Active Assets](img/ch3_fig6.PNG)
+![Top 10 Most Active Assets](img/ex13_cell6.PNG)
 
-You may recall there are 288 order book snapshots in a day.  None of our liquid assets has a change count equal to this value, so we know none of these assets change every snapshot.  However, there are 23 assets which changed more than 144 times, or once every other snapshot \(on average\).  There are almost certainly active market makers trading on these assets.
+You may recall there are 288 order book snapshots in a day.  None of our liquid assets has a change count equal to this value, so we know none of these assets change every snapshot.  However, there are 23 assets which changed at least 144 times, or once every other snapshot \(on average\).  There are almost certainly active market makers trading on these assets.
 
 An asset which changes more than 48 times is, on average, changing every 30 minutes.  All but 13 of our asset list meet this criteria.  However, as we lower the change frequency, it becomes more likely that changes may be grouped together over a smaller time period.  There are at least two ways we can improve our intuition around the spacing of changes for an asset:
 
@@ -2015,15 +2015,15 @@ An asset which changes more than 48 times is, on average, changing every 30 minu
 
 As an example, let's look at "Conductive Polymer" which changed 63 times on our target day.  The following plot shows the time of each change during the trading day:
 
-![Best Bid/Ask Changes for Conductive Polymer](img/ch3_fig7.PNG)
+![Best Bid/Ask Changes for Conductive Polymer](img/ex13_cell7.PNG)
 
 The plot shows an obvious gap of about two hours at mid day.  Also, there appear to be clusters of trades and certain times of day.  One way to better understand clustering effects is to resample the data and count the number of bid/ask changes in each re-sampled interval.  This is also a way to determine the most active times of day for a given asset.  The next cell computes cluster size for three different re-sampling frequencies:
 
-![Change Clusters for Conductive Polymer at 60, 30 and 15 minutes](img/ch3_fig8.PNG)
+![Change Clusters for Conductive Polymer at 60, 30 and 15 minutes](img/ex13_cell8.PNG)
 
 The mid day gap is very obvious in the 15 minute re-sampled data.  Conversely, the 60 minute sampled data shows the most active times of day (at about 05:00, 17:00 and 20:00).  As you might expect, active times are most relevant for less active instruments.  Very active assets show no real gaps.  To see this, we can look at the plot of changes for "Prototype Cloaking Device I", the most active asset on our list:
 
-![Best Bid/Ask Changes for Prototype Cloaking Device I](img/ch3_fig9.PNG)
+![Best Bid/Ask Changes for Prototype Cloaking Device I](img/ex13_cell9.PNG)
 
 Astute readers may have noticed that both Conductive Polymers and Prototype Cloaking Devices show a very similar gap around 12:00 UTC.  This time range corresponds to daily downtime for EVE when no trading can occur.  Although down time is typically less than 30 minutes, trading on most assets consistently lags around this time.
 
@@ -2033,67 +2033,202 @@ One way to identify an active market maker is to look for an order which changes
 
 A function to compute the number of orders changing for each type in a sampling interval is just a slight variant of our function for counting best bid/ask changes:
 
-![Function to Count Changing Orders per Interval](img/ch3_fig10.PNG)
+![Function to Count Changing Orders per Interval](img/ex13_cell10.PNG)
 
 The result of this function is a Pandas DataFrame which gives the number of orders which changed at least once in a given resampling interval.  Let's look again at Conductive Polymers to see what this data looks like for an infrequently traded asset.  To provide more context, we'll overlay a plot of the change count data we computed above, resampled to the same interval we used for market participants.  Here's the plot for Conductive Polymers:
 
-![Conductive Polymers Participants (bar - left axis) vs. Best Bid/Ask Changes (line - right axis) (1 hour samples)](img/ch3_fig11.PNG)
+![Conductive Polymers Participants (bar - left axis) vs. Best Bid/Ask Changes (line - right axis) (1 hour samples)](img/ex13_cell11.PNG)
 
 The peaks in the graphs do not quite line up and the sampled participant count is quite low.  One conclusion we might draw from this data is that market making is not really happening for Conductive Polymer.  Another possible conclusion is that the change cycle is much slower than one hour.  We can check out intuition by resampling for a larger change interval.  Here's the same plot for Conductive Polymer re-sampled over two hour intervals:
 
-![Conductive Polymers Participants (bar - left axis) vs. Best Bid/Ask Changes (line - right axis) (2 hour samples)](img/ch3_fig12.PNG)
+![Conductive Polymers Participants (bar - left axis) vs. Best Bid/Ask Changes (line - right axis) (2 hour samples)](img/ex13_cell12.PNG)
 
 Changing the sample interval has not captured more market participants which reinforces the hypothesis that market making is probably not occuring on this asset.  Instead, this could be one large order competing with a regular flow of small orders placed by casual players throughout the day.  The owner of the large order must regularly re-position to capture the best bid or ask.  We can confirm our hypothesis by looking more carefully at the order book snapshots for the day.  We leave that task as an exercise for the reader.
 
 What do participants look like for a more actively traded asset?  Let's look at the same plot for Prototype Cloaking Device I, sampled at one hour intervals:
 
-![Prototype Cloaking Device I Participants (bar - left axis) vs. Best Bid/Ask Changes (line - right axis) (1 hour samples)](img/ch3_fig13.PNG)
+![Prototype Cloaking Device I Participants (bar - left axis) vs. Best Bid/Ask Changes (line - right axis) (1 hour samples)](img/ex13_cell13.PNG)
 
 From this plot, we see that there may be as many as 14 active market participants in a given hour of trading for this asset.  That's a lot of competition!  If we decide to trade this asset, we likely won't be successful if we plan on updating our prices once an hour.  What if we update our orders every 30 minutes?  We'll finish this example by looking at the sample plot sampled at 30 minute intervals:
 
-![Prototype Cloaking Device I Participants (bar - left axis) vs. Best Bid/Ask Changes (line - right axis) (30 minute samples)](img/ch3_fig14.PNG)
+![Prototype Cloaking Device I Participants (bar - left axis) vs. Best Bid/Ask Changes (line - right axis) (30 minute samples)](img/ex13_cell14.PNG)
 
 The number of participants per interval has gone down by 30-50% in most cases, but is still quite large in some intervals.  It seems unlikely that you'll get away with updating your orders once every 30 minutes in this asset type.  If you want to trade this asset successfully, you'll likely need to be watching it all day \(more on this later\).
 
 In this example, we've introduced a simple filter for finding asset types for which markets are likely being made.  We've also created a simple technique to estimate the number of participants making a market in a given type.  Note, however, that we've restricted our analysis to a single day, so the usual caveats apply.  A more proper analysis would consider active assets over a larger time range.  We'll discuss back testing later in this chapter.
 
-## Elements of a Market Making Strategy
-* Elements of a market making strategy
-** which assets to trade?
-*** liquid assets
-*** spreads must be profitable
-*** trade volume reasonable balanced between bid and ask
-** what does the competition look like?
-** how often do I need to change my orders?
-* Example 14 - finding market making targets
-* Example 15 - simple trade simulator
-* Example 16 - computing order change velocity
-** managing risk (maintaining stock)
-* Example 17 - simple risk projection
+## Selecting Markets
+
+The example in the previous section considered the question of how many assets are subject to market marking, and how competitive are the markets for those assets.  In this section, we'll expand on this theme and derive tests to find good candidates for a market making strategy.  Some of our criteria will depend on personal play style.  Therefore, the approach we describe below may need to be customized depending on how many hours a day you'd like to spend managing your strategy.  We'll show the impact of these choices when we consider testing our strategy later in the chapter.
+
+We'll select promising assets for market making by considering five criteria:
+
+1. **Liquidity** - prices must be reasonably well behaved, and there must be a steady supply of willing market participants in order for a market making strategy to be successful.
+2. **Profitable Spreads** - spreads for our chosen asset must be profitable \(according to the formula we derived earlier in the chapter\) on a regular basis \(i.e. over a reasonable historical back test\).
+3. **Return** - we'll only want to spend our time on assets which offer a reasonable return on investment.
+4. **Balanced Volume** - since market making buys **and** sells, we'll need a steady supply of willing market participants on both sides of the order book.
+5. **Competition** - the amount of competition we can tolerate will be determined by how frequently we're able to be online updating our orders.
+
+These criteria are straightforward to evaluate using the tools we've already developed in the first chapter, and earlier in this chapter.  We demonstrate this process in the next example.  Unlike previous examples, we'll focus our analysis on a single day of the week \(or rather, a history made up of the same day of the week for several months\).  We do this because market making strategies are volume sensitive, but EVE market volume changes substantially during the week.  It's possible to develop a strategy which adjusts during the week, but that is an advanced topic beyond the scope of this chapter.  For our remaining examples, we'll only consider trading on Saturdays \(typically the highest volume day of the week\).
+
+### Example 14 - Selecting Market Making Targets
+
+We'll work through the asset criteria we listed above in order.  Unless otherwise specified, we assume we've already downloaded all the necessary market data for this example.  If you insist on running the example with data retrieved online, simply remove the `local_storage` option in the appropriate places.  As with our other examples, you can follow along by downloading the [Jupyter Notebook](code/book/Example_14_Selecting_Market_Making_Targets.ipynb).
+
+As with our other examples, we'll evaluate market making candidates at the busiest station in The Forge.  For historic data, we'll use every Saturday starting from 2017-01-07 through 2017-05-20.  This gives us 20 days worth of sample data.  Our liquidity filter is similar to that used in the previous example: we require an asset to have market data for every day in our sample period; and, we require a minimum number of trades \(i.e. order count\) in each day.  The following figure shows our specific liquidity filter:
+
+![Market Making Asset Liquidity Filter](img/ex14_cell1.PNG)
+
+In this example, we'll require assets to have at least 500 trades a day.  This is a somewhat arbitrary choice.  You can increase or decrease this threshold to further exclude or include assets, respectively.  Executing our liquidity filter reduces the set of assets under consideration to 80:
+
+![Filtering For Liquidity](img/ex14_cell2.PNG)
+
+Our next two filters consider profitability and return using the equations defined earlier in this chapter.  We can actually combine these filters into a single filter since any asset with a positive return must also be profitable.  Therefore, we'll only compute return and use our filter to retain those assets which meet a particular return threshold.  From above, we know that return is determined by the equation:
+
+${{p_a}\over{p_a \times t + b \times (p_a + p_b) + p_b}} - 1$
+
+where:
+
+* $p_a$ - the best ask price for an asset
+* $p_b$ - the best bid price for an asset
+* $t$ - station sales tax
+* $b$ - station broker fee
+
+The order book will provide best bid and ask prices, but we'll need to pick specific values for sales tax and broker fee.  For this example, we'll use 1% and 2.5%, respectively, which are typical values at an NPC station with maximum skills.  For each asset, we'll compute return for each snapshot in each order book over our date range.  It is rarely the case that returns are consistent from snapshot to snapshot, much less from day to day.  Therefore, we'll use the median of the snapshot returns to represent the return for an asset for a given day.  We'll include an asset if median return exceeds our target return for at least half the days in our date range.  We'll set our target return at 10%.  Once again, these are arbitrary choices.  You can tighten the filter by using a lower quantile for representing daily return; by increasing the number of days for which the return target must be met; or, by increasing the return target.  The following code produces a Pandas DataFrame of daily returns for each asset in our date range \(NOTE: this cell may take several minutes to execute due to the amount of data processed\):
+
+![Computing Median Returns](img/ex14_cell3.PNG)
+
+Once we have daily return data, we can apply the filter.  In this example, the filter reduces the set of assets under consideration to 14:
+
+![Application of Return Filter](img/ex14_cell4.PNG)
+
+Our next filter requires that we infer trades as we need to count the number of trades on each side of the book.  We'll use the same trade inference function we've used for the last few examples.  The main feature of this inference function is that complete fills and cancels are distinguished according to a fraction of average daily volume.  The next cell loads an extended range of historic market data and computes the moving average volume thresholds we need for trade inference.
+
+Our side volume collector is a simplified version of trade inference in which we only need to count volume, not produce a list of trades.  The following code performs this function:
+
+![Side Volume Collector](img/ex14_cell5.PNG)
+
+We now apply this collector to our data range in order to produce a Pandas DataFrame containing buy and sell trade volume for each asset on each day:
+
+![Computing Side Volume](img/ex14_cell6.PNG)
+
+How are buy and sell volume related for promising market making assets?  In an ideal world, buy and sell volume would each consume half of the daily volume.  This would indicate roughly equal opportunities to buy and sell in the market, which is exactly what is needed for effective market making.  In reality, volumes are never this well matched.  For this example, we'll consider an asset a good market making target if both buy and sell side volume consume at least 20% of the daily volume.  We'll keep the assets which have this property for each day in our date range.  Once again, this is an arbitrary choice.  You can tighten the filter by requiring a larger percentage of daily volume.  Note that the volume balance between sides also gives us a hint as to how much market making volume we could expect to transact on a given day.  In particular, market making volume can't exceed the minimum of buy and sell side volume.
+
+With some minor manipulation, we can use the side volume data to determine which assets regularly exceed 20% of volume on both sides of the book.  Applying this filter reduces the set of assets under consideration to 6:
+
+![Application of Side Volume Filter](img/ex14_cell7.PNG)
+
+Our final filter considers how much competition we're likely to face when making a market for a given asset.  We explored this topic in the previous example where, you may recall, we estimated competition by counting the number of times an existing order changed in a given time period.  Orders which change frequently show competition as market makers strive to capture the best bid or ask.  The choice of sampling period should reflect your play style.  In other words, if you plan to monitor and update your orders every 15 minutes, then you'll want a view of how many other competitors are changing their bids in the same time interval.  In this example, we'll choose a sample interval of 30 minutes, indicating we'll likely update our orders twice an hour.  We're now ready to count orders changes using the same code from the previous example \(we've pasted that code into the next cell\).  The result will be a Pandas DataFrame giving the number of orders which changed in each sampling interval for each type on each day:
+
+![Counting Order Changes](img/ex14_cell8.PNG)
+
+How much competition is acceptable?  Once again, the choice is highly subjective.  However, before we consider this question, we can simplify the analysis by scoping the data to the times we know we'll be active.  In this example, let's assume we'll be actively trading from 1200 to 2400 UTC.  We can therefore eliminate order change count data outside of this region.  With the remaining data, let's look at four possible statistics we could use to decide acceptable competition levels:
+
+1. *Average Change Count* - we could compute the average order change count per interval.
+2. *Median Change Count* - we could compute the median order change count per interval.
+3. *Maximum Change Count* - we could compute the maximum order change count across all intervals.
+4. *Quantile Change Count* - we could compute some other quantile \(besides median\) change count per interval.
+
+The choice here is important because our estimate of order change count is a rough measure of the number of orders we'll need to maintain in order to consistently capture the top of the book.  That is, because we can't be sure when our competitors have finished changing their orders, we need to be sure we always have at least one order we can change to capture the top of the book just after a competitor has done the same.  Average or median change count will give us some expectation of what a typical sample period might look like in terms of competition, but we risk undershooting the number of orders we need to maintain if the average or median are unusually low.  Conversely, a measure of maximum count shows how extreme the competition might get.  Using maximum is the conservative choice, but also increases the number of orders we need to maintain.   Finally, we could use a quantile other than median, say the 95% order change count quantile.  This would tell us, for example, the maximum change count for 95% of the sample intervals.  Using a high quantile measure captures the more "typical" worst case competition, as opposed to maximum which may represent an extreme outlier.  Before we decide, let's look at all of these measures for our final six market making targets:
+
+![Market Making Competition Measures](img/ex14_cell9.PNG)
+
+Average and median measures show very little competition. whereas maximum shows extreme competition for some asset types.  If we went with the average or median measures, we'd likely conclude that none of these assets are particularly competitive \(and therefore we should trade them all\).  However, the high maximum value may give us pause: it's not clear whether the maximum is an extreme outlier or whether there are occasional runs of extreme competition.  This is where a high quantile measure can help \(we could also simply graph the data and attempt to look for extremes visually\).  The 95% quantile shows the maximum order change count for 95% of the sample intervals.  In this example, our final list of assets are similar by this measure and do not seem to have unreasonably large competition.  For the sake of completing this example, then, we'll arbitrarily choose to filter assets in which the 95% order change count is greater than five.  This doesn't change our final asset list and, therefore, we may choose to make a market in all of these assets.  The 95% quantile measure suggests we may need to maintain as many as five orders on each side to stay competitive.  There are many other types of analysis we could have considered for order change count.  For example, we could have analyzed change counts separately for bid and ask orders.  Likewise, we could have factored in time of day more explicitly to try to analyze where competition is heaviest.  We leave these variants as an exercise for the reader.
+
+We've filtered the set of all assets down to a hopefully promising list of market making targets.  While we could simply trade these assets and hope for the best, a better approach is to attempt to simulate trading outcomes.  We consider this topic next.
+
+## Testing a Market Making Strategy
+
+Let's say we've derived a market making strategy, how do we go about validating whether our strategy will be successful?  Ultimately, we can't know for sure until we perform real trading, but a back test against historical data may give us some confidence that we're on the right track, or at least allow us to eliminate very poor strategies.  A back test for market making \(or any trading for that matter\) is more complicated than arbitrage because with arbitrage we were guaranteed we could complete a buy and sell as long as we acted quickly enough.  We can't make the same guarantees with market making.  Instead, we need to simulate our strategy in an environment which approximates real trading.  This environment will maintain a simulated order book, and will simulate the arrival of trades.  If our environment doesn't make too many simplifications, and if our strategy is profitable in our environment, then we can have some confidence that our strategy will be successful in real trading.
+
+In this section, we'll develop a simple trading simulator mostly suitable for testing market making strategies \(we'll consider a generalization of this simulator in a later chapter\).  Given a test strategy, a basic market simulation has four components:
+1. a *market data system* which provides a view of market data to our strategy;
+2. an *order management system* which allows our strategy to submit, update or cancel orders;
+3. a *fill simulator* which simulates market activity, including filling our strategy's orders; and,
+4. an *accountant* which tracks capital and various statistics describing performance (profit, loss, return, etc).
+
+Note that by replacing certain components of this system, you can turn the simulator into a trading platform.  For example, you can add a *market data system* which provides live updates from EVE's markets; you can replace the *order management system* with the EVE client \(with manual order entry, of course\); and you can replace the *fill simulator* with actual market results.
+
+We've implemented a straightforward event-based simulator consisting of the four components described above.  We won't describe the details around the construction of the simulator.  Instead, we'll focus on the implementation of the *fill simulator* which is the most complicated component.  You can find the complete code for the simulator [here](code/book/mm_simulator.py).  We'll describe the setup and execution of simulations towards the end of this section.
+
+The purpose of the fill simulator is to simulate fills against our strategy's orders.  A traditional fill simulator, as discussed in the literature \(TODO: cite references\), will typically assume our trades are always filled, but at a volume and price that depends on factors like daily trade volume and average prices.  This type of fill simulator is appropriate for testing strategies which trade once a day, where it is reasonable to assume that most orders will be filled on reasonably liquid assets.  Market making strategies, however, will need to trade multiple times a day and will need to react to the current market as part of their strategy.  Our simulator will need to present more realistic market data \(e.g. five minute book snapshots\), and our fill simulator will need to simulate trades against something that looks like an actual order book.  The fill simulator we present here will, therefore, bear a closer resemblance to an order book simulator rather than a traditional fill simulator.
+
+Our fill simulator will build an order book for each asset type by simulating the arrival of orders and trades.  The orders we simulate will include new orders, price changes, and cancellations.  The market data provided to our strategy will consist of the current order book maintained by our fill simulator; and, orders created by our strategy will be inserted into the same order book.  Our fill simulator will also simulate the arrival of trades.  These trades will be used to fill orders on the order book, regardless of whether these orders are simulated or submitted by our strategy.  The random arrival of orders and trades will be implemented by a set of *generators* which are functions which create realistic market data based on the statistical properties of historic data, namely: arrival rate, order side, order size, and price.  We spend the remainder of this section describing how the simulated order book will operate.  We'll show how we derive generators in [Example 15](#example-15---modeling-orders-and-trades) below.  We'll then use our order and trade model in [Example 16](#example-16---a-simple-strategy-and-back-test).
+
+A simulated order book for a given asset type sorts bid and ask orders by price with all orders at a given price further sorted first in-first out according to arrival order.  This implies that incoming trades fill the oldest orders first at the best price.  An order book is modified by the following events:
+
+* **New Order**: a new order will have properties: origin \(either "simulated" or "strategy"\), side, duration, volume, minimum volume, TOB \(simulated orders only\) and price \(strategy orders only\).  Orders with origin "strategy" will be inserted at the end of the queue at the appropriate price level on the appropriate side.  In this case, the order is assigned a unique order ID which is recorded in the order management system.  Orders with origin "simulated" will be handled as follows:
+  1. If "TOB" is true, then the new order is automatically inserted at the top of book at the appropriate side.  The price of the order is set to be 0.01 ISK above the previous top of book.
+  2. If "TOB" is false, then the position of the new order is randomly distributed among current orders \(exponentially, making it more likely that the order will appear towards the top of the book\).  The price of the order is set to be 0.01 ISK above the price of the order which appears immediately behind the new order.  If this is the first order on a side, then the price will be set at an offset from the reference price \(see below\).
+* **Change Order**: a changed order will have properties: origin \(either "simulated" or "strategy"\), side, order ID \(strategy orders only\) and price \(strategy orders only\).  Orders with origin "simulated" will randomly update an existing simulated order by moving it to the top of the book \(the order to be updated is selected via an exponential distribution, making it more likely that the modified order is near the top of the book\).  Orders with origin "strategy" will update a previous order with the given order ID \(assuming the given order still exists\).  Note that the order management system will charge the strategy an order change fee, as well as any additional fees as required by EVE's trading rules.  Regardless of the source, if the price update "crosses the spread" \(i.e. exceeds the price of the best order on the other side of the book\), then a trade will occur against the appropriate matching order\(s\).  If any volume remains after the trade, then the order is left on the book at the new price level.
+* **Cancel Order**: a cancel order will have properties: origin \(either "simulated" or "strategy"\), order ID \(strategy orders only\) and side.  Orders with origin "simulated" will randomly cancel a simulated order on the appropriate side of the book \(random selection is exponential, biased towards orders near the bottom of the book\).  Orders with origin "strategy" will cancel the order identified by the given order ID \(assuming the given order still exists\).
+* **Trade**: a trade will have properties: side, and volume.  Trades will always match against the top of book on the given side.  Trades with volume above the available order volume on a given side will fill all orders, and will simply drop remaining volume.
+
+The accountant and order management system will implement the usual trading fees and rules for EVE's markets, namely:
+
+* Limit order placement fees:
+  * A flat broker charge for limit orders
+  * Sales tax on filled ask orders
+* Escrow charges will be deducted on bid orders.  For simplicity, we don't consider the "margin trading" skill and simply deduct the full escrow amount from the accountant.
+* Order book views available to our strategy will be snapped at \(simulated\) five minute intervals.  This emulates the actual update frequency of EVE's markets for third party use.
+* The usual EVE order rules apply, e.g. order actions can only occur every \(simulated\) five minutes, only price can be changed, price changes may incur additional fees, etc.
+
+With this setup in place, we can execute a simulation as follows:
+
+1. Compute a reference price for each asset under simulation.  This price can be the mid-point of the spread in the first snapshot on our simulated day.  When no orders are present on a side, we'll price new orders at an offset from the reference price.
+2. Run the simulator for a preset *warmup* period in which random orders \(but no trades\) are generated and inserted into the appropriate order book.
+3. Start the event simulator.  The strategy under test will execute at most once every minute, although market data will only change once every five minutes as described above.  Order and trade events will arrive as determined by the appropriate generators.
+4. Continue to run the simulation until the configured end time is reached.
+5. Report results.
+
+The degree to which our simulation emulates realistic trading depends on the properties of our random order and trade generators.  We take up the construction of generators in our next example.
+
+### Example 15 - Modeling Orders and Trades
+
+
+is to simulate both orders and trades, and build a simulated order book into which our orders are placed.  When simulated trades arrive, they will match the best bid or ask as appropriate.
+
+The fill simulator we build in this example will model an order book and trades by deriving statistical properties of historical orders and trades we have observed. From historical order book snapshots, we can model the arrival rate, side, size and price of orders as they arrive. Likewise, we can infer or estimate trades (as described in Example 4) to model arrival rate, side and size of trades. We'll show how to compute simple statistical models for a day of order book data. An actual back test, as shown in the next example, will require developing our statistical model over several days of data.
+
+### Example 16 - A Simple Strategy and Back Test
+
+  * how can I test my strategy?
+    * modeling order books and fills
+  * Example 15 - modeling order books and trades
+    * simple backtest against model
+  * Example 16 - backtest a sample strategy
+
+## Introduction to Risk management
+
+  * managing risk (bought items waiting to be sold)
+    * how long should I hold unsold assets?
+  * Example 17 - simple risk projection
 
 ## Strategy Effectiveness
 * strategy effectiveness
-** pros:
-*** One of the easiest and cheapest first strategies
-** cons:
-*** Highly competitive, many 0.01 ISK games
-*** Ties up cash in orders (except - margin trading skill)
+  * pros:
+    * Easy to execute once you've chosen your targets
+    * Cheap, can start small
+  * cons:
+    * Highly competitive, many 0.01 ISK games
+    * Volume game, need to play a lot to make a lot
 
 ## Variants
 * variants
-** luring the ask down
-*** find agressive ask side
-*** buy a few items
-*** continually 0.01 ISK sellers to draw ask price down
-*** buy out sellers and place ask
-** Example 18 - finding competitive ask candidates
-** cyclical market making
-*** look for ask cycles, buy at low end of cycle and resell
-*** OR: look for bid cycles, bid at low end of cycle and resell
-** Example 19 - finding bid and ask cycles
+  * luring the ask down
+    * find aggressive ask side
+    * buy a few items
+    * continually 0.01 ISK sellers to draw ask price down
+    * buy out sellers and place ask
+  * Example 18 - finding competitive ask candidates
+  * cyclical market making
+    * look for ask cycles, buy at low end of cycle and resell
+    * OR: look for bid cycles, bid at low end of cycle and resell
+  * Example 19 - finding bid and ask cycles
 
 ## Practical Trading Tips
 * practical trading tips
-** tools almost mandatory - fortunately there are many available
-** Multi-day positions require risk management
-** order layering to stay at the top of the book
+  * tools almost mandatory - fortunately there are many available
+  * Multi-day positions require risk management
+  * order layering to stay at the top of the book
+  * pricing tricks - 1.01 increases to catch sloppy competitors
