@@ -2139,37 +2139,36 @@ We've filtered the set of all assets down to a hopefully promising list of marke
 
 ## Testing a Market Making Strategy
 
-Let's say we've derived a market making strategy, how do we go about validating whether our strategy will be successful?  Ultimately, we can't know for sure until we perform real trading, but a back test against historical data may give us some confidence that we're on the right track, or at least allow us to eliminate very poor strategies.  A back test for market making \(or any trading for that matter\) is more complicated than arbitrage because with arbitrage we were guaranteed we could complete a buy and sell as long as we acted quickly enough.  We can't make the same guarantees with market making.  Instead, we need to simulate our strategy in an environment which approximates real trading.  This environment will maintain a simulated order book, and will simulate the arrival of trades.  If our environment doesn't make too many simplifications, and if our strategy is profitable in our environment, then we can have some confidence that our strategy will be successful in real trading.
+Once we've chosen a set of target assets and formulated our market making strategy, how do we go about validating whether our strategy will be successful?  Ultimately, we can't know for sure until we perform real trading, but a back test against historical data may give us some confidence that we're on the right track, or at least allow us to eliminate very poor strategies.  A back test for market making \(or any trading for that matter\) is more complicated than arbitrage because with arbitrage we were guaranteed we could complete a buy and sell as long as we acted quickly enough.  We can't make the same guarantees with market making.  Instead, we need to simulate our strategy in an environment which approximates real trading.  This environment will maintain a simulated order book, and will emulate the arrival of new orders and trades.  If our environment doesn't make too many simplifications, and if our strategy is profitable in our environment, then we can have some confidence that our strategy will be successful in real trading.
 
-In this section, we'll develop a simple trading simulator mostly suitable for testing market making strategies \(we'll consider a generalization of this simulator in a later chapter\).  Given a test strategy, a basic market simulation has four components:
+In this section, we'll develop a simple trading simulator mostly suitable for testing market making strategies \(we'll consider simulation of other types of trading in a later chapter\).  Given a test strategy, a basic market simulation has three components:
+
 1. a *market data system* which provides a view of market data to our strategy;
-2. an *order management system* which allows our strategy to submit, update or cancel orders;
-3. a *fill simulator* which simulates market activity, including filling our strategy's orders; and,
-4. an *accountant* which tracks capital and various statistics describing performance (profit, loss, return, etc).
+2. an *order management system* which allows our strategy to submit, update or cancel orders; and,
+3. a *fill simulator* which simulates market activity, including filling our strategy's orders.
 
 Note that by replacing certain components of this system, you can turn the simulator into a trading platform.  For example, you can add a *market data system* which provides live updates from EVE's markets; you can replace the *order management system* with the EVE client \(with manual order entry, of course\); and you can replace the *fill simulator* with actual market results.
 
-We've implemented a straightforward event-based simulator consisting of the four components described above.  We won't describe the details around the construction of the simulator.  Instead, we'll focus on the implementation of the *fill simulator* which is the most complicated component.  You can find the complete code for the simulator [here](code/book/mm_simulator.py).  We'll describe the setup and execution of simulations towards the end of this section.
+We've implemented a straightforward event-based simulator consisting of the three components described above.  We won't describe the details of the implementation here.  Instead, we'll focus on the fill simulator or, more specifically, the underlying trading models which allow the fill simulator to emulate market activity.   We'll demonstrate a complete simulation, including the preparation of the fill simulator, later in the chapter.
 
-The purpose of the fill simulator is to simulate fills against our strategy's orders.  A traditional fill simulator, as discussed in the literature \(TODO: cite references\), will typically assume our trades are always filled, but at a volume and price that depends on factors like daily trade volume and average prices.  This type of fill simulator is appropriate for testing strategies which trade once a day, where it is reasonable to assume that most orders will be filled on reasonably liquid assets.  Market making strategies, however, will need to trade multiple times a day and will need to react to the current market as part of their strategy.  Our simulator will need to present more realistic market data \(e.g. five minute book snapshots\), and our fill simulator will need to simulate trades against something that looks like an actual order book.  The fill simulator we present here will, therefore, bear a closer resemblance to an order book simulator rather than a traditional fill simulator.
+The purpose of the fill simulator is to emulate market activity, normally to simulate fills against our test strategy's orders.  Many fill simulators, as found in the literature, are intended for testing long-term strategies with relatively few trades per day.  As a result, these simulators will typically assume orders are always filled, but at a volume and price that depends on factors like daily trade volume and average prices.  Market making strategies, however, will need to trade multiple times a day and will need to react to the current market as part of their strategy.  Our fill simulator will need to present more realistic market data \(e.g. five minute book snapshots\), and will need to simulate trades against something that looks like an actual order book.  The fill simulator we present here will, therefore, bear a closer resemblance to an order book simulator rather than a traditional fill simulator.
 
-Our fill simulator will build an order book for each asset type by simulating the arrival of orders and trades.  The orders we simulate will include new orders, price changes, and cancellations.  The market data provided to our strategy will consist of the current order book maintained by our fill simulator; and, orders created by our strategy will be inserted into the same order book.  Our fill simulator will also simulate the arrival of trades.  These trades will be used to fill orders on the order book, regardless of whether these orders are simulated or submitted by our strategy.  The random arrival of orders and trades will be implemented by a set of *generators* which are functions which create realistic market data based on the statistical properties of historic data, namely: arrival rate, order side, order size, and price.  We spend the remainder of this section describing how the simulated order book will operate.  We'll show how we derive generators in [Example 15](#example-15---modeling-orders-and-trades) below.  We'll then use our order and trade model in [Example 16](#example-16---a-simple-strategy-and-back-test).
+Our fill simulator will build an order book for each asset type by simulating the arrival of orders and trades.  The orders we simulate will include new orders, price changes, and cancellations.  The market data provided to our strategy will consist of the current order book maintained by our fill simulator; and, orders created by our strategy will be inserted into the same order book.  Our fill simulator will also simulate the arrival of trades.  These trades will be used to fill orders on the order book, regardless of whether these orders are simulated, or submitted by our strategy.  The random arrival of orders and trades will be implemented by a set of *generators* which are functions which create realistic market data based on the statistical properties of historic data, namely: arrival rate, order side, order size, and price.  We spend the remainder of this section describing how the simulated order book will operate.  We'll show how we derive generators in [Example 15](#example-15---modeling-orders-and-trades) below.  We'll then use our order and trade model in [Example 16](#example-16---a-simple-strategy-and-back-test).
 
-A simulated order book for a given asset type sorts bid and ask orders by price with all orders at a given price further sorted first in-first out according to arrival order.  This implies that incoming trades fill the oldest orders first at the best price.  An order book is modified by the following events:
+A simulated order book for a given asset type sorts bid and ask orders by price with all orders at a given price further sorted first-in first-out according to arrival order.  This implies that incoming trades fill the oldest orders first at the best price.  An order book is modified by the following events:
 
-* **New Order**: a new order will have properties: origin \(either "simulated" or "strategy"\), side, duration, volume, minimum volume, TOB \(simulated orders only\) and price \(strategy orders only\).  Orders with origin "strategy" will be inserted at the end of the queue at the appropriate price level on the appropriate side.  In this case, the order is assigned a unique order ID which is recorded in the order management system.  Orders with origin "simulated" will be handled as follows:
+* **New Order**: a new order will have properties: origin \(either "simulated" or "strategy"\), side, duration, volume, minimum volume, TOB \(simulated orders only\) and price \(strategy orders only\).  All orders are assigned a unique order ID when they are added to the system.  Orders with origin "strategy" will be inserted at the end of the queue at the appropriate price level on the appropriate side.  Orders with origin "simulated" will be handled as follows:
   1. If "TOB" is true, then the new order is automatically inserted at the top of book at the appropriate side.  The price of the order is set to be 0.01 ISK above the previous top of book.
-  2. If "TOB" is false, then the position of the new order is randomly distributed among current orders \(exponentially, making it more likely that the order will appear towards the top of the book\).  The price of the order is set to be 0.01 ISK above the price of the order which appears immediately behind the new order.  If this is the first order on a side, then the price will be set at an offset from the reference price \(see below\).
+  2. If "TOB" is false, then the position of the new order is randomly distributed among current orders \(using an exponential distribution, making it more likely that the order will appear towards the top of the book\).  The price of the order is set to be 0.01 ISK above the price of the order which appears immediately behind the new order.  If this is the first order on a side, then the price will be set at an offset from a reference price \(see below\).
 * **Change Order**: a changed order will have properties: origin \(either "simulated" or "strategy"\), side, order ID \(strategy orders only\) and price \(strategy orders only\).  Orders with origin "simulated" will randomly update an existing simulated order by moving it to the top of the book \(the order to be updated is selected via an exponential distribution, making it more likely that the modified order is near the top of the book\).  Orders with origin "strategy" will update a previous order with the given order ID \(assuming the given order still exists\).  Note that the order management system will charge the strategy an order change fee, as well as any additional fees as required by EVE's trading rules.  Regardless of the source, if the price update "crosses the spread" \(i.e. exceeds the price of the best order on the other side of the book\), then a trade will occur against the appropriate matching order\(s\).  If any volume remains after the trade, then the order is left on the book at the new price level.
 * **Cancel Order**: a cancel order will have properties: origin \(either "simulated" or "strategy"\), order ID \(strategy orders only\) and side.  Orders with origin "simulated" will randomly cancel a simulated order on the appropriate side of the book \(random selection is exponential, biased towards orders near the bottom of the book\).  Orders with origin "strategy" will cancel the order identified by the given order ID \(assuming the given order still exists\).
 * **Trade**: a trade will have properties: side, and volume.  Trades will always match against the top of book on the given side.  Trades with volume above the available order volume on a given side will fill all orders, and will simply drop remaining volume.
 
-The accountant and order management system will implement the usual trading fees and rules for EVE's markets, namely:
+The order management system will implement the usual trading fees and rules for EVE's markets, namely:
 
 * Limit order placement fees:
   * A flat broker charge for limit orders
   * Sales tax on filled ask orders
-* Escrow charges will be deducted on bid orders.  For simplicity, we don't consider the "margin trading" skill and simply deduct the full escrow amount from the accountant.
 * Order book views available to our strategy will be snapped at \(simulated\) five minute intervals.  This emulates the actual update frequency of EVE's markets for third party use.
 * The usual EVE order rules apply, e.g. order actions can only occur every \(simulated\) five minutes, only price can be changed, price changes may incur additional fees, etc.
 
@@ -2177,7 +2176,7 @@ With this setup in place, we can execute a simulation as follows:
 
 1. Compute a reference price for each asset under simulation.  This price can be the mid-point of the spread in the first snapshot on our simulated day.  When no orders are present on a side, we'll price new orders at an offset from the reference price.
 2. Run the simulator for a preset *warmup* period in which random orders \(but no trades\) are generated and inserted into the appropriate order book.
-3. Start the event simulator.  The strategy under test will execute at most once every minute, although market data will only change once every five minutes as described above.  Order and trade events will arrive as determined by the appropriate generators.
+3. Start the event simulator.  The strategy under test will execute as needed, although market data will only change once every five minutes as described above.  Order and trade events will arrive as determined by the appropriate generators.
 4. Continue to run the simulation until the configured end time is reached.
 5. Report results.
 
@@ -2185,10 +2184,116 @@ The degree to which our simulation emulates realistic trading depends on the pro
 
 ### Example 15 - Modeling Orders and Trades
 
+In this example, we'll demonstrate the construction of models which emulate EVE asset order books.  Over time, an order book is updated according to the arrival of new orders, the change or cancellation of existing orders, and the arrival of "immediate" orders which result in trades.  A model of an order book attempts to generate random occurrences of these events such that the behavior of the simulated order book closely emulates actual market behavior.
 
-is to simulate both orders and trades, and build a simulated order book into which our orders are placed.  When simulated trades arrive, they will match the best bid or ask as appropriate.
+The accurate simulation of market behavior is a rich and varied topic which we won't cover in detail here.  Instead, we'll focus on implementing just enough behavior to create a reasonably predicative simulation of market making behavior.  We'll construct our order book modesl based on the statistical properties of historic orders and trades we extract from market data.  In particular, from historic order book snapshots, we can model the order event properties such as arrival rate, order side, and order size.  The models we build from this example will ultimately be used to construct simulations on the next example.  As with our other examples, you can follow along by downloading the [Jupyter Notebook](code/book/Example_15_Modeling_Orders_and_Trades.ipynb).
 
-The fill simulator we build in this example will model an order book and trades by deriving statistical properties of historical orders and trades we have observed. From historical order book snapshots, we can model the arrival rate, side, size and price of orders as they arrive. Likewise, we can infer or estimate trades (as described in Example 4) to model arrival rate, side and size of trades. We'll show how to compute simple statistical models for a day of order book data. An actual back test, as shown in the next example, will require developing our statistical model over several days of data.
+In this example, we'll build a model of the order book for Tritanium in the most active station in The Forge.  For simplicity, we'll build our model from a single day of market history.  A more realistic model would be constructed from multiple days of history.  We'll use the latter approach in the next example.
+
+Our model requires that we extract orders and trades from a day of market data.  As in previous examples, we'll need to infer some trades \(e.g. complete fills versus cancels\).  We'll use the same approach where complete fills and order cancels are distinguished by order size.  To do that, we need to pull in market history to build an order size threshold:
+
+![Load Market History](img/ex15_cell1.PNG)
+
+Likewise, we need a day of order book data from which to build our model.  Since we're building a model for market making, which always occurs at a single station, we'll further constrain the book to just orders placed at the local station:
+
+![Load Order Book Data](img/ex15_cell2.PNG)
+
+In the next cell \(not shown\), we compute the volume threshold we'll use to distinguish complete fills from canceled orders.
+
+The essence of our trading model is that it is based on historical observations of orders and trades.  To that end, we'll need to extract and track the arrival of orders and trades for each asset type across all book snapshots.  Note that we don't need price information for orders or trades as this is likely to change day to day and is not relevant for our simulation needs.  We do, however, need to extract a reference price and spread from the first order book snapshot.  These values are used to help prime simulated books with reasonable starting values.
+
+We extract price, trade and order information using the `collect_book_changes` function.  This function is a variant of our earlier trade inference code, the main change being that we also extract new, changed and canceled order information.  The properties we extract are described in the text above.  For example, when we extract new orders we record the side, duration, volume, minimum volume and whether the new order became the new top of book.  We use this function in the next cell to extract price and order information for our sample day:
+
+![Extract Price and Order Information](img/ex15_cell3.PNG)
+
+Our goal is to build a model of Tritanium which can generate a reasonable set of random orders and trades which emulate actual trading.  To do this, we'll build a number of distributions which we can sample to generate random orders and trades.  We'll start by creating a generator to produce random trades.  A trade has three characteristics we need to model:
+
+1. A side (either buy or sell);
+2. An arrival offset (delay from current time when trade will arrive); and,
+3. A volume
+
+One might wonder why we're not also computing a trade price.  This is because we assume trades always fill the top of the book.  Therefore, trade price is determined by existing orders: once we compute the side where the trade falls, we can compute the trade price.
+
+We'll start by creating a generator to produce random trade volume.  We *could* try to model trade volume in aggregate, but in reality it's likely that sell and buy volume have different distributions.  We can verify our intuition by looking at the distribution of buy and sell trades we inferred from our sample day:
+
+![Buy Versus Sell Trade Volume](img/ex15_cell4.PNG)
+
+There are more sell trades than buys which distorts the data, but there are also some clear differences in the distribution, especially in the tail.
+
+How can we model the distribution of trade volume for our simulation?  Normally, we would attempt to match the shape of our distribution to a well known statistical distribution.  However, we don't have enough data to make that possible in this example.  Also, market data at this granularity \(i.e. very fine\) is notoriously difficult to map to simple distributions.  To work around this problem, we'll instead resort to a rough approximation using a distribution based on the cumulative distribution function \(CDF\) inferred from the raw sample data.  We can create a CDF using a histogram with cumulative sums across the buckets.  Taking the inverse of this CDF gives a function we can randomly sample to generate values from the data population.  This is a well known technique which we implement in the next cell.
+
+![Sample Generator from Sample Data Distribution](img/ex15_cell5.PNG)
+
+With our sample generator in hand, we can now create volume generators for sell and buy trade volume based on our sample data.  We do this in the next cell, then graph the results for comparison with the source data:
+
+![Trade Volume Generators and Graphs](img/ex15_cell6.PNG)
+
+Not surprisingly, samples drawn from our volume generators look very similar to plots of the original sample data.  We can apply the same technique to generate random trade inter-arrival times.  An inter-arrival sample is formed by computing the time difference between the arrival time of subsequent sample trades.  There is a catch, however, in that trade arrival times are always on five minute boundaries because we assign trade time based on snapshot time.  The subsequent inter-arrival times would Likewise be equally spaced which is not very realistic and easy to game by a trading strategy.  Therefore, we'll first skew the inter-arrival samples by adding a uniformly distributed value between zero and 300 seconds to each sample.  This skew will simulate trades arriving randomly in the interval between snapshots.  With this change, we're now ready to create our trade inter-arrival time generator:
+
+![Trade Inter-Arrival Time Generator](img/ex15_cell7.PNG)
+
+The final property we need to generate for trades is side \(e.g. buy or sell\).  Since there are only two sides, we can construct a much simpler generator based on the ratio of buys to sells.  We'll create a generic function here which we'll use elsewhere when we need a side generator.
+
+![Trade Side Generator](img/ex15_cell8.PNG)
+
+We can now assemble our individual property generators into a random trade generator.  We do this in the next cell, following by the an example invocation of the resulting function.
+
+![Random Trade Generator](img/ex15_cell9.PNG)
+
+We'll turn now to constructing generators for random orders. There are three order operations we need to simulate:
+
+1. New order arriving
+2. Order price change
+3. Order cancellation
+
+It's likely that order type \(i.e. new vs. change vs. cancel\) has an effect on the distributions which describe the properties of these orders.  Therefore, we'll model each order type separately.  We'll also make one additional simplification which is that we won't try to model order prices.  As described in the text, we'll instead price orders based on orders currently in the book, only using an explicit reference price when a side of the book is empty.  We'll explain how this affects each order type in the descriptions below.
+
+Starting with new orders, we need to model the following properties:
+
+* *side* - either buy or sell
+* *duration* - the number of days for which the order will be active
+* *inter-arrival time* - the time \(in seconds\) before the next order will arrive
+* *minimum volume* - minimum volume that must be transacted on each trade
+* *volume* - total volume to buy or sell
+* *top of book* - True if the order entered the snapshot as the new best bid or ask
+
+As discussed above, we've omitted a property for the new order price.  Instead, we'll determine price as follows \(this is also described in the book text\):
+
+1. If the side of the book where the order will appear is empty, then the new order is priced at a small random offset from a reference price accounting for reference spread.
+2. Else, if the order is marked "top of book", then the new order is always priced just better than the current best offer on the appropriate side.
+3. Otherwise, the order is placed randomly among the appropriate side with the position determined by an exponential distribution favoring the top of the book.  The price of the new order is just better than the order which appears "behind" it in the book.
+
+As with trades, we'll derive a generator for each of these properties, then assemble all generators into a function which generates new random orders:
+
+![New Order Property Generators](img/ex15_cell10.PNG)
+
+Note that we've created an order duration generator which constrains output to a specific set of values.  This was done to much EVE's rules for order duration.  Likewise, we've created a "top of book" generator which operates similar to a side generator in that it randomly generates one of two values based on a random value sampled against a ratio.  Finally, note that it is not necessary to skew inter-arrival samples as we did with trades.  This is because the sample data is based on issue time which is not constrained to five minute timestamps.  We can assemble our generators into a random new order generator:
+
+![Random New Order Generators](img/ex15_cell11.PNG)
+
+Generators for order changes and cancels will complete the model.  These order types require the following properties:
+
+* *side* - the side of the book the order will affect
+* *inter-arrival time* - the time in seconds until the next instance of this event type
+
+For change orders, we once again omit specific price targets and instead handle these orders as follows:
+
+1. If the side where the change will occur is empty, then the change order is silently discarded.
+2. Otherwise, an order is selected randomly using an exponential distribution which favors the top of the book.  The selected order is immediately re-priced to the top of the book on the appropriate side.
+
+Our handling of change orders is based on the intuition that, in an active market, most order changes will be for the purpose of capturing the top of the book.  Therefore, most changed orders should become the new best bid or ask.
+
+For cancel orders, price is not relevant.  Instead, as described in the text, we'll randomly select an order to remove where the selection is exponentially distributed favoring the bottom of the appropriate side of the book.  Our intuition here is that in an active market, cancels are more likely to occur on orders well away from the top of book \(i.e. orders very unlikely to fill soon\).
+
+The next two cells show the creation of our change and cancel order generators.  Note that these generators can share a single generic order generator function:
+
+![Random Change and Cancel Order Generators](img/ex15_cell12.PNG)
+
+Our last cell shows an example of invoking each of the order generators:
+
+![Order Generator Invocation](img/ex15_cell13.PNG)
+
+This completes our order book model for Tritanium.  We'll use the techniques we derived in this example to create random order and trade generators in our simple market making simulator.  We show this process in the next example.
 
 ### Example 16 - A Simple Strategy and Back Test
 
