@@ -354,7 +354,7 @@ As with trades, we'll derive a generator for each of these properties, then asse
 
 ![New Order Property Generators](img/ex15_cell10.PNG)
 
-Note that we've created an order duration generator which constrains output to a specific set of values.  This was done to much EVE's rules for order duration.  Likewise, we've created a "top of book" generator which operates similar to a side generator in that it randomly generates one of two values based on a random value sampled against a ratio.  Finally, note that it is not necessary to skew inter-arrival samples as we did with trades.  This is because the sample data is based on issue time which is not constrained to five minute timestamps.  We can assemble our generators into a random new order generator:
+Note that we've created an order duration generator which constrains output to a specific set of values.  This was done to much EVE's rules for order duration.  Likewise, we've created a "top of book" generator which operates similar to a side generator in that it randomly generates one of two values based on a random value sampled against a ratio.  We can assemble our generators into a random new order generator:
 
 ![Random New Order Generators](img/ex15_cell11.PNG)
 
