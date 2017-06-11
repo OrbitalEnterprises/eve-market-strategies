@@ -382,13 +382,424 @@ This completes our order book model for Tritanium.  We'll use the techniques we 
 
 ### Example 16 - Testing Market Making Strategies
 
-* Brief overview of how to write a strategy
-* Use assets we discovered in example 14
-* Extract order/trade data and pickle for these assets
-* Create and test a simple one asset strategy
-* Run the strategy multiple times with different seeds
-* Run the strategy multiple times with different unit sizes
-* Analyze the matrix of results
+In this example, we'll create and test a simple market making strategy using the market making targets we discovered in [Example 14](#example-14---selecting-market-making-targets).  There are three basic steps we need to perform to test a strategy:
+
+1. Prepare market data samples for the strategy.
+2. Implement the strategy.
+3. Initialize and run the simulator with our prepared market data and our strategy.
+
+We'll work through each of these steps below.  We've already introduced the concept of market making simulation above.  In particular, we described the need for market data, order management and fill simulation components.  In this example, we'll make all these concepts concrete by introducing code to create and simulate an actual market making strategy.  We'll begin by describing the structure of our simulation code.
+
+We test our market making strategies by implementing a simple [discrete-event simulator](https://en.wikipedia.org/wiki/Discrete_event_simulation).  In a discrete-event simulation, behavior is represented by a sequence of events which reflect activity such as trades, orders, the availability of new market data, etc.  Each event occurs at a specified virtual time, and events are processed in virtual time order.  Participants in the simulation typically wait for specific events to occur, which are then processed, often resulting in the generation of new events.  There are many open source simulation frameworks available online.  We've chosen to implement our simulation using [SimPy](https://simpy.readthedocs.io/), which is a Python framework that makes use of [generators](https://docs.python.org/3/glossary.html#term-generator) to implement processes which wait for, then process, simulation events.
+
+We'll introduce the simulator's API by way of the following strategy, which buys and sells a single asset:
+
+```python
+from evekit.sim import MMSimOMS, MMOrderStatus, MMSimStrategyBase
+
+class SimpleStrategy(MMSimStrategyBase):
+
+    def __init__(self, oms, tax_rate, broker_rate, order_change_fee, type_id, units):
+        super().__init__(oms, tax_rate, broker_rate, order_change_fee)
+        self.type_id = type_id
+        self.units = units
+
+    def run(self, env):
+        # Wait for the first market data for our asset type
+        order_book = yield self.oms.order_book(self.type_id)
+
+        # Place a buy order for an asset
+        top_bid = self.best_bid(order_book)
+        price = top_bid + 0.01 if top_bid is not None else 0.01
+        buy_order = self.tracked_order(self.type_id, 30, True, price, self.units, 1)
+
+        # Wait for our buy order to be filled
+        yield buy_order.closed()
+        if buy_order.status != MMOrderStatus.FILLED:
+            # Something unexpected happened, exit
+            raise Exception("Buy order in unexpected state: " + str(buy_order.status))
+
+        # Place a sell order for the asset we just bought
+        order_book = self.oms.get_current_order_book(self.type_id)
+        top_ask = self.best_ask(order_book)
+        price = top_ask - 0.01 if top_ask is not None else 1000000000
+        sell_order = self.tracked_order(self.type_id, 30, False, price, self.units, 1)
+
+        # Wait for our sell order to complete.  This is optional, the sell order
+        # can be filled whether the strategy waits for it or not.
+        yield sell_order.closed()
+```
+
+Our strategy class inherits from a base strategy class, `MMSimStrategyBase`, which is provided by the evekit framework.  The constructor for our strategy initializes the base strategy with a reference to the Order Management System \(OMS\), as well as various fees we'll need to charge to model actual trading.
+
+The base class provides a few convenience functions:
+
+* `best_bid(book)`, `best_ask(book)`: Given an order book, returns the current best bid or ask; or `None`, if a top of book does not exist on the given side.
+* `tracked_order(type_id, duration, buy, price, volume, min_volume)`: Submits a new buy or sell order to the OMS which will be tracked by the base class.
+* `promote_order(order, book, limit)`: Changes the price of an existing order so that it captures top of book on the appropriate side.  That is, the order is "promoted" to the top of book.  A limit can be set so that the price never exceeds a certain target.
+* `order_dataframe`: Produces a Pandas DataFrame recording the current state of every tracked order, including any fees or proceeds.  We use this for post simulation analysis.
+* `strategy_summary`: Produces a human readable summary of trading outcomes for the strategy.  This can also b eused for post simulation analysis.
+
+The base class handles most interactions with the OMS.  However, we rely on the OMS directly for two functions:
+
+* `order_book(type_id)`: Produces a simulation event which will be triggered when the next new order book is available for the given type.
+* `get_current_order_book(type_id)`: Returns the current order book for the given type.
+
+The object returned by `tracked_order` is an instance of `MMSimOrder` which has its own API:
+
+* `gross`: Returns the gross proceeds of the order so far.  This will be positive for a sell order, and negative for a buy order.
+* `net`: Returns the net proceeds of the order so far.  This is just gross less broker and sales tax fees as configured for the simulation.
+* `closed`: Returns a SimPy `Event` that triggers when the order is closed \(for whatever reason\).
+* `cancel`: Attempts to cancel the order.
+* `change(price)`: Attempts to change the price of the order.  This will incur order change and possibly broker fees.
+
+Note that order books are always delivered to the strategy as a Pandas DataFrame.
+
+Now let's walk through the strategy line by line.  Strategy execution starts in the `run` method, which is passed a reference to the SimPy `Environment` for the current simulation:
+
+```python
+def run(self, env):
+    # Wait for the first market data for our asset type
+    order_book = yield self.oms.order_book(self.type_id)
+```
+
+Our first action is to wait for the next order book for the type we wish to trade.  The `order_book` method returns a SimPy `Event` which will trigger when the order book is available.  With SimPy, we `yield` an event to suspend the strategy until the event fires.  Therefore, our strategy code is now blocked until the next order book is available:
+
+```python
+    # Place a buy order for an asset
+    top_bid = self.best_bid(order_book)
+    price = top_bid + 0.01 if top_bid is not None else 0.01
+    buy_order = self.tracked_order(self.type_id, 30, True, price, self.units, 1)
+
+    # Wait for our buy order to be filled
+    yield buy_order.closed()
+    if buy_order.status != MMOrderStatus.FILLED:
+        # Something unexpected happened, exit
+        raise Exception("Buy order in unexpected state: " + str(buy_order.status))
+```
+
+When the next order book becomes available, we place a buy order for our chosen asset.  We use the `best_bid` method from the base class to ensure we price our buy order just above the current best bid.  The `buy_order` object is an instance of `MMSimOrder`, and will be tracked by the base class since we used the `tracked_order` method.  Order objects provide an event which triggers when the order has been closed.  We wait \(i.e. yield\) on this event, then verify that the order closed because it was filled.  The order could also expire or be canceled, but in this example we set the order duration to 30 days, and we do not cancel any orders.  Therefore, the order should only complete if it is filled.
+
+```python
+    # Place a sell order for the asset we just bought
+    order_book = self.oms.get_current_order_book(self.type_id)
+    top_ask = self.best_ask(order_book)
+    price = top_ask - 0.01 if top_ask is not None else 1000000000
+    sell_order = self.tracked_order(self.type_id, 30, False, price, self.units, 1)
+
+    # Wait for our sell order to complete.  This is optional, the sell order
+    # can be filled whether the strategy waits for it or not.
+    yield sell_order.closed()
+```
+
+When our buy order completes, we request the current order book in preparation for placing a sell order.  As with the buy order, we use the order book to price our sell order just ahead of the current best ask.  We end the strategy by waiting for our sell order to complete.  This is not strictly necessary as the order will complete \(assuming a matching trade\) whether we wait for it or not.  Once the order completes, our strategy will cease execution although the simulator may continue running depending on our configured end time.
+
+This example strategy is not very sophisticated and in fact may not even trade since prices are never adjusted once orders are placed.  We'll implement a slightly more interesting strategy later in this example.
+
+Now that we've had a taste of what a strategy looks like, let's move on to configuring and executing a simulation of a more interesting strategy.  As with our other examples, you can follow along by downloading the [Jupyter Notebook](code/book/Example_16_Testing_Market_Making_Strategies.ipynb).
+
+For this example, we'll need to bring in our market maker simulation library code.  This has been added to the first cell for this example \(not shown\).  We'll build a strategy which makes a market for the eight asset types we discovered in [Example 14](#example-14---selecting-market-making-targets).  The analysis which produced these assets was conducted in the busiest station in The Forge, so we'll use the same environment for our simulation:
+
+![Simulation Environment Setup](img/ex16_cell1.PNG)
+
+Note that we've also set the date range the same as in Example 14 \(i.e. every Saturday over a four month period\).  This is because our first step will be to generate raw market data from which we'll build our order book models.  To populate our models, we'll follow the same steps as in [Example 15](#example-15---modeling-orders-and-trades), which starts with loading market history for use in order and trade inference:
+
+![Market History for Trade Inference](img/ex16_cell2.PNG)
+
+Followed by computing volume thresholds which will allow our order and trade collector to distinguish large trades from cancel orders:
+
+![Large Order Threshold Computation](img/ex16_cell3.PNG)
+
+The next cell \(not shown\) contains the same order extractor we used in Example 15.  We use this code to extract orders for each market making type in each day in our date range:
+
+![Extract Target Orders and Trades](img/ex16_cell4.PNG)
+
+When this cell completes, we are left with a map from asset type to a list of collected order information for each day in our date range.  The simulator builds order book models from input we supply in the form of a map from asset type to an object containing:
+
+* a *reference price* which is used as a basis for pricing simulated orders added to an empty order book side;
+* a *reference spread* which is used to position orders relative to the *reference price* when an order book side is empty;
+* a list of *orders* representing new, re-priced or canceled orders; and,
+* a list of *trades*.
+
+To provide data in this format, we need to aggregate the data we extracted from each day in our date range.  The next cell shows this aggregation:
+
+![Aggregating Model Input Date](img/ex16_cell5.PNG)
+
+namely:
+
+* the *reference price* is computed as the average reference price across all extracted days;
+* the *reference spread* is computed as the average reference spread across all extracted days;
+* the list of *orders* is the aggregate of all extracted orders, with timestamps adjusted to eliminate the week gap between extracted days; and,
+* the list of *trades* is the aggregate of all extracted trades, with timestamps adjusted in the same manner.
+
+We'll use this data further below when we execute our simulation.
+
+The example strategy we created above was illustrative, but would not be a very effective market making strategy.  We'll now create a more interesting strategy and analyze its performance below.  Our strategy will alternate between buying and selling a fixed number of units of an asset.  The strategy will continue this pattern until the simulation ends.  While an outstanding order is out, the strategy will monitor the price of the order relative to the book and re-price the order as needed to regularly capture the top of the book.  This will ensure that the strategy will trade regularly as long as there is not too much market competition.  In all cases, the strategy will only have one order outstanding at any given time: either a buy or a sell.  We'll review the code in parts as in the previous example.
+
+Our strategy is initialized as before with information needed for the base strategy, as well as the asset type we'd like to trade, and the number of units we should buy or sell at any given time:
+
+```python
+class RoundTripStrategy(MMSimStrategyBase):
+
+    def __init__(self, oms, tax_rate, broker_rate, order_change_fee, type_id, units, verbose=False):
+        super().__init__(oms, tax_rate, broker_rate, order_change_fee)
+        self.type_id = type_id
+        self.units = units
+        self.verbose = verbose
+```
+
+As in the previous strategy, execution starts in the `run` method which accepts a reference to the current SimPy `Environment`.  There's little point entering a market until the ratio between the best bid and ask become profitable.  Therefore, this strategy computes the minimum ratio and waits until an order book arrives in which the best bid and ask meet the profitability threshold:
+
+```python
+    def run(self, env):
+        # Save the appropriate price ratio we need before we should enter a round of market making.
+        # This is just the formula described in the text.
+        #
+        price_ratio_target = (1 + self.broker_rate) / (1 - self.tax_rate - self.broker_rate)
+        try:
+            while True:
+                #
+                # Wait for the first snapshot with a profitable spread ratio.
+                #
+                buy_order = None
+                while buy_order is None:
+                    order_book = yield self.oms.order_book(self.type_id)
+                    top_bid = self.best_bid(order_book)
+                    top_ask = self.best_ask(order_book)
+                    if top_bid is None or top_ask is None:
+                        # Spread not available
+                        continue
+                    if top_ask / top_bid <= price_ratio_target:
+                        # Spread not profitable
+                        continue
+```
+
+When the spread turns profitable, we place a buy order priced just above the current best bid:
+
+```python
+                    price = top_bid + 0.01 if top_bid is not None else 0.01
+                    buy_order = self.tracked_order(self.type_id, 30, True, price, self.units, 1)
+                    if self.verbose:
+                        print(str(env.now) + " Buy order placed at " + str(price))
+```
+
+The strategy now turns to waiting until our buy order has been completely filled.  However, unlike the previous strategy, we will continue to monitor the current order book to ensure we always capture the best bid.  SimPy overrides the bit-wise disjunctive operator to allow our strategy to wait either until our order is closed, or until a new market snapshot is created:
+
+```python
+                #
+                # Wait for buy order to be filled, making sure we always capture the best bid.
+                # When the order is filled, turn around and post a sale.
+                #
+                sell_order = None
+                c1, c2 = buy_order.closed(), self.oms.order_book(self.type_id)
+                while sell_order is None:
+                    result = yield c1 | c2
+```
+
+When `result` fires, it will return a map with a key for each of the events which triggered.  The values in the map correspond to the values returned by the triggered events.  If the buy order completes, then we're ready to place a sell order.  Note that we first compute a minimum price to protect re-pricing our sell order below profitability.  This price is determined by the spread profitability ratio and the price at which the asset was purchased \(see above\).  We place the sell order with a price designed to capture the best ask, while not going lower than the minimum sell price.  Note that creating the sell order also breaks us out of the loop above:
+
+```python
+                    # Check for order status change first to avoid racing with new order book
+                    if c1 in result:
+                        # Order closed, if it was filled then place our sell order
+                        if buy_order.status != MMOrderStatus.FILLED:
+                            # Something unexpected happened, exit sim
+                            raise Exception("Buy order in unexpected state: " + str(buy_order.status))
+                        if self.verbose:
+                            print(str(env.now) + " Buy order completed")
+                        # The final price of our buy order gives us the minimum price for which we
+                        # must sell the assets.  This equation is also described in the text.
+                        minimum_sell_price = buy_order.price * (1 + self.broker_rate) / \
+                                                               (1 - self.tax_rate - self.broker_rate)
+                        order_book = self.oms.get_current_order_book(self.type_id)
+                        top_ask = self.best_ask(order_book)
+                        price = top_ask - 0.01 if top_ask is not None else 1000000000
+                        price = max(price, minimum_sell_price)
+                        sell_order = self.tracked_order(self.type_id, 30, False, price, self.units, 1)
+                        if self.verbose:
+                            print(str(env.now) + " Sell order placed at " + str(price))
+```
+
+If a new order book arrives while we're waiting for our buy order to complete, then we'll verify that our buy order still captures the best bid.  The `promote_order` function in the base strategy handles this automatically, only re-pricing if we're no longer at the top of the book.  Note that there's no check to ensure we don't price ourselves out of profitability.  We leave that improvement as an exercise for the reader:
+
+```python
+                    if c2 in result and sell_order is None:
+                        # Make sure we still own the best bid
+                        order_book = result[c2]
+                        new_price = self.promote_order(buy_order, order_book)
+                        if self.verbose and new_price is not None:
+                            print(str(env.now) + " Buy order price changed to " + str(new_price))
+                        # Reset for next order book
+                        c2 = self.oms.order_book(self.type_id)
+```
+
+We wait for our sell order to complete in the same way that we waited for our buy order to complete.  If the sell order completes first, then we'll break out of the loop:
+
+```python
+                #
+                # Wait for sell order to be filled, making sure we always capture best ask.
+                #
+                c1, c2 = sell_order.closed(), self.oms.order_book(self.type_id)
+                while True:
+                    result = yield c1 | c2
+                    # Check for order status change first to avoid racing with new order book
+                    if c1 in result:
+                        if sell_order.status != MMOrderStatus.FILLED:
+                            # Something unexpected happened, exit sim
+                            raise Exception("Sell order in unexpected state: " + str(sell_order.status))
+                        # Done, exit strategy
+                        if self.verbose:
+                            print(str(env.now) + " Sell order completed")
+                        break
+```
+
+If we receive a new order book, then we'll verify that our sell order still captures the top of book.  However, this time we impose a `side_limit` to avoid moving our sell order out of profitability:
+
+```python
+                    if c2 in result and sell_order.status == MMOrderStatus.OPEN:
+                        # Make sure we still own the best ask
+                        order_book = result[c2]
+                        new_price = self.promote_order(sell_order, order_book, side_limit=minimum_sell_price)
+                        if self.verbose and new_price is not None:
+                            print(str(env.now) + " Sell order price changed to " + str(new_price))
+                        # Reset for next order book
+                        c2 = self.oms.order_book(self.type_id)
+```
+
+Once our sell order completes, we'll loop around and repeat the process.  As a matter of convenience, we have surrounded our strategy code with a `try`-`catch` block which catches SimPy interrupts, halting the strategy when this occurs.  We'll use this mechanism when we extend this strategy later in the example:
+
+```python
+        except simpy.Interrupt:
+            # allow us to be interrupted, we just stop when this happens
+            pass
+```
+
+You'll find the code for this strategy in a cell in the example Jupyter notebook.
+
+Now that we've prepared model data and implemented a test strategy, we're finally ready to simulate.  The next cell runs our first simulation:
+
+![Our First Simulation](img/ex16_cell6.PNG)
+
+Our simulator requires that we define constants for the sales tax rate, the broker rate for limit orders, and the fee charged for re-pricing an order \(not including any additional broker fees, which are charged automatically\).  We also need to pick a random seed to initialize the random order and trade generators.  You'll normally want to run your simulations multiple times with different seeds, but for this first run we'll choose a single seed.  Every simulation we run has four steps:
+
+1. Create the SimPy `Environment`;
+2. Create and initialize the OMS with market data, constants and the random seed;
+3. Create and start the strategy to test; and, finally,
+4. Run the simulation, normally including a stop time.
+
+Creating the environment and initializing the OMS are straightforward.  Note that we've passed in the market data map we created earlier in the example.  Creating and initializing the strategy under test is implementation dependent but normally includes passing the arguments required by the base strategy \(i.e. OMS reference, sales tax, broker fee, and change fee\).  In this example, our strategy also requires the asset type to trade, the number of units to trade in each round, and \(optionally\) whether we want verbose output.  For this example, we're only trading the first asset in our market making target list; we've chosen an arbitrary value of 10 units per round; and, we've asked for verbose output to demonstrate the operation of the strategy.
+
+After initializing your strategy, you must "start" it which, in SimPy terms, means calling the `process` function with the result of running your strategy's main execution method.  The behavior here is a bit subtle.  Normally, when your strategy's execution method is called, it will yield on the first event it will wait for.  This event then becomes the argument to the `process` function which ensures your execution method will resume when the event fires.  This behavior continues until your execution method exits without yielding an event.  You can spawn as many processes as you like and, in fact, we'll use this approach later when we trade all of our target market making assets.  But for now, we just need one process trading one asset type.
+
+Calling the `run` method on the SimPy `Environment` will start the simulation, which is to say the generation, scheduling and dispatch of discrete events.  The `run` method will accept an `until` argument which specifies the simulated time at which the simulation should end.  Time values are arbitrary and can be interpreted however you like.  In our simulations, simulation time is expressed in seconds.  For example, new market snapshots will be generated every 300 simulation time units \(i.e. every 300 seconds or five minutes\).
+
+Setting `verbose` to `True`, causes the actions of our strategy to be echoed in the output of the cell:
+
+![Our First Simulation in Action](img/ex16_cell7.PNG)
+
+The first value in each row is the simulated time when the action occurred.  From the output, we see that our first buy order was filled after an hour of trading with several price adjustments needed.  Our sell order required even more time to fill at approximately three hours with multiple price changes required.  Our simulation ends with an open sell order \(more on this below\).
+
+The print statements we added to the end of our simulation code cause the following summaries to be displayed when the simulation completes:
+
+![First Simulation Summary](img/ex16_cell8.PNG)
+
+The OMS trading summary reports the number of trades, total volume, and pricing performance for each asset type we simulated.  Although our strategy only traded one asset type, the simulator dutifully simulated all eight assets we provided data for, so there are eight rows.  The OMS summary is useful for spot checking whether our strategy captured expected volume from the overall market.  In this particular run, excluding the open sell order at the end, we captured about a third of the total daily volume for the first asset.  The base strategy also provides a summary method which we display after the OMS summary.  The base strategy summary replays our strategy's trade activity, showing the final disposition of every tracked order placed by our strategy, including a running sum of the strategy profit and loss \(PNL\).  In terms of performance, our strategy ended the day with an open sell order.  If we backtrack to the last completed sell order, we show a total PNL of about 3.7M ISK \(we'll discuss how to report around open orders below\).  It's interesting to note that in an entire day of trading, our strategy only traded a volume of 100 units \(50 bought, and 50 sold\), excluding the last buy and open sell.  These results may be an outlier, or they may be typical.  The only way to know for sure is to run more simulations with different random seeds to see if the results are different.  We'll do this momentarily.
+
+When running a large number of simulations, it is often desirable to aggregate performance results so that we can compute performance across all runs.  For this reason, the base strategy also provides the performance summary in the form of a Pandas DataFrame:
+
+![Performance Summary DataFrame](img/ex16_cell9.PNG)
+
+This DataFrame is indexed by simulation time and provides separate columns for all fees and proceeds for each order.  In this particular example, the DataFrame view also shows that our last sell order was partially filled.  The DataFrame does *not* compute running PNL.  Instead, we must add the appropriate columns manually.  This is a simple operation on a DataFame, e.g.:
+
+```python
+(strategy_df.gross - strategy_df.tax - strategy_df.broker_fee).sum()
+```
+
+However, one problem with this simple expression is that it includes the results of our partially filled sell order.  Some simulations will complete with no open positions, whereas others \(like the current example\) will complete with one or more open orders.  In order to normalize over these results, we will compute PNL with a simple function that excludes any open sell orders:
+
+![Normalized PNL Computation](img/ex16_cell10.PNG)
+
+We're now ready to analyze our strategy over multiple simulations.  We'll generate 100 random seeds and run the same simulation using each seed.  The next two cells \(not shown\) perform this computation.  We can then aggregate our results across all runs:
+
+![Aggregated Simulation Results](img/ex16_cell11.PNG)
+
+Our span of 100 runs shows a wide range in performance.  The mean and median are reasonably close which suggests a well behaved distribution of results.  The standard deviation is rather large suggesting high variance around the mean.  Of course, we can simply build a histogram of the data to see if the shape matches our intuition:
+
+![Distribution of Simulation PNL](img/ex16_cell12.PNG)
+
+This shape suggests a slightly exponential distribution which would allow further predicative analysis given more simulation runs.  We'll leave such analysis as an exercise to the reader.
+
+You may recall that our strategy accepts both the asset type to trade, as well as the unit size of our orders.  We arbitrarily set unit size to 10 for our first run.  Does unit size affect the performance of our strategy?  We've reasoned before that for a typical active asset, we might expect to capture 10% of the total market volume for ourselves.  Should we set unit size to 10% of the typical volume?  Given that we'd like our strategy to make multiple buy/sell round trips, that value is probably too large.  We might therefore shrink the unit size another 10% which would allow for roughly 10 market making round trips in a typical trading session.  In other words, we might estimate a reasonable unit size to be 1% of total volume for a target asset.  We can compute unit size based on the raw trade data we use to parameterize the simulation:
+
+![Estimating Appropriate Unit Size](img/ex16_cell13.PNG)
+
+How well does this choice work?  This is something we can easily evaluate by simulation.  We'll simulate the same asset type as above but with three different unit sizes:
+
+1. One half of our estimated unit size \(i.e. 1% times 0.5 or 0.5% of the average trade volume\);
+2. Exactly our estimate unit size; and,
+3. One and half times our estimated unit size \(i.e. 1% times 1.5 or 1.5% of average trade voume\).
+
+We'll perform 100 runs of each size using the same set of randomly generated seeds for each run.  Let's take a look at the results:
+
+![Unit Size Simulation Results](img/ex16_cell14.PNG)
+
+In this example, 1% of average trade volume for the first asset type is 13 units, representing the middle row of results.  In general, larger order sizes produce larger average results, with apparently diminishing returns above our initial guess at the ideal unit size.  A case could be made for using a slightly larger unit size, but for this example we'll stick with our rough estimate of 1% of total volume.
+
+So far, we've focused on trading a single asset.  Let's turn now to trading all eight of our market making targets.  A simple way to trade multiple asset types is to create a separate instance of our strategy for each type.  Each instance must be initialized and started in a process separately.  We'll once again run our simulation 100 times, then aggregate the results.  The following cell shows the construction of the simulation:
+
+![Trading All Assets](img/ex16_cell15.PNG)
+
+Let's look at the results:
+
+![All Asset Simulation Results](img/ex16_cell16.PNG)
+
+Once again, we see a wide range of results with a high standard deviation.  Nonetheless, many players would be happy to obtain the average result in each market making session.
+
+The results we've shown so far represent an entire day of trading.  Most players, however, will not spend an entire day managing orders and making markets.  Therefore, we may wish to constrain our strategy so that trading only occurs during a subset of the day.  Results from a "time block" of trading are more likely to represent our actual results.  A second, slightly more technical, issue is that we've always started our strategy at the beginning of simulated time.  Although the simulator "warms up" the book by pre-populating orders, it does not simulate any trades until the simulation actually starts.  To make the simulation more realistic, we should allow the simulator to run for a \(simulated\) hour or so in order to give the book a chance to move to a more realistic state.  We consider both of these issues as we finish our analysis of market making simulation.
+
+To allow for a delayed start, and to simulate a block of trading, we'll implement an extension of our existing trading strategy which sleeps until a designated start time, and trades until a dedicated stop time.  We'll arbitrarily choose to trade a four hour block starting one hour after the start of the simulation.  It is tempting to consider starting our strategy earlier or later to simulate trading at different times of the day.  However, our simulation as constructed has no concept of time of day, so such variants would likely not produce representative results.  A more realistic simulation would need to construct an order book model which incorporates time of day.  We leave that topic for future work.
+
+We can implement a delayed-start block-time strategy as a simple subclass of our original strategy:
+
+```python
+class DelayedBlockRoundTripStrategy(RoundTripStrategy):
+
+    def __init__(self, start_time, end_time, oms, tax_rate, broker_rate, order_change_fee, type_id, units, verbose=False):
+        super().__init__(oms, tax_rate, broker_rate, order_change_fee, type_id, units, verbose)
+        self.start_time = start_time
+        self.end_time = end_time
+
+    def run(self, env):
+        # Wait until our start time
+        yield env.timeout(self.start_time - env.now)
+        if self.verbose:
+            print(str(env.now) + " strategy starting")
+
+        # Now launch the strategy and interrupt when the end time occurs
+        stop_strategy = env.timeout(self.end_time - env.now)
+        run_strategy = env.process(super().run(env))
+        yield stop_strategy | run_strategy
+        if not run_strategy.triggered:
+            # Interrupt
+            run_strategy.interrupt()
+        if self.verbose:
+            print(str(env.now) + " strategy stopped")
+```
+
+Our derived strategy has the same initialization as the original strategy, but also accepts a start and stop time in seconds.  The main execution loop yields a timeout event which waits until the designated start time.  When this time is reached, we create two events:
+
+1. A timer event representing the stop time; and,
+2. An instance of our original strategy started in a SimPy `process`.
+
+In SimPy, a `process` is also a type of event which we can wait on.  Thus, we wait on either our original strategy completing, or the expiration of the stop timer.  If the stop timer expires first, then we'll send an interrupt to our strategy process which causes it to stop trading \(recall the try-catch block in our original strategy\).
+
+We can now simulate the performance of our strategy over a block of time.  For this example, we'll choose to start the strategy one hour \(simulated time\) into the simulation, and end four hours later.  As in previous examples, we'll perform 100 separate runs and aggregate the results:
+
+![Four Hour Block Simulation Results](img/ex16_cell17.PNG)
+
+Over a four hour block, average trends slightly higher than the median but the standard deviation is quite large.  There are also some extreme runs with at least one run generating no profit.  You can vary the trading block size but note that smaller blocks will give your strategy very few opportunities to find and make good trades.  Another variant, is to leave any open sell orders open for the remainder of the day \(which you can do by continuing to run the simulation well beyond when the strategy stops\).  This reflects what you'd likely do in actual trading: if you ended the day with open sell orders, you'd likely just leave them open on the off chance they would be filled later.
+
+We've only scratched the surface of market making strategy construction and simulation.  For example, we could place sell orders as soon as we have any assets to trade, instead of waiting for our buy order to complete first.  We leave these variants, as an exercise for the reader.
 
 ## Introduction to Risk management
 
