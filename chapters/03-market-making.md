@@ -764,7 +764,8 @@ We can implement a delayed-start block-time strategy as a simple subclass of our
 ```python
 class DelayedBlockRoundTripStrategy(RoundTripStrategy):
 
-    def __init__(self, start_time, end_time, oms, tax_rate, broker_rate, order_change_fee, type_id, units, verbose=False):
+    def __init__(self, start_time, end_time, oms, tax_rate, broker_rate, order_change_fee,
+                 type_id, units, verbose=False):
         super().__init__(oms, tax_rate, broker_rate, order_change_fee, type_id, units, verbose)
         self.start_time = start_time
         self.end_time = end_time
@@ -818,12 +819,11 @@ We've only scratched the surface of market making strategy construction and simu
 
 ## Variants
 * variants
-  * luring the ask down
-    * find aggressive ask side
-    * buy a few items
-    * continually 0.01 ISK sellers to draw ask price down
-    * buy out sellers and place ask
-  * Example 18 - finding competitive ask candidates
+  * relisting
+    * buy out all current sellers
+    * re-list well above the last best ask to attempt to profit
+    * probably ideal for an unbalanced side (e.g. mostly buyers) as long as there is not too much competition
+  * Example 18 - relisting
   * cyclical market making
     * look for ask cycles, buy at low end of cycle and resell
     * OR: look for bid cycles, bid at low end of cycle and resell
@@ -831,7 +831,6 @@ We've only scratched the surface of market making strategy construction and simu
 
 ## Practical Trading Tips
 * practical trading tips
-  * tools almost mandatory - fortunately there are many available
   * Multi-day positions require risk management
   * order layering to stay at the top of the book
   * pricing tricks - 1.01 increases to catch sloppy competitors
