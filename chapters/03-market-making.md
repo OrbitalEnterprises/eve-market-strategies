@@ -804,33 +804,83 @@ We've only scratched the surface of market making strategy construction and simu
 
 ## Introduction to Risk management
 
-  * managing risk (bought items waiting to be sold)
-    * how long should I hold unsold assets?
-  * Example 17 - simple risk projection
+Market making strategies rely on stable spreads and a steady supply of buyers and sellers.  If prices are highly volatile, or if the supply of market participants suddenly dries up, then market making can be a losing strategy.  In the best case, you'll lose broker fees on stranded buy orders.  In the worst case, you'll have stock that you can't sell profitably.  We selected market making targets in [Example 14](#example-14---selecting-market-making-targets) to ensure regular market participation, but we have yet to consider the likely movement of prices during a trading session.  The propensity for prices to move, usually referred to as volatility in real world markets, is a common measure of market risk.  Market risk is normally low for market making strategies given that trading is usually constrained to a small window \(typically a day or less\) and assets are carefully selected.  However, as trading horizon increases or higher risk assets are traded \(often in exchange for higher returns\), market risk becomes an important factor.  In this section, we'll provide a short introduction to risk analysis for market making strategies.  We'll use a similar technique in a later chapter when we consider trading strategies with longer horizons.
+
+A common measure of risk is volatility, which is defined as the standard deviation of returns over some time unit \(e.g. daily returns\), where return is given by the expression ${{end value}/{start value}} - 1$.  If returns are assumed to be normally distributed \(with mean equal to zero\), then volatility can be used to estimate the likelihood of certain gains or losses.  For example, suppose *S* is the volatility for some asset type computed from daily returns.  Then a strategy which trades daily will have a 68% chance of a return between *-S* and *S*.  On the extreme downside, the strategy will return worse than *-S* approximately 16% of the time.  Normally, we won't be worried about day to day performance, but instead performance over some time range.  We can compute volatility over a larger period by "annualizing" the one period volatility computation.  For example, if *S* is daily volatility, then the volatility over *N* days is $S \times \sqrt{N}$.
+
+In real-world markets, volatility is often used to scale position sizes for an investment, or to set the amount of funds which should be made available in an investment account.  This is done by setting a *target volatility* which defined as the desired standard deviation of returns for a given strategy.  Volatility, in this case, is computed based on the returns of a strategy with a fixed account balance and set position sizes.  For example, suppose we are trading from an account with a starting balance of *B* ISK with positions no greater than *P* ISK in size[^14].  Suppose further that our target volatility is *T*, but after trading for some time we find that our actual volatility is *A*.  We can scale our trading to achieve the volatility target in one of two ways:
+
+1. We can scale our account balance by the ratio *A/T* while keeping our position sizes unchanged.
+2. We can scale our position size by the ratio *T/A* while keeping our account balance unchanged.
+
+When actual volatility is higher than our target, we need to reduce the impact of extreme returns.  The first method accomplishes this by increasing account balance, which reduces overall returns since position sizes are unchanged.  Likewise, the second method reduces impact by exposing less capital to the market \(i.e. reducing position size\).  Conversely, if actual volatility is lower than our target, then we need to increase the impact of returns either by magnifying their effect on our account balance \(i.e. decreasing our account balance\), or by exposing more capital to the market \(i.e. increasing position size\).
+
+This discussion only scratches the surface of risk management, but we have enough to help answer a few basic questions for market making.  Specifically:
+
+* What is the volatility for a given set of asset types?
+* What is the impact of volatility on market making strategies?
+* How much capital should I invest in the strategy?
+* How large should my positions be in each asset type?
+
+We'll explore the answers to these questions in the next example.
+
+### Example 17 -  Market Making Risk Management
+
+* Show how to compute simple volatility for a given asset type
+* Show how to compute volatility based on account and position size (from simulation)
+* Compute the probability of a spread turning unprofitable
+* Apply both target volatility methods to simulation and show results
 
 ## Strategy Effectiveness
-* strategy effectiveness
-  * pros:
-    * Easy to execute once you've chosen your targets
-    * Cheap, can start small
-  * cons:
-    * Highly competitive, many 0.01 ISK games
-    * Volume game, need to play a lot to make a lot
+
+Here at Orbital Enterprises, we've found market making to be a profitable strategy albeit time intensive.  The main advantages of this approach are as follows:
+
+* **Dead Simple** - Market making is a popular strategy for a reason.  It is, by far, one of the easiest strategies to understand and execute.  We suspect most traders have a basic understanding of when market making is profitable, but are otherwise not concerned with risk.  They are comfortable simply waiting the market out if trades turn unprofitable.  We also suspect that most traders have discovered profitable assets by experience, and *not* using the more advanced analysis we presented earlier in the chapter.
+
+* **Accessible** - By *accessible* we mean that market making can be profitable for all levels of market participation, from the new player with almost no trained skills and very little ISK, to the seasoned veteran with ample ISK to trade.  There are active \(and highly competitive\) markets at nearly all asset levels, from cheaply priced ammunition, up to more expensive assets like ships.  This makes it easy to get started without risking much capital.
+
+The main disadvantages of this approach are as follows:
+
+* **Competitive** - Market making is not a new strategy and many players already participate.  This means lots of time spent updating orders and playing 0.01 ISK games[^15].
+
+* **Time Consuming** - It's difficult to profit from market making unless you're willing to spend several hours watching and updating orders.  There are longer horizon variants but this isn't true market making and is closer to trend or cycle trading.
+
+* **High Volume** - At the end of the day, market making is a volume game with small gains on individual trades.  You won't see substantial profit without trading a sizable portion of the daily volume of an asset, which takes time.
+
+* **Location Matters** - Market making requires a steady supply of willing market participants.  Such participation is only available in a few stations in EVE.  Most traders are resigned to this fact and maintain an alternative character dedicated to market participation.
+
+Despite the competitiveness and large time commitment, market making remains a very active strategy in EVE.  We pursue this strategy from time to time, but it does not make up a substantial portion of our investment gains.
 
 ## Variants
-* variants
+
+### Relisting
   * relisting
     * buy out all current sellers
     * re-list well above the last best ask to attempt to profit
     * probably ideal for an unbalanced side (e.g. mostly buyers) as long as there is not too much competition
+    *
+### Example 18 - Evaluating Relisting Targets
   * Example 18 - relisting
+
+### Cycles
   * cyclical market making
     * look for ask cycles, buy at low end of cycle and resell
     * OR: look for bid cycles, bid at low end of cycle and resell
+
+### Example 19 - Looking for Asset Cycles
   * Example 19 - finding bid and ask cycles
 
 ## Practical Trading Tips
 * practical trading tips
-  * Multi-day positions require risk management
+
+### Order Layering
   * order layering to stay at the top of the book
+
+### Stop Loss
+  * knowing when to kill your orders and go home
+
+### Pricing Tricks
   * pricing tricks - 1.01 increases to catch sloppy competitors
+
+[^14]: Note that capping position limits may require ignoring the ideal volume results we found in [Example 16](#example-16---testing-market-making-strategies).  This is a tradeoff between maximizing return and controlling risk.
+[^15]: The 0.01 ISK game is the act of updating your orders to capture the top of the book, beating the next order by 0.01 ISK in order to maximize profit.  Highly competitive assets are recognized by have several levels of orders separated by 0.01 ISK.
