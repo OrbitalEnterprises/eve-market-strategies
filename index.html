@@ -129,10 +129,18 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><a href="#example-15---modeling-orders-and-trades">Example 15 - Modeling Orders and Trades</a></li>
 <li><a href="#example-16---testing-market-making-strategies">Example 16 - Testing Market Making Strategies</a></li>
 </ul></li>
-<li><a href="#introduction-to-risk-management">Introduction to Risk management</a></li>
 <li><a href="#strategy-effectiveness-1">Strategy Effectiveness</a></li>
-<li><a href="#variants-1">Variants</a></li>
-<li><a href="#practical-trading-tips-1">Practical Trading Tips</a></li>
+<li><a href="#variants-1">Variants</a><ul>
+<li><a href="#relisting">Relisting</a></li>
+<li><a href="#example-17---evaluating-relisting-targets">Example 17 - Evaluating Relisting Targets</a></li>
+<li><a href="#cycles">Cycles</a></li>
+<li><a href="#example-18---looking-for-asset-cycles">Example 18 - Looking for Asset Cycles</a></li>
+</ul></li>
+<li><a href="#practical-trading-tips-1">Practical Trading Tips</a><ul>
+<li><a href="#funding-requirements">Funding Requirements</a></li>
+<li><a href="#order-layering">Order Layering</a></li>
+<li><a href="#pricing-tricks">Pricing Tricks</a></li>
+</ul></li>
 </ul></li>
 </ul>
 </nav>
@@ -1755,7 +1763,7 @@ Buy Orders:
 <h1 id="market-making-station-trading">Market Making (Station Trading)</h1>
 <p>In real-world markets, a market maker is a market participant that maintains an inventory of assets (e.g. stock) so that they are able to buy or sell assets to other market participants as required. Market makers help keep real-world markets running efficiently by providing <em>liquidity</em>, which is the ability to readily trade assets at stable prices. Real-world market makers are compensated for the risk they take in maintaining an inventory of assets. In some markets, this compensation takes the form of rebates offered to market participants willing to provide liquidity. In most markets, however, market makers profit by maintaining a <em>spread</em> which is the difference in price between the current best bid and best ask. A market maker can buy assets at the best bid (assuming a willing counterparty), then turn around and sell those assets at the best ask, pocketing the <em>spread</em> (or vice versa for selling at the ask and buying at the bid). As long as the spread is greater than associated trading fees, the market maker will make a profit. Note, however, that profit margins are typically very thin. In real world markets, market making is a volume game.</p>
 <p>EVE markets do not have sponsored market makers like real-world markets. However, many players perform a similar function and profit in a similar fashion. These players are referred to as “station traders” because they typically never leave the station they are trading in: all assets are bought and sold in the same station. For all intents and purposes, however, station traders are really market makers: they compete with other players to have the best bid or ask, and they profit when they can buy assets at the best bid and re-sell those assets at the best ask (or vice-versa). Besides hauling, market making is one of the most popular occupations for players pursuing a market trader play style. Part of market making’s popularity stems from the fact that little capital is required to get started. To wit, there are numerous online videos explaining how to make quick ISK by market making.</p>
-<p>In this chapter, we’ll analyze market making as a trading strategy in EVE. We’ll discuss the basics of profitability, and then work through the discovery of which assets provide good market making opportunities. As market making is a time consuming activity, we’ll also attempt to estimate how frequently you’ll need to monitor your orders. Less active players may want to use the results from this section to choose market making opportunities which fit better with their play style. We’ll also talk briefly about market risk as this is the most significant risk factor for market making. As in earlier chapters, we provide several examples illustrating how we derive opportunities and predict outcomes. We conclude this chapter with a brief discussion of variants and practical trading tips.</p>
+<p>In this chapter, we’ll analyze market making as a trading strategy in EVE. We’ll discuss the basics of profitability, and then work through the discovery of which assets provide good market making opportunities. As market making is a time consuming activity, we’ll also attempt to estimate how frequently you’ll need to monitor your orders. Less active players may want to use the results from this section to choose market making opportunities which fit better with their play style. As in earlier chapters, we provide several examples illustrating how we derive opportunities and predict outcomes. We conclude this chapter with a brief discussion of variants and practical trading tips.</p>
 <h2 id="market-making-basics">Market Making Basics</h2>
 <p>A simple EVE market making strategy first buys assets at the best bid, then sells these assets at the best ask. All trading occurs within a single station. Limit orders are placed for both the bid and ask (incurring broker fees), and sales tax is charged when ask orders are filled.</p>
 <p>Given the following definitions:</p>
@@ -2086,7 +2094,7 @@ Buy Orders:
 <li>Implement the strategy.</li>
 <li>Initialize and run the simulator with our prepared market data and our strategy.</li>
 </ol>
-<p>We’ll work through each of these steps below. We’ve already introduced the concept of market making simulation above. In particular, we described the need for market data, order management and fill simulation components. In this example, we’ll make all these concepts concrete by introducing code to create and simulate an actual market making strategy. We’ll begin by describing the structure of our simulation code.</p>
+<p>We’ll work through each of these steps below. We’ve already introduced the concept of market making simulation above. In particular, we described the need for market data, order management and fill simulation components. In this example, we’ll make all these concepts concrete by introducing code to create and simulate an actual market making strategy. We’ll begin by describing the structure of our simulation code. As with our other examples, you can follow along by downloading the <a href="code/book/Example_16_Testing_Market_Making_Strategies.ipynb">Jupyter Notebook</a>.</p>
 <p>We test our market making strategies by implementing a simple <a href="https://en.wikipedia.org/wiki/Discrete_event_simulation">discrete-event simulator</a>. In a discrete-event simulation, behavior is represented by a sequence of events which reflect activity such as trades, orders, the availability of new market data, etc. Each event occurs at a specified virtual time, and events are processed in virtual time order. Participants in the simulation typically wait for specific events to occur, which are then processed, often resulting in the generation of new events. There are many open source simulation frameworks available online. We’ve chosen to implement our simulation using <a href="https://simpy.readthedocs.io/">SimPy</a>, which is a Python framework that makes use of <a href="https://docs.python.org/3/glossary.html#term-generator">generators</a> to implement processes which wait for, then process, simulation events.</p>
 <p>We’ll introduce the simulator’s API by way of the following strategy, which buys and sells a single asset:</p>
 <div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="im">from</span> evekit.sim <span class="im">import</span> MMSimOMS, MMOrderStatus, MMSimStrategyBase
@@ -2417,52 +2425,114 @@ Buy Orders:
 </figure>
 <p>Over a four hour block, average trends slightly higher than the median but the standard deviation is quite large. There are also some extreme runs with at least one run generating no profit. You can vary the trading block size but note that smaller blocks will give your strategy very few opportunities to find and make good trades. Another variant, is to leave any open sell orders open for the remainder of the day (which you can do by continuing to run the simulation well beyond when the strategy stops). This reflects what you’d likely do in actual trading: if you ended the day with open sell orders, you’d likely just leave them open on the off chance they would be filled later.</p>
 <p>We’ve only scratched the surface of market making strategy construction and simulation. For example, we could place sell orders as soon as we have any assets to trade, instead of waiting for our buy order to complete first. We leave these variants, as an exercise for the reader.</p>
-<h2 id="introduction-to-risk-management">Introduction to Risk management</h2>
-<ul>
-<li>managing risk (bought items waiting to be sold)
-<ul>
-<li>how long should I hold unsold assets?</li>
-</ul></li>
-<li>Example 17 - simple risk projection</li>
-</ul>
 <h2 id="strategy-effectiveness-1">Strategy Effectiveness</h2>
+<p>Here at Orbital Enterprises, we’ve found market making to be a profitable strategy albeit time intensive. The main advantages of this approach are as follows:</p>
 <ul>
-<li>strategy effectiveness</li>
-<li>pros:
-<ul>
-<li>Easy to execute once you’ve chosen your targets</li>
-<li>Cheap, can start small</li>
-</ul></li>
-<li>cons:
-<ul>
-<li>Highly competitive, many 0.01 ISK games</li>
-<li>Volume game, need to play a lot to make a lot</li>
-</ul></li>
+<li><p><strong>Dead Simple</strong> - Market making is a popular strategy for a reason. It is, by far, one of the easiest strategies to understand and execute. We suspect most traders have a basic understanding of when market making is profitable, but are otherwise not concerned with risk. They are comfortable simply waiting the market out if trades turn unprofitable. We also suspect that most traders have discovered profitable assets by experience, and <em>not</em> using the more advanced analysis we presented earlier in the chapter.</p></li>
+<li><p><strong>Accessible</strong> - By <em>accessible</em> we mean that market making can be profitable for all levels of market participation, from the new player with almost no trained skills and very little ISK, to the seasoned veteran with ample ISK to trade. There are active (and highly competitive) markets at nearly all asset levels, from cheaply priced ammunition, up to more expensive assets like ships. This makes it easy to get started without risking much capital.</p></li>
 </ul>
+<p>The main disadvantages of this approach are as follows:</p>
+<ul>
+<li><p><strong>Competitive</strong> - Market making is not a new strategy and many players already participate. This means lots of time spent updating orders and playing 0.01 ISK games<a href="#fn13" class="footnoteRef" id="fnref13"><sup>13</sup></a>.</p></li>
+<li><p><strong>Time Consuming</strong> - It’s difficult to profit from market making unless you’re willing to spend several hours watching and updating orders. There are longer horizon variants but this isn’t true market making and is closer to trend or cycle trading.</p></li>
+<li><p><strong>High Volume</strong> - At the end of the day, market making is a volume game with small gains on individual trades. You won’t see substantial profit without trading a sizable portion of the daily volume of an asset, which takes time.</p></li>
+<li><p><strong>Location Matters</strong> - Market making requires a steady supply of willing market participants. Such participation is only available in a few stations in EVE. Most traders are resigned to this fact and maintain an alternative character dedicated to market participation.</p></li>
+</ul>
+<p>Despite the competitiveness and large time commitment, market making remains a very active strategy in EVE. We pursue this strategy from time to time, but it does not make up a substantial portion of our investment gains.</p>
 <h2 id="variants-1">Variants</h2>
+<h3 id="relisting">Relisting</h3>
+<p>An aggressive variant of market making is <a href="https://eveinfo.net/wiki/ind~4788.htm">“relisting”</a> which is the process of buying up some or all of the sell side of a market, then reselling all the assets at higher prices. It should be apparent why this form of market making is aggessive:</p>
 <ul>
-<li>variants</li>
-<li>relisting
+<li>you’re paying a premium for assets (by buying at the market), but on the other hand you don’t need to wait for your buy orders to be filled; and,</li>
+<li>you’re betting on few competitors entering the market to undercut your sell orders. In the worst case, competitors will undercut you below profitability.</li>
+</ul>
+<p>Let’s do the math on this strategy, then we’ll explore an example where we try to find good targets for relisting. It may be tempting to run our simulator for this variant, but the current version of our simulator is not ideal for testing relisting because our order arrival model is not adversarial (i.e. it can’t know to undercut a relisted market). We invite the reader to improve our simulator for this use case.</p>
+<p>If the best ask for a given asset type <em>a</em> is <em>p</em>, then we can buy a unit of <em>a</em> at a cost of <em>p</em> with a market order. We are not charged any broker fees in this case because we’re buying at the market. If our goal is a return of <em>r</em>, then we need to sell the asset at a price of <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?%7Bp%20times%20%28r%20%2B%201%29%7D%5Cover%7B1%20-%20r%20%5Ctimes%20%28t%20%2B%20b%29%20-%20t%20-%20b%7D" alt="{p times (r + 1)}\over{1 - r \times (t + b) - t - b}" title="{p times (r + 1)}\over{1 - r \times (t + b) - t - b}" /> where <em>t</em> is the current sales tax rate, and <em>b</em> is the current broker fee rate. This formula is just a variant of the return formula we introduced at the beginning of this chapter. Normally, we’ll want to pad <em>r</em> a little higher to allow for price movement down. We’ll need to add even more buffer if we expect competition to undercut our prices significantly.</p>
+<p>Now let’s consider which asset types would be best suited for this strategy. We might consider assets which meet one or more of the following critera:</p>
 <ul>
-<li>buy out all current sellers</li>
-<li>re-list well above the last best ask to attempt to profit</li>
-<li>probably ideal for an unbalanced side (e.g. mostly buyers) as long as there is not too much competition</li>
-</ul></li>
-<li>Example 18 - relisting</li>
+<li>There should be ample buy volume in the market. Our main risk with this strategy is that we are unable to sell our orders before enough competition arrives to undercut us below profitability. As long as buy volume is strong, this risk is low.</li>
+<li>There should <em>not</em> be too much sell volume in the market. A market with both strong buy and sell volume will make it too easy for competitors to buy and sell competitively. In this type of market, relisting only helps our competitors by pushing up ask prices even further. We’ll have competition and it will be difficult to sell.</li>
+<li>There shouldn’t be too much competition on the sell side. The more competition, the more we’ll need to push up sell prices to be profitable.</li>
+<li>It should not be too expensive to buy out the ask side of the market. Our strategy will need to set a limit for what we are willing to pay. Note that we may not need to buy out the entire ask side, just enough to allow the placement of sell orders at profit.</li>
+</ul>
+<p>Let’s walk through an example that illustrates finding and analyzing good relisting targets.</p>
+<h3 id="example-17---evaluating-relisting-targets">Example 17 - Evaluating Relisting Targets</h3>
+<p>In this example, we’ll attempt to find promising asset types for a relisting strategy. As with other examples, we’ll look in the busiest station in The Forge. However, the techniques we describe are applicable in any of EVE’s regions. As with our other examples, you can follow along by downloading the <a href="code/book/Example_17_Evaluating_Relisting_Targets.ipynb">Jupyter Notebook</a>.</p>
+<p>As in our other examples, we’ll start with a simple liquidity filter to eliminate assets which have obvious problems and would be very unlikely to satsify our other requirements. We’ll pull in our liquidity filtering framework from previous examples. For relisting, our filter will select based on number of trading days and number of orders:</p>
+<figure>
+<img src="img/ex17_cell1.PNG" alt="Basic Relisting Liquidity Filter" /><figcaption>Basic Relisting Liquidity Filter</figcaption>
+</figure>
+<p>For this example, we’ll require each asset trade every day and have at least 250 orders a day. We’re evaluating across the same date range as in previous examples. That is, every Saturday from 2017-01-07 through 2017-05-20. It is possible a relisting strategy is viable across multiple days but we aren’t considering this variant here (spoiler alert: from our analysis this may be the only way such a strategy <em>can</em> work). Applying our liquidity filter leaves us with 218 possible types:</p>
+<figure>
+<img src="img/ex17_cell2.PNG" alt="Liquidity Filter Application" /><figcaption>Liquidity Filter Application</figcaption>
+</figure>
+<p>The first relisting specific filter we’ll apply is to compare buy and sell side volume. An ideal relisting asset type should have large sell side volume (i.e. many buyers) and correspondingly low buy side volume (i.e. few sellers). Markets dominated by buyers favor participants with something to sell, which is exactly what a relisting strategy becomes after buying out the sell side. To analyze trade volumes, we’ll need our trade inference code from previous examples. In particular, we’ll be using our “side volume” computer which only extracts and accumulates trade activity in order books. This is the same technique we used in <a href="#example-14---selecting-market-making-targets">Example 14</a> to test whether volume was balanced between sell and buy side. In this case, however, we’re looking for an imbalance.</p>
+<p>The following cell collects volume data into a Pandas DataFrame across all dates in our date range. Because of the large number of types still under consdiration, this cell make take several hours to execute depending on equipment:</p>
+<figure>
+<img src="img/ex17_cell3.PNG" alt="Collecting Trade Side Volume" /><figcaption>Collecting Trade Side Volume</figcaption>
+</figure>
+<p>The results provide the buy, sell and total trade volume for each type and day in our date range. We’d like to retain any asset with high sell side volume on most days. For this example, we’ll require sell side volume to make up 80% of total volume, and we’ll expect this to occur for 75% of the days in the date range. Lowering the volume threshold will admit more types, but also make it more likely that these types do not have sufficient buy side volume to accept a relisting strategy. Similarly, lowering the threshold for the number of days where buy side volume dominates will also admit more types, but will also lower the probability that a given Saturday will have the right market conditions to support relisting. In this example, our thresholds reduce our set down to 16 types:</p>
+<figure>
+<img src="img/ex17_cell4.PNG" alt="Filtering for High Sell Side Volume" /><figcaption>Filtering for High Sell Side Volume</figcaption>
+</figure>
+<p>Our next filter considers competition, similar to our analysis in <a href="#example-13---detecting-market-making">Example 13</a> and <a href="#example-14---selecting-market-making-targets">Example 14</a>. You may recall that we measured competition by counting the number of existing orders which changed priced in a given time interval. Frequent price changes are a good sign of market making activity as market participants fight to capture the top of the book. For a relisting strategy, competition on the sell side increases the chances that someone will try to undercut our sell orders.</p>
+<p>To evaluate competition, we’ll pull in our previous code for extracting order changes. However, since we’re only interested in sell side competition, we’ll make a small modification to only consider the sell side (i.e. frequent changes to sell orders). The following cell accumulates sell side change counts across our date range using the remaining types from the sell volume filter we just applied:</p>
+<figure>
+<img src="img/ex17_cell5.PNG" alt="Measuring Sell Side Competition" /><figcaption>Measuring Sell Side Competition</figcaption>
+</figure>
+<p>As in <a href="#example-14---selecting-market-making-targets">Example 14</a>, we need to decide which of many possible measures of order change count we should accept. The following cell sets our four options which summarize the sell side order change count for our assets under consideration:</p>
+<figure>
+<img src="img/ex17_cell6.PNG" alt="Sell Side Competition Summary" /><figcaption>Sell Side Competition Summary</figcaption>
+</figure>
+<p>Our choice here is highly subjective. Average change counts suggest the majority of our types will experience little competition. However, maximum change counts suggest some assets will have extreme competition. As in previous examples, we like using the 95% quantile as it helps reveal whether the maximum is a true outlier (in which case the 95% quantile will still be low) or whether there are several large samples (in which case the 95% quantile will be somewhat high). For this example, we’ll set a threshold of 4 on the 95% quantile, meaning that we’ll retain any type with a 95% quantile order change count less than four:</p>
+<figure>
+<img src="img/ex17_cell7.PNG" alt="Filtering for Sell Side Competition" /><figcaption>Filtering for Sell Side Competition</figcaption>
+</figure>
+<p>The cell above shows the eight types we’re left with, along with their name for reference. This brings us to our last test, which is to check the cost of buying out the sell side needed for a relisting strategy. To compute buyout, we’ll accumulate buyout orders in each snapshot until we’ve accumulated enough orders so that we can sell at a price high enough to meet a return target we’ll set. We’ll also require that there are no sell orders below our sell price in the order book. Such orders would sell before us, and likely require that we reprice (hence not meeting our return target). We’ll perform this computation on every order book snapshot for each of the remaining types on every date in our date range. Since we’ll be computing sale proceeds, we’ll need to assume a sales tax rate and broker fee rate, which we set at 1% and 2.5%, respectively. These settings represent typical values for maximum skills in an NPC station. For our first attempt at this filter, we’ll set our target return at 5%, meaning that we expect to make a 5% profit from selling all assets in our relisting strategy.</p>
+<p>To compute buyout for each snapshot, we’ve implemented a <code>compute_buyout</code> function (next cell, not shown) which returns the number of assets purchased, the total cost of the purchase, the required sell price to profit from this purchase (according to the return target), the gross profit from the sale, and the net profit which is just gross less sales tax and brokerage fees. The <code>collect_all_buyouts</code> function (next cell, not shown) applies <code>compute_buyout</code> to every order book snapshot for the remaining types across our data range. The results are returned in a Pandas DataFrame with columns “cost”, “count”, “price”, and “profit”. Let’s look at the profit results first:</p>
+<figure>
+<img src="img/ex17_cell8.PNG" alt="Relisting Strategy Profit by Type" /><figcaption>Relisting Strategy Profit by Type</figcaption>
+</figure>
+<p>The profits we show here are the average profits across all order book snapshots. Some assets report very large profits but, as we’ve set profit to be 5% of cost, we know that costs must be correspondingly large and they are:</p>
+<p><a href="img/ex17_cell9.PNG">!Relisting Strategy Cost by Type</a></p>
+<p>The most profitable type requires a 31B ISK investment which is likely beyond most casual trading. However, the lowest cost type requires a more manageable 219M ISK investment. Would this be a useful type to relist? One way to help decide is to look at the number of assets that would need to be sold, and compare this value to the average sell side volume data we extracted earlier. First, the sell side volume required by type:</p>
+<figure>
+<img src="img/ex17_cell10.PNG" alt="Relisting Strategy Unit Count by Type" /><figcaption>Relisting Strategy Unit Count by Type</figcaption>
+</figure>
+<p>We’ve already computed sell side volume from an earlier filter, so we can simply redisplay the values here limited to our remaining relisting targets:</p>
+<figure>
+<img src="img/ex17_cell11.PNG" alt="Average Sell Side Volume by Type" /><figcaption>Average Sell Side Volume by Type</figcaption>
+</figure>
+<p>Returning back to the lowest cost relisting target (type 31213), on average we’ll need to buy 3572 units of this asset to relist, but the average sell side volume is just 1043 or about one third of the number of units we need to sell. The other potential relisting targets have a similar (or worse) relationship between units purchased and average sell volume. It is possible that a return target of 5% is too aggressive. What about 2%? Although cost and unit count are lower (as expected), unfortunately the unit counts are still much higher than the average:</p>
+<figure>
+<img src="img/ex17_cell12.PNG" alt="Results at 2% Return Target" /><figcaption>Results at 2% Return Target</figcaption>
+</figure>
+<p>These results suggest that, at least for the market at this particular location, relisting is only practical if it extends over multiple days. However, this increases the probability that other market participants will try to undercut. It is possible that less populated regions are better targets for relisting. We leave this analysis to the reader.</p>
+<h3 id="cycles">Cycles</h3>
+<ul>
 <li>cyclical market making
 <ul>
 <li>look for ask cycles, buy at low end of cycle and resell</li>
 <li>OR: look for bid cycles, bid at low end of cycle and resell</li>
 </ul></li>
-<li>Example 19 - finding bid and ask cycles</li>
+</ul>
+<h3 id="example-18---looking-for-asset-cycles">Example 18 - Looking for Asset Cycles</h3>
+<ul>
+<li>Example 18 - finding bid and ask cycles</li>
 </ul>
 <h2 id="practical-trading-tips-1">Practical Trading Tips</h2>
-<ul>
-<li>practical trading tips</li>
-<li>Multi-day positions require risk management</li>
-<li>order layering to stay at the top of the book</li>
-<li>pricing tricks - 1.01 increases to catch sloppy competitors</li>
-</ul>
+<h3 id="funding-requirements">Funding Requirements</h3>
+<p>Our discussion of simulation didn’t cover account management, but for real trading you’ll need to decide how much to fund your trading account. The amount required depends on the largest position you plan to take, plus a buffer to cover broker fees. For simplicity, suppose you are going to trade a single asset. Suppose further that the highest price you’ll buy this asset at is <em>p</em> and you’re hoping to making a return of <em>r</em> on each round of market making. If <em>n</em> is the volume you plan to trade and <em>b</em> is the broker fee rate, then you’ll need to spend <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?%28n%20%5Ctimes%20p%29%20%5Ctimes%20%281%20%2B%20b%29" alt="(n \times p) \times (1 + b)" title="(n \times p) \times (1 + b)" /> to acquire an initial position in your asset. When you’re ready to sell your position, you’ll need to spend at least <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?n%20%5Ctimes%20p%20%5Ctimes%20%281%20%2B%20r%29%20%5Ctimes%20b" alt="n \times p \times (1 + r) \times b" title="n \times p \times (1 + r) \times b" /> on the sell order. Therefore, your account must be funded with at least <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?%28n%20%5Ctimes%20p%29%20%5Ctimes%20%281%20%2B%20b%29%20%2B%20%28n%20%5Ctimes%20p%20%29%20%5Ctimes%20%281%20%2B%20r%29%20%5Ctimes%20b" alt="(n \times p) \times (1 + b) + (n \times p ) \times (1 + r) \times b" title="(n \times p) \times (1 + b) + (n \times p ) \times (1 + r) \times b" /> or in simplified form: <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?%28n%20%5Ctimes%20p%29%20%5Ctimes%20%281%20%2B%20b%20%5Ctimes%20%282%20%2B%20r%29%29" alt="(n \times p) \times (1 + b \times (2 + r))" title="(n \times p) \times (1 + b \times (2 + r))" />. We recommend a small buffer above this minimum value to account for price movement and re-pricing fees.</p>
+<h3 id="order-layering">Order Layering</h3>
+<p>A key challenge for market making strategies is ensuring that your orders always capture the top of book. There are two main forces fighting against you:</p>
+<ol type="1">
+<li>the number of competitors, or rather, the number of competing orders; and,</li>
+<li>the five minute gap requirement between order changes.</li>
+</ol>
+<p>Each time you re-price an order, a competitor will later follow suit to try to re-capture the top of book. If a competitor follows your change with their own in less than five minutes, then you’re stuck waiting out the change timer to capture the top of book again. The simple fix is to maintain multiple orders in layers so that you always have an order you can re-price if you lose the top of book. You’ll need to maintain at least as many orders as you have competitors, plus one additional order to always provide an order that can be re-priced. You can estimate competition by revisiting <a href="#example-13---detecting-market-making">Example 13</a> or <a href="#example-14---selecting-market-making-targets">Example 14</a> above. To maintain optimal trading, you should split your desired position size across the orders you plan to maintain (equally or otherwise).</p>
+<p>Note that as buy orders are filled, you’ll need to decide whether to replace them with new buy orders, or wait until some sell orders fill. The choice here depends on how much sell side risk you are willing to maintain (i.e. this is the risk that your sell orders do not fill in a reasonable time, or with a reasonable profit). If you’d like to limit sell side risk, you can create more orders than the minimum necessary (spreading desired position size across all orders), which will provide a buffer of orders to keep you at the top of book longer while waiting for sell orders to fill.</p>
+<h3 id="pricing-tricks">Pricing Tricks</h3>
+<p>Once you start participating in market making, you’ll be exposed to the 0.01 ISK game<a href="#fn14" class="footnoteRef" id="fnref14"><sup>14</sup></a>. On competitive assets, participants will need to continuously adjust prices by 0.02 ISK to leap frog over another order which is 0.01 ISK greater than their own. Many players will naturally focus on the fractional part of the order price and simply increase or decrease the amount by 0.02 without carefully checking the price. A common trick to take advantage of this behavior is to instead reprice by 1.02 ISK. Many players will miss the change and incorrectly reprice their order by only 0.02, thus still falling behind the order they thought they had just replaced (and further, being forced to wait five minutes to fix their mistake). You can increase the scale on larger priced assets, for example re-pricing by 10.02 ISK. Not everyone falls for this, but it’s a useful trick to try sometimes, and it’s a reminder to watch for the same trick being played on you.</p>
 <section class="footnotes">
 <hr />
 <ol>
@@ -2478,6 +2548,8 @@ Buy Orders:
 <li id="fn10"><p>At time of writing, this page is slightly out of date. In current game mechanics, the station owner tax is charged as an ISK amount based on refining yield, station tax and reference price, <em>not</em> as an adjustment to yield as shown on the EVE University page.<a href="#fnref10">↩</a></p></li>
 <li id="fn11"><p>Of course, a more careful analysis of opportunities may show it’s not worth training certain ore-specific skills to level five due to lack of opportunities. We leave this analysis as an exercise for the reader.<a href="#fnref11">↩</a></p></li>
 <li id="fn12"><p>Unless, of course, the profit you from such trades is large enough to justify tying up ISK. More careful analysis is required here. We’re using a less precise criteria to keep the example simple.<a href="#fnref12">↩</a></p></li>
+<li id="fn13"><p>The 0.01 ISK game is the act of updating your orders to capture the top of the book, beating the next order by 0.01 ISK in order to maximize profit. Highly competitive assets are recognized by have several levels of orders separated by 0.01 ISK.<a href="#fnref13">↩</a></p></li>
+<li id="fn14"><p>The 0.01 ISK game is the act of updating your orders to capture the top of the book, beating the next order by 0.01 ISK in order to maximize profit. Highly competitive assets are recognized by have several levels of orders separated by 0.01 ISK.<a href="#fnref14">↩</a></p></li>
 </ol>
 </section>
 <script type="text/javascript">
