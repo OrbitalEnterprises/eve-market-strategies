@@ -19,6 +19,7 @@ The remainder of the book is organized as follows:
 
 ## Change Log
 
+* 2017-06-18: Finished "Market Making" chapter.
 * 2017-05-05: Found gap problem in order book data.  Updated examples and text in Chapters 1 and 2 with work around.
 * 2017-04-21: Finished first two chapters.  Removed placeholder for Chapter 3.  Public announcement on forums.
 * 2017-02-12: Beyond the initial two chapters, we have four additional chapters planned:

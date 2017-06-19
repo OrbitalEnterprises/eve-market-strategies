@@ -1,6 +1,6 @@
 # Market Making \(Station Trading\)
 
-In real-world markets, a market maker is a market participant that maintains an inventory of assets \(e.g. stock\) so that they are able to buy or sell assets to other market participants as required.  Market makers help keep real-world markets running efficiently by providing *liquidity*, which is the ability to readily trade assets at stable prices.  Real-world market makers are compensated for the risk they take in maintaining an inventory of assets.  In some markets, this compensation takes the form of rebates offered to market participants willing to provide liquidity.  In most markets, however, market makers profit by maintaining a *spread* which is the difference in price between the current best bid and best ask.  A market maker can buy assets at the best bid \(assuming a willing counterparty\), then turn around and sell those assets at the best ask, pocketing the *spread* \(or vice versa for selling at the ask and buying at the bid\).  As long as the spread is greater than associated trading fees, the market maker will make a profit.  Note, however, that profit margins are typically very thin.  In real world markets, market making is a volume game.
+In real-world markets, a market maker is a market participant that maintains an inventory of assets \(e.g. stock\) so that they are able to buy or sell assets to other market participants as required.  Market makers help keep real-world markets running efficiently by providing *liquidity*, which is the ability to readily trade assets at stable prices.  Real-world market makers are compensated for the risk they take in maintaining an inventory of assets.  In some markets, this compensation takes the form of rebates offered to market participants willing to provide liquidity.  In most markets, however, market makers profit by maintaining a *spread* which is the difference in price between the current best bid and best ask.  A market maker can buy assets at the best bid \(assuming a willing counter-party\), then turn around and sell those assets at the best ask, pocketing the *spread* \(or vice versa for selling at the ask and buying at the bid\).  As long as the spread is greater than associated trading fees, the market maker will make a profit.  Note, however, that profit margins are typically very thin.  In real world markets, market making is a volume game.
 
 EVE markets do not have sponsored market makers like real-world markets.  However, many players perform a similar function and profit in a similar fashion.  These players are referred to as "station traders" because they typically never leave the station they are trading in: all assets are bought and sold in the same station.  For all intents and purposes, however, station traders are really market makers: they compete with other players to have the best bid or ask, and they profit when they can buy assets at the best bid and re-sell those assets at the best ask \(or vice-versa\).  Besides hauling, market making is one of the most popular occupations for players pursuing a market trader play style.  Part of market making's popularity stems from the fact that little capital is required to get started.  To wit, there are numerous online videos explaining how to make quick ISK by market making.
 
@@ -63,7 +63,7 @@ Orders in EVE's markets are anonymized, so answers to these questions will be es
 * Market makers frequently change price and this operation preserves order ID.  Therefore, we can detect active market makers by looking for frequently changed orders; and,
 * EVE always shows distinct orders, even if orders have the same price.  This means we can at least put an upper bound on the number of market participants \(a single participant can have multiple orders for an asset, so this can't be an exact bound\).
 
-We'll attempt to determine how many assets are subject to market making by counting the number of times the best bid or ask change at a target station.  From this count, we can estimate which assets are likley subject to active market making.  To detect how many players are actively trying to make a market, we'll look for orders which change frequently and assume each changing order indicates at least one market participant.  If the same order changes over many order book snapshots, then we can infer how frequently a particular market participant is active in the market.  All of this analysis will only make sense for reasonably liquid assets.  Therefore, we'll filter for assets with a certain number of daily trades before filtering for active market making.  As with our other examples, you can follow along by downloading the [Jupyter Notebook](code/book/Example_13_Detecting_Market_Making.ipynb).
+We'll attempt to determine how many assets are subject to market making by counting the number of times the best bid or ask change at a target station.  From this count, we can estimate which assets are likely subject to active market making.  To detect how many players are actively trying to make a market, we'll look for orders which change frequently and assume each changing order indicates at least one market participant.  If the same order changes over many order book snapshots, then we can infer how frequently a particular market participant is active in the market.  All of this analysis will only make sense for reasonably liquid assets.  Therefore, we'll filter for assets with a certain number of daily trades before filtering for active market making.  As with our other examples, you can follow along by downloading the [Jupyter Notebook](code/book/Example_13_Detecting_Market_Making.ipynb).
 
 Our first task will be to filter for liquid assets since such assets are most likely to be good targets for market making.  We use the same liquidity filter framework from previous examples, but with a much simpler liquidity filter predicate function:
 
@@ -102,7 +102,7 @@ As an example, let's look at "Conductive Polymer" which changed 63 times on our 
 
 ![Best Bid/Ask Changes for Conductive Polymer](img/ex13_cell7.PNG)
 
-The plot shows an obvious gap of about two hours at mid day.  Also, there appear to be clusters of trades and certain times of day.  One way to better understand clustering effects is to resample the data and count the number of bid/ask changes in each re-sampled interval.  This is also a way to determine the most active times of day for a given asset.  The next cell computes cluster size for three different re-sampling frequencies:
+The plot shows an obvious gap of about two hours at mid day.  Also, there appear to be clusters of trades and certain times of day.  One way to better understand clustering effects is to re-sample the data and count the number of bid/ask changes in each re-sampled interval.  This is also a way to determine the most active times of day for a given asset.  The next cell computes cluster size for three different re-sampling frequencies:
 
 ![Change Clusters for Conductive Polymer at 60, 30 and 15 minutes](img/ex13_cell8.PNG)
 
@@ -120,15 +120,15 @@ A function to compute the number of orders changing for each type in a sampling 
 
 ![Function to Count Changing Orders per Interval](img/ex13_cell10.PNG)
 
-The result of this function is a Pandas DataFrame which gives the number of orders which changed at least once in a given resampling interval.  Let's look again at Conductive Polymers to see what this data looks like for an infrequently traded asset.  To provide more context, we'll overlay a plot of the change count data we computed above, resampled to the same interval we used for market participants.  Here's the plot for Conductive Polymers:
+The result of this function is a Pandas DataFrame which gives the number of orders which changed at least once in a given re-sampling interval.  Let's look again at Conductive Polymers to see what this data looks like for an infrequently traded asset.  To provide more context, we'll overlay a plot of the change count data we computed above, re-sampled to the same interval we used for market participants.  Here's the plot for Conductive Polymers:
 
 ![Conductive Polymers Participants (bar - left axis) vs. Best Bid/Ask Changes (line - right axis) (1 hour samples)](img/ex13_cell11.PNG)
 
-The peaks in the graphs do not quite line up and the sampled participant count is quite low.  One conclusion we might draw from this data is that market making is not really happening for Conductive Polymer.  Another possible conclusion is that the change cycle is much slower than one hour.  We can check out intuition by resampling for a larger change interval.  Here's the same plot for Conductive Polymer re-sampled over two hour intervals:
+The peaks in the graphs do not quite line up and the sampled participant count is quite low.  One conclusion we might draw from this data is that market making is not really happening for Conductive Polymer.  Another possible conclusion is that the change cycle is much slower than one hour.  We can check out intuition by re-sampling for a larger change interval.  Here's the same plot for Conductive Polymer re-sampled over two hour intervals:
 
 ![Conductive Polymers Participants (bar - left axis) vs. Best Bid/Ask Changes (line - right axis) (2 hour samples)](img/ex13_cell12.PNG)
 
-Changing the sample interval has not captured more market participants which reinforces the hypothesis that market making is probably not occuring on this asset.  Instead, this could be one large order competing with a regular flow of small orders placed by casual players throughout the day.  The owner of the large order must regularly re-position to capture the best bid or ask.  We can confirm our hypothesis by looking more carefully at the order book snapshots for the day.  We leave that task as an exercise for the reader.
+Changing the sample interval has not captured more market participants which reinforces the hypothesis that market making is probably not occurring on this asset.  Instead, this could be one large order competing with a regular flow of small orders placed by casual players throughout the day.  The owner of the large order must regularly re-position to capture the best bid or ask.  We can confirm our hypothesis by looking more carefully at the order book snapshots for the day.  We leave that task as an exercise for the reader.
 
 What do participants look like for a more actively traded asset?  Let's look at the same plot for Prototype Cloaking Device I, sampled at one hour intervals:
 
@@ -262,7 +262,7 @@ The order management system will implement the usual trading fees and rules for 
 With this setup in place, we can execute a simulation as follows:
 
 1. Compute a reference price for each asset under simulation.  This price can be the mid-point of the spread in the first snapshot on our simulated day.  When no orders are present on a side, we'll price new orders at an offset from the reference price.
-2. Run the simulator for a preset *warmup* period in which random orders \(but no trades\) are generated and inserted into the appropriate order book.
+2. Run the simulator for a preset *warm-up* period in which random orders \(but no trades\) are generated and inserted into the appropriate order book.
 3. Start the event simulator.  The strategy under test will execute as needed, although market data will only change once every five minutes as described above.  Order and trade events will arrive as determined by the appropriate generators.
 4. Continue to run the simulation until the configured end time is reached.
 5. Report results.
@@ -438,7 +438,7 @@ The base class provides a few convenience functions:
 * `tracked_order(type_id, duration, buy, price, volume, min_volume)`: Submits a new buy or sell order to the OMS which will be tracked by the base class.
 * `promote_order(order, book, limit)`: Changes the price of an existing order so that it captures top of book on the appropriate side.  That is, the order is "promoted" to the top of book.  A limit can be set so that the price never exceeds a certain target.
 * `order_dataframe`: Produces a Pandas DataFrame recording the current state of every tracked order, including any fees or proceeds.  We use this for post simulation analysis.
-* `strategy_summary`: Produces a human readable summary of trading outcomes for the strategy.  This can also b eused for post simulation analysis.
+* `strategy_summary`: Produces a human readable summary of trading outcomes for the strategy.  This can also be used for post simulation analysis.
 
 The base class handles most interactions with the OMS.  However, we rely on the OMS directly for two functions:
 
@@ -709,7 +709,7 @@ When running a large number of simulations, it is often desirable to aggregate p
 
 ![Performance Summary DataFrame](img/ex16_cell9.PNG)
 
-This DataFrame is indexed by simulation time and provides separate columns for all fees and proceeds for each order.  In this particular example, the DataFrame view also shows that our last sell order was partially filled.  The DataFrame does *not* compute running PNL.  Instead, we must add the appropriate columns manually.  This is a simple operation on a DataFame, e.g.:
+This DataFrame is indexed by simulation time and provides separate columns for all fees and proceeds for each order.  In this particular example, the DataFrame view also shows that our last sell order was partially filled.  The DataFrame does *not* compute running PNL.  Instead, we must add the appropriate columns manually.  This is a simple operation on a DataFrame, e.g.:
 
 ```python
 (strategy_df.gross - strategy_df.tax - strategy_df.broker_fee).sum()
@@ -737,7 +737,7 @@ How well does this choice work?  This is something we can easily evaluate by sim
 
 1. One half of our estimated unit size \(i.e. 1% times 0.5 or 0.5% of the average trade volume\);
 2. Exactly our estimate unit size; and,
-3. One and half times our estimated unit size \(i.e. 1% times 1.5 or 1.5% of average trade voume\).
+3. One and half times our estimated unit size \(i.e. 1% times 1.5 or 1.5% of average trade volume\).
 
 We'll perform 100 runs of each size using the same set of randomly generated seeds for each run.  Let's take a look at the results:
 
@@ -826,7 +826,7 @@ Despite the competitiveness and large time commitment, market making remains a v
 
 ### Relisting
 
-An aggressive variant of market making is ["relisting"](https://eveinfo.net/wiki/ind~4788.htm) which is the process of buying up some or all of the sell side of a market, then reselling all the assets at higher prices.  It should be apparent why this form of market making is aggessive:
+An aggressive variant of market making is ["relisting"](https://eveinfo.net/wiki/ind~4788.htm) which is the process of buying up some or all of the sell side of a market, then reselling all the assets at higher prices.  It should be apparent why this form of market making is aggressive:
 
 * you're paying a premium for assets \(by buying at the market\), but on the other hand you don't need to wait for your buy orders to be filled; and,
 * you're betting on few competitors entering the market to undercut your sell orders.  In the worst case, competitors will undercut you below profitability.
@@ -835,7 +835,7 @@ Let's do the math on this strategy, then we'll explore an example where we try t
 
 If the best ask for a given asset type *a* is *p*, then we can buy a unit of *a* at a cost of *p* with a market order.  We are not charged any broker fees in this case because we're buying at the market.  If our goal is a return of *r*, then we need to sell the asset at a price of ${p times (r + 1)}\over{1 - r \times (t + b) - t - b}$ where *t* is the current sales tax rate, and *b* is the current broker fee rate.  This formula is just a variant of the return formula we introduced at the beginning of this chapter.  Normally, we'll want to pad *r* a little higher to allow for price movement down.  We'll need to add even more buffer if we expect competition to undercut our prices significantly.
 
-Now let's consider which asset types would be best suited for this strategy.  We might consider assets which meet one or more of the following critera:
+Now let's consider which asset types would be best suited for this strategy.  We might consider assets which meet one or more of the following criteria:
 
 * There should be ample buy volume in the market.  Our main risk with this strategy is that we are unable to sell our orders before enough competition arrives to undercut us below profitability.  As long as buy volume is strong, this risk is low.
 * There should *not* be too much sell volume in the market.  A market with both strong buy and sell volume will make it too easy for competitors to buy and sell competitively.  In this type of market, relisting only helps our competitors by pushing up ask prices even further.  We'll have competition and it will be difficult to sell.
@@ -848,7 +848,7 @@ Let's walk through an example that illustrates finding and analyzing good relist
 
 In this example, we'll attempt to find promising asset types for a relisting strategy.  As with other examples, we'll look in the busiest station in The Forge.  However, the techniques we describe are applicable in any of EVE's regions.  As with our other examples, you can follow along by downloading the [Jupyter Notebook](code/book/Example_17_Evaluating_Relisting_Targets.ipynb).
 
-As in our other examples, we'll start with a simple liquidity filter to eliminate assets which have obvious problems and would be very unlikely to satsify our other requirements.  We'll pull in our liquidity filtering framework from previous examples.  For relisting, our filter will select based on number of trading days and number of orders:
+As in our other examples, we'll start with a simple liquidity filter to eliminate assets which have obvious problems and would be very unlikely to satisfy our other requirements.  We'll pull in our liquidity filtering framework from previous examples.  For relisting, our filter will select based on number of trading days and number of orders:
 
 ![Basic Relisting Liquidity Filter](img/ex17_cell1.PNG)
 
@@ -858,7 +858,7 @@ For this example, we'll require each asset trade every day and have at least 250
 
 The first relisting specific filter we'll apply is to compare buy and sell side volume.  An ideal relisting asset type should have large sell side volume \(i.e. many buyers\) and correspondingly low buy side volume \(i.e. few sellers\).  Markets dominated by buyers favor participants with something to sell, which is exactly what a relisting strategy becomes after buying out the sell side.  To analyze trade volumes, we'll need our trade inference code from previous examples.  In particular, we'll be using our "side volume" computer which only extracts and accumulates trade activity in order books.  This is the same technique we used in [Example 14](#example-14---selecting-market-making-targets) to test whether volume was balanced between sell and buy side.  In this case, however, we're looking for an imbalance.
 
-The following cell collects volume data into a Pandas DataFrame across all dates in our date range.  Because of the large number of types still under consdiration, this cell make take several hours to execute depending on equipment:
+The following cell collects volume data into a Pandas DataFrame across all dates in our date range.  Because of the large number of types still under consideration, this cell make take several hours to execute depending on equipment:
 
 ![Collecting Trade Side Volume](img/ex17_cell3.PNG)
 
@@ -894,7 +894,7 @@ The most profitable type requires a 31B ISK investment which is likely beyond mo
 
 ![Relisting Strategy Unit Count by Type](img/ex17_cell10.PNG)
 
-We've already computed sell side volume from an earlier filter, so we can simply redisplay the values here limited to our remaining relisting targets:
+We've already computed sell side volume from an earlier filter, so we can simply re-display the values here limited to our remaining relisting targets:
 
 ![Average Sell Side Volume by Type](img/ex17_cell11.PNG)
 
@@ -903,16 +903,6 @@ Returning back to the lowest cost relisting target \(type 31213\), on average we
 ![Results at 2% Return Target](img/ex17_cell12.PNG)
 
 These results suggest that, at least for the market at this particular location, relisting is only practical if it extends over multiple days.  However, this increases the probability that other market participants will try to undercut.  It is possible that less populated regions are better targets for relisting.  We leave this analysis to the reader.
-
-### Cycles
-
-
-* cyclical market making
-    * look for ask cycles, buy at low end of cycle and resell
-    * OR: look for bid cycles, bid at low end of cycle and resell
-
-### Example 18 - Looking for Asset Cycles
-  * Example 18 - finding bid and ask cycles
 
 ## Practical Trading Tips
 
