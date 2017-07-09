@@ -438,7 +438,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li>Finally, we’ll plot average price from the DataFrame.</li>
 </ol>
 <p>We’ll expand on a few variants of these steps at the end of the example to set up for later examples. But before we can do any of this, we need to install <a href="https://github.com/Yelp/bravado">Bravado</a> in order to access Swagger-annotated web services. You can install bravado as follows (do this before you start Jupyter):</p>
-<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash">$ <span class="ex">pip</span> install bravado</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash">$ <span class="kw">pip</span> install bravado</code></pre></div>
 <blockquote>
 <h3 id="installing-bravado-on-windows">Installing Bravado on Windows</h3>
 <p>On Windows, you may see an error message about missing C++ tools when building the “twisted” library. You can get these tools for free from Microsoft at <a href="http://landinghub.visualstudio.com/visual-cpp-build-tools">this link</a>. Once these tools are installed, you should be able to complete the install of bravado.</p>
@@ -519,34 +519,34 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </colgroup>
 <thead>
 <tr class="header">
-<th>File</th>
-<th>Description</th>
+<th style="text-align: left;">File</th>
+<th style="text-align: left;">Description</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>market_YYYYMMDD.tgz</td>
-<td>Market history for all regions and types for the given day.</td>
+<td style="text-align: left;">market_YYYYMMDD.tgz</td>
+<td style="text-align: left;">Market history for all regions and types for the given day.</td>
 </tr>
 <tr class="even">
-<td>interval_YYYYMMDD_5.tgz</td>
-<td>Order book snapshots for all regions and types for the given day.</td>
+<td style="text-align: left;">interval_YYYYMMDD_5.tgz</td>
+<td style="text-align: left;">Order book snapshots for all regions and types for the given day.</td>
 </tr>
 <tr class="odd">
-<td>market_YYYYMMDD.bulk</td>
-<td>Market history in “bulk” form for all regions and types for the given day.</td>
+<td style="text-align: left;">market_YYYYMMDD.bulk</td>
+<td style="text-align: left;">Market history in “bulk” form for all regions and types for the given day.</td>
 </tr>
 <tr class="even">
-<td>interval_YYYYMMDD_5.bulk</td>
-<td>Order book snapshots in “bulk” form for all regions and types for the given day.</td>
+<td style="text-align: left;">interval_YYYYMMDD_5.bulk</td>
+<td style="text-align: left;">Order book snapshots in “bulk” form for all regions and types for the given day.</td>
 </tr>
 <tr class="odd">
-<td>market_YYYYMMDD.index.gz</td>
-<td>Market history bulk file index for the given day.</td>
+<td style="text-align: left;">market_YYYYMMDD.index.gz</td>
+<td style="text-align: left;">Market history bulk file index for the given day.</td>
 </tr>
 <tr class="even">
-<td>interval_YYYYMMDD_5.index.gz</td>
-<td>Order book snapshot bulk file for the given day.</td>
+<td style="text-align: left;">interval_YYYYMMDD_5.index.gz</td>
+<td style="text-align: left;">Order book snapshot bulk file for the given day.</td>
 </tr>
 </tbody>
 </table>
@@ -557,22 +557,22 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li>Efficient online access using HTTP “range” requests.</li>
 </ol>
 <p>The tar’d archive files (e.g. tgz files), when extracted, contain files of the form <code>market_TYPE_YYYYMMDD.history.gz</code> where <code>TYPE</code> is the type ID for which history is recorded in the file, and <code>YYYYMMDD</code> is the date of the market history. The content of each file is a comma-separated table of market history for all regions on the given day. Let’s look at a sample file:</p>
-<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash">$ <span class="fu">wget</span> -q https://storage.googleapis.com/evekit_md/2017/01/01/market_20170101.tgz
-$ <span class="fu">ls</span> -lh market_20170101.tgz
-<span class="ex">-rw-r--r--+</span> 1 mark_000 mark_000 2.2M Jan 31 02:55 market_20170101.tgz
-$ <span class="fu">tar</span> xvzf market_20170101.tgz
-<span class="ex">...</span> about 10000 files extracted ...
-$ <span class="fu">zcat</span> market_34_20170101.history.gz <span class="kw">|</span> <span class="fu">head</span> -n 10
-<span class="ex">34</span>,10000025,13,2.89,4.50,4.00,7319512,1483228800000
-<span class="ex">34</span>,10000027,1,0.28,0.28,0.28,155501,1483228800000
-<span class="ex">34</span>,10000028,44,4.80,4.80,4.80,12336476,1483228800000
-<span class="ex">34</span>,10000029,19,2.00,5.00,3.50,41728843,1483228800000
-<span class="ex">34</span>,10000030,735,4.60,4.76,4.64,419745507,1483228800000
-<span class="ex">34</span>,10000016,964,3.98,4.66,4.36,225219117,1483228800000
-<span class="ex">34</span>,10000018,4,2.03,2.03,2.03,3046465,1483228800000
-<span class="ex">34</span>,10000020,367,4.50,4.50,4.50,264925396,1483228800000
-<span class="ex">34</span>,10000021,1,4.48,4.48,4.48,4500000,1483228800000
-<span class="ex">34</span>,10000022,3,1.51,1.51,1.51,10145393,1483228800000</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash">$ <span class="kw">wget</span> -q https://storage.googleapis.com/evekit_md/2017/01/01/market_20170101.tgz
+$ <span class="kw">ls</span> -lh market_20170101.tgz
+<span class="kw">-rw-r--r--+</span> 1 mark_000 mark_000 2.2M Jan 31 02:55 market_20170101.tgz
+$ <span class="kw">tar</span> xvzf market_20170101.tgz
+<span class="kw">...</span> about 10000 files extracted ...
+$ <span class="kw">zcat</span> market_34_20170101.history.gz <span class="kw">|</span> <span class="kw">head</span> -n 10
+<span class="kw">34</span>,10000025,13,2.89,4.50,4.00,7319512,1483228800000
+<span class="kw">34</span>,10000027,1,0.28,0.28,0.28,155501,1483228800000
+<span class="kw">34</span>,10000028,44,4.80,4.80,4.80,12336476,1483228800000
+<span class="kw">34</span>,10000029,19,2.00,5.00,3.50,41728843,1483228800000
+<span class="kw">34</span>,10000030,735,4.60,4.76,4.64,419745507,1483228800000
+<span class="kw">34</span>,10000016,964,3.98,4.66,4.36,225219117,1483228800000
+<span class="kw">34</span>,10000018,4,2.03,2.03,2.03,3046465,1483228800000
+<span class="kw">34</span>,10000020,367,4.50,4.50,4.50,264925396,1483228800000
+<span class="kw">34</span>,10000021,1,4.48,4.48,4.48,4500000,1483228800000
+<span class="kw">34</span>,10000022,3,1.51,1.51,1.51,10145393,1483228800000</code></pre></div>
 <p>The columns in the file are:</p>
 <ul>
 <li><em>type ID</em> - the type ID for the current row.</li>
@@ -585,29 +585,29 @@ $ <span class="fu">zcat</span> market_34_20170101.history.gz <span class="kw">|<
 <li><em>date</em> - date of snapshot in milliseconds UTC (since the epoch).</li>
 </ul>
 <p>The data stored in the bulk files has the same format but is organized differently in order to support efficient online requests using an HTTP range header. We construct the bulk file by concatenating each of the individual compressed market files. This results in a file with roughly the same size as the archive, but which needs an index in order to recover market history for a particular type. This is the purpose of the market index file, which records the byte range for each market type stored in the bulk file. Here are the first ten lines for the index file for our sample date:</p>
-<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash">$ <span class="ex">curl</span> -s https://storage.googleapis.com/evekit_md/2017/01/01/market_20170101.index.gz <span class="kw">|</span> <span class="fu">zcat</span> <span class="kw">|</span> <span class="fu">head</span> -n 10
-<span class="ex">market_18_20170101.history.gz</span> 0
-<span class="ex">market_19_20170101.history.gz</span> 984
-<span class="ex">market_20_20170101.history.gz</span> 1928
-<span class="ex">market_21_20170101.history.gz</span> 3678
-<span class="ex">market_22_20170101.history.gz</span> 4439
-<span class="ex">market_34_20170101.history.gz</span> 5431
-<span class="ex">market_35_20170101.history.gz</span> 8953
-<span class="ex">market_36_20170101.history.gz</span> 12396
-<span class="ex">market_37_20170101.history.gz</span> 15820
-<span class="ex">market_38_20170101.history.gz</span> 19108</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash">$ <span class="kw">curl</span> -s https://storage.googleapis.com/evekit_md/2017/01/01/market_20170101.index.gz <span class="kw">|</span> <span class="kw">zcat</span> <span class="kw">|</span> <span class="kw">head</span> -n 10
+<span class="kw">market_18_20170101.history.gz</span> 0
+<span class="kw">market_19_20170101.history.gz</span> 984
+<span class="kw">market_20_20170101.history.gz</span> 1928
+<span class="kw">market_21_20170101.history.gz</span> 3678
+<span class="kw">market_22_20170101.history.gz</span> 4439
+<span class="kw">market_34_20170101.history.gz</span> 5431
+<span class="kw">market_35_20170101.history.gz</span> 8953
+<span class="kw">market_36_20170101.history.gz</span> 12396
+<span class="kw">market_37_20170101.history.gz</span> 15820
+<span class="kw">market_38_20170101.history.gz</span> 19108</code></pre></div>
 <p>Thus, to recover type 34 we need to extract bytes 5431 through 8952 (inclusive) from the bulk file. We can do this by using an HTTP “range” request as follows:</p>
-<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash">$ <span class="ex">curl</span> -s -H <span class="st">&quot;range: bytes=5431-8952&quot;</span> https://storage.googleapis.com/evekit_md/2017/01/01/market_20170101.bulk <span class="kw">|</span> <span class="fu">zcat</span> <span class="kw">|</span> <span class="fu">head</span> -n 10
-<span class="ex">34</span>,10000025,13,2.89,4.50,4.00,7319512,1483228800000
-<span class="ex">34</span>,10000027,1,0.28,0.28,0.28,155501,1483228800000
-<span class="ex">34</span>,10000028,44,4.80,4.80,4.80,12336476,1483228800000
-<span class="ex">34</span>,10000029,19,2.00,5.00,3.50,41728843,1483228800000
-<span class="ex">34</span>,10000030,735,4.60,4.76,4.64,419745507,1483228800000
-<span class="ex">34</span>,10000016,964,3.98,4.66,4.36,225219117,1483228800000
-<span class="ex">34</span>,10000018,4,2.03,2.03,2.03,3046465,1483228800000
-<span class="ex">34</span>,10000020,367,4.50,4.50,4.50,264925396,1483228800000
-<span class="ex">34</span>,10000021,1,4.48,4.48,4.48,4500000,1483228800000
-<span class="ex">34</span>,10000022,3,1.51,1.51,1.51,10145393,1483228800000</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash">$ <span class="kw">curl</span> -s -H <span class="st">&quot;range: bytes=5431-8952&quot;</span> https://storage.googleapis.com/evekit_md/2017/01/01/market_20170101.bulk <span class="kw">|</span> <span class="kw">zcat</span> <span class="kw">|</span> <span class="kw">head</span> -n 10
+<span class="kw">34</span>,10000025,13,2.89,4.50,4.00,7319512,1483228800000
+<span class="kw">34</span>,10000027,1,0.28,0.28,0.28,155501,1483228800000
+<span class="kw">34</span>,10000028,44,4.80,4.80,4.80,12336476,1483228800000
+<span class="kw">34</span>,10000029,19,2.00,5.00,3.50,41728843,1483228800000
+<span class="kw">34</span>,10000030,735,4.60,4.76,4.64,419745507,1483228800000
+<span class="kw">34</span>,10000016,964,3.98,4.66,4.36,225219117,1483228800000
+<span class="kw">34</span>,10000018,4,2.03,2.03,2.03,3046465,1483228800000
+<span class="kw">34</span>,10000020,367,4.50,4.50,4.50,264925396,1483228800000
+<span class="kw">34</span>,10000021,1,4.48,4.48,4.48,4500000,1483228800000
+<span class="kw">34</span>,10000022,3,1.51,1.51,1.51,10145393,1483228800000</code></pre></div>
 <p>Note that this is the same data we extracted from the downloaded archive.</p>
 <p>As an illustration of code which makes use of downloaded data (if available), we’ll conclude this example with an introduction to library code we’ll be using in later examples. You can find our library code in the <a href="https://github.com/OrbitalEnterprises/eve-market-strategies/tree/master/code">code</a> folder on our GitHub site. You can incorporate our libraries into your notebooks by copying the <a href="https://github.com/OrbitalEnterprises/eve-market-strategies/tree/master/code/evekit">evekit</a> folder (and all its sub-folders) to your <code>.ipython</code> directory (or another convenient directory in your Python path).</p>
 <p>We can re-implement this first example using the following modules from our libraries:</p>
@@ -722,43 +722,43 @@ $ <span class="fu">zcat</span> market_34_20170101.history.gz <span class="kw">|<
 </colgroup>
 <thead>
 <tr class="header">
-<th>File</th>
-<th>Description</th>
+<th style="text-align: left;">File</th>
+<th style="text-align: left;">Description</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>interval_YYYYMMDD_5.tgz</td>
-<td>Order book snapshots for all regions and types for the given day.</td>
+<td style="text-align: left;">interval_YYYYMMDD_5.tgz</td>
+<td style="text-align: left;">Order book snapshots for all regions and types for the given day.</td>
 </tr>
 <tr class="even">
-<td>interval_YYYYMMDD_5.bulk</td>
-<td>Order book snapshots in “bulk” form for all regions and types for the given day.</td>
+<td style="text-align: left;">interval_YYYYMMDD_5.bulk</td>
+<td style="text-align: left;">Order book snapshots in “bulk” form for all regions and types for the given day.</td>
 </tr>
 <tr class="odd">
-<td>interval_YYYYMMDD_5.index.gz</td>
-<td>Order book snapshot bulk file for the given day.</td>
+<td style="text-align: left;">interval_YYYYMMDD_5.index.gz</td>
+<td style="text-align: left;">Order book snapshot bulk file for the given day.</td>
 </tr>
 </tbody>
 </table>
 <p>Note that book data files are significantly larger than market history files as they contain every order book snapshot for every type in every region on a given day. At time of writing, a typical book index file is about 100KB which is manageable. However, bulk files are typically 500MB while zipped archives are 250MB. A year of data is about 90GB of storage. By the way, the <code>5</code> in the file name indicates that these are five minute snapshot files. In the future, we may generate snapshots with different intervals. You can easily generate your own sampling frequency using the five minute samples as a source since these these are currently the highest resolution samples available.</p>
 <p>The tar’d archive files (e.g. tgz files), when extracted, contain files of the form <code>interval_TYPE_YYYYMMDD_5.book.gz</code> where <code>TYPE</code> is the type ID for which order book snapshots are recorded, and <code>YYYYMMDD</code> is the date on which the snapshots were recorded. The content of each file is slightly more complicated and is explained below. Here is the contents of a sample file:</p>
-<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash">$ <span class="fu">wget</span> -q https://storage.googleapis.com/evekit_md/2017/01/01/interval_20170101_5.tgz
-$ <span class="fu">ls</span> -lh interval_20170101_5.tgz
-<span class="ex">-rw-r--r--+</span> 1 mark_000 mark_000 223M Jan  2 03:43 interval_20170101_5.tgz
-$ <span class="fu">tar</span> xvzf index_20170101_5.tgz
-<span class="ex">...</span> about 10000 files extracted ...
-$ <span class="fu">zcat</span> interval_34_20170101_5.book.gz <span class="kw">|</span> <span class="fu">head</span> -n 10
-<span class="ex">34</span>
-<span class="ex">288</span>
-<span class="ex">10000025</span>
-<span class="ex">1483228800000</span>
-<span class="ex">10</span>
-<span class="ex">12</span>
-<span class="ex">4730662577</span>,true,1482974353000,4.85,100000000,1,46444066,station,61000807,30
-<span class="ex">4732527006</span>,true,1483117790000,4.50,100000000,1,99774417,station,61000912,90
-<span class="ex">4733368217</span>,true,1483178139000,4.45,340000,1,340000,solarsystem,1021334931934,30
-<span class="ex">4724371732</span>,true,1482505562000,4.05,10000000,1,4636157,2,61000912,90</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash">$ <span class="kw">wget</span> -q https://storage.googleapis.com/evekit_md/2017/01/01/interval_20170101_5.tgz
+$ <span class="kw">ls</span> -lh interval_20170101_5.tgz
+<span class="kw">-rw-r--r--+</span> 1 mark_000 mark_000 223M Jan  2 03:43 interval_20170101_5.tgz
+$ <span class="kw">tar</span> xvzf index_20170101_5.tgz
+<span class="kw">...</span> about 10000 files extracted ...
+$ <span class="kw">zcat</span> interval_34_20170101_5.book.gz <span class="kw">|</span> <span class="kw">head</span> -n 10
+<span class="kw">34</span>
+<span class="kw">288</span>
+<span class="kw">10000025</span>
+<span class="kw">1483228800000</span>
+<span class="kw">10</span>
+<span class="kw">12</span>
+<span class="kw">4730662577</span>,true,1482974353000,4.85,100000000,1,46444066,station,61000807,30
+<span class="kw">4732527006</span>,true,1483117790000,4.50,100000000,1,99774417,station,61000912,90
+<span class="kw">4733368217</span>,true,1483178139000,4.45,340000,1,340000,solarsystem,1021334931934,30
+<span class="kw">4724371732</span>,true,1482505562000,4.05,10000000,1,4636157,2,61000912,90</code></pre></div>
 <p>The first two lines indicate the type contained in the file, in this case Tritanium (type ID 34), and the number of snapshots collected for each region, in this case 288 (a snapshot every five minutes for 24 hours). The remainder of the file organizes snapshots per region and is organized as follows:</p>
 <pre><code>FIRST_REGION_ID
 FIRST_REGION_FIRST_SNAPSHOT_TIME
@@ -786,29 +786,29 @@ SECOND_REGION_ID
 <li><em>duration</em> - Order duration in days.</li>
 </ul>
 <p>As with market history, the bulk files are simply the concatenation of the per-type book files together with an index to allow efficient range requests. We can retrieve the same data as above by first consulting the index file:</p>
-<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash">$ <span class="ex">curl</span> -s https://storage.googleapis.com/evekit_md/2017/01/01/interval_20170101_5.index.gz <span class="kw">|</span> <span class="fu">zcat</span> <span class="kw">|</span> <span class="fu">head</span> -n 10
-<span class="ex">interval_18_20170101_5.book.gz</span> 0
-<span class="ex">interval_19_20170101_5.book.gz</span> 143131
-<span class="ex">interval_20_20170101_5.book.gz</span> 234988
-<span class="ex">interval_21_20170101_5.book.gz</span> 447702
-<span class="ex">interval_22_20170101_5.book.gz</span> 522083
-<span class="ex">interval_34_20170101_5.book.gz</span> 619717
-<span class="ex">interval_35_20170101_5.book.gz</span> 1236236
-<span class="ex">interval_36_20170101_5.book.gz</span> 1780447
-<span class="ex">interval_37_20170101_5.book.gz</span> 2208243
-<span class="ex">interval_38_20170101_5.book.gz</span> 2651627</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash">$ <span class="kw">curl</span> -s https://storage.googleapis.com/evekit_md/2017/01/01/interval_20170101_5.index.gz <span class="kw">|</span> <span class="kw">zcat</span> <span class="kw">|</span> <span class="kw">head</span> -n 10
+<span class="kw">interval_18_20170101_5.book.gz</span> 0
+<span class="kw">interval_19_20170101_5.book.gz</span> 143131
+<span class="kw">interval_20_20170101_5.book.gz</span> 234988
+<span class="kw">interval_21_20170101_5.book.gz</span> 447702
+<span class="kw">interval_22_20170101_5.book.gz</span> 522083
+<span class="kw">interval_34_20170101_5.book.gz</span> 619717
+<span class="kw">interval_35_20170101_5.book.gz</span> 1236236
+<span class="kw">interval_36_20170101_5.book.gz</span> 1780447
+<span class="kw">interval_37_20170101_5.book.gz</span> 2208243
+<span class="kw">interval_38_20170101_5.book.gz</span> 2651627</code></pre></div>
 <p>Then sending a range request, in this case to extract bytes 619717 through 1236236 (inclusive):</p>
-<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash">$ <span class="ex">curl</span> -s -H <span class="st">&quot;range: bytes=619717-1236236&quot;</span> https://storage.googleapis.com/evekit_md/2017/01/01/interval_20170101_5.bulk <span class="kw">|</span> <span class="fu">zcat</span> <span class="kw">|</span> <span class="fu">head</span> -n 10
-<span class="ex">34</span>
-<span class="ex">288</span>
-<span class="ex">10000025</span>
-<span class="ex">1483228800000</span>
-<span class="ex">10</span>
-<span class="ex">12</span>
-<span class="ex">4730662577</span>,true,1482974353000,4.85,100000000,1,46444066,station,61000807,30
-<span class="ex">4732527006</span>,true,1483117790000,4.50,100000000,1,99774417,station,61000912,90
-<span class="ex">4733368217</span>,true,1483178139000,4.45,340000,1,340000,solarsystem,1021334931934,30
-<span class="ex">4724371732</span>,true,1482505562000,4.05,10000000,1,4636157,2,61000912,90</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash">$ <span class="kw">curl</span> -s -H <span class="st">&quot;range: bytes=619717-1236236&quot;</span> https://storage.googleapis.com/evekit_md/2017/01/01/interval_20170101_5.bulk <span class="kw">|</span> <span class="kw">zcat</span> <span class="kw">|</span> <span class="kw">head</span> -n 10
+<span class="kw">34</span>
+<span class="kw">288</span>
+<span class="kw">10000025</span>
+<span class="kw">1483228800000</span>
+<span class="kw">10</span>
+<span class="kw">12</span>
+<span class="kw">4730662577</span>,true,1482974353000,4.85,100000000,1,46444066,station,61000807,30
+<span class="kw">4732527006</span>,true,1483117790000,4.50,100000000,1,99774417,station,61000912,90
+<span class="kw">4733368217</span>,true,1483178139000,4.45,340000,1,340000,solarsystem,1021334931934,30
+<span class="kw">4724371732</span>,true,1482505562000,4.05,10000000,1,4636157,2,61000912,90</code></pre></div>
 <p>The format of book files is currently optimized for selection by type, which may not be appropriate for all use cases. It is usually best to download the book files you need, and re-organize them according to your use case. The EveKit libraries provide support for basic downloading, including only downloading the types or regions you want.</p>
 <p>The second part of the Jupyter Notebook for this example illustrates how to download and compute average spread using the EveKit libraries and Pandas. This can be done in four steps:</p>
 <ol type="1">
@@ -1007,7 +1007,7 @@ SECOND_REGION_ID
 <figure>
 <img src="img/ex5_cell4.PNG" alt="Liquidity Test Framework" /><figcaption>Liquidity Test Framework</figcaption>
 </figure>
-<p>We mentioned previously that volume, more specifically ISK volume (e.g. <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?price%20%5Ctimes%20volume" alt="price \times volume" title="price \times volume" />), is a common measure of liquidity. Likewise, the number of transactions on a given day is also a reasonable measure of liquidity. We can combine these two measures to build our first liquidity filter:</p>
+<p>We mentioned previously that volume, more specifically ISK volume (e.g. <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=price%20%5Ctimes%20volume" alt="price \times volume" title="price \times volume" />), is a common measure of liquidity. Likewise, the number of transactions on a given day is also a reasonable measure of liquidity. We can combine these two measures to build our first liquidity filter:</p>
 <figure>
 <img src="img/ex5_cell5.PNG" alt="Volume and Order Count Liquidity Filter" /><figcaption>Volume and Order Count Liquidity Filter</figcaption>
 </figure>
@@ -1092,7 +1092,7 @@ SECOND_REGION_ID
 <img src="img/ex6_cell6.PNG" alt="Find Liquid Types in Domain and The Forge" /><figcaption>Find Liquid Types in Domain and The Forge</figcaption>
 </figure>
 <p>We only want to consider market history restricted to these types in our target regions. A convenient way to perform this analysis is to construct a merged DataFrame which combines market information for both regions joined on asset type and date. Given such a DataFrame, we can filter further using our trading model to limit ourselves to types with profitable trades. Given source region A and destination region B, the profitable rows are those for which:</p>
-<p><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?%7B%5Cleft%28%20B_%7BavgPrice%7D%20%5Ctimes%20sellCostF%20-%20A_%7BavgPrice%7D%20%5Ctimes%20buyCostF%20%5Cright%29%20%5Cover%20A_%7BavgPrice%7D%7D%20%5Cge%20profitMargin" alt="{\left( B_{avgPrice} \times sellCostF - A_{avgPrice} \times buyCostF \right) \over A_{avgPrice}} \ge profitMargin" title="{\left( B_{avgPrice} \times sellCostF - A_{avgPrice} \times buyCostF \right) \over A_{avgPrice}} \ge profitMargin" /></p>
+<p><img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=%7B%5Cleft%28%20B_%7BavgPrice%7D%20%5Ctimes%20sellCostF%20-%20A_%7BavgPrice%7D%20%5Ctimes%20buyCostF%20%5Cright%29%20%5Cover%20A_%7BavgPrice%7D%7D%20%5Cge%20profitMargin" alt="{\left( B_{avgPrice} \times sellCostF - A_{avgPrice} \times buyCostF \right) \over A_{avgPrice}} \ge profitMargin" title="{\left( B_{avgPrice} \times sellCostF - A_{avgPrice} \times buyCostF \right) \over A_{avgPrice}} \ge profitMargin" /></p>
 <p>We construct such a DataFrame in the next cell:</p>
 <figure>
 <img src="img/ex6_cell7.PNG" alt="DataFrame Containing Profitable Trades" /><figcaption>DataFrame Containing Profitable Trades</figcaption>
@@ -1154,25 +1154,25 @@ SECOND_REGION_ID
 <p>The second issue with this analysis is more important: we’ve completely ignored risk. As seasoned EVE players know, hauling anything between stations incurs a non-zero chance of getting attacked and losing everything. A more complete analysis of hauling should include a study of risk and the likely effect on your profit. We’ll cover risk in much more detail in a later chapter.</p>
 <h3 id="setting-up-isolated-environments-with-conda">Setting up Isolated Environments with Conda</h3>
 <p>If you installed Jupyter using <a href="">Anaconda</a> then you already have <code>conda</code> which can be used to create isolated environments for experiments. We use <code>conda</code> to first create a minimal base environment with Jupyter and related libraries. We then clone this environment as needed for our experiments. Our base environment is created as follows (this is Windows syntax, adjust as appropriate for your environment):</p>
-<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash">$ <span class="ex">conda</span> create -n book_base
-$ <span class="ex">activate</span> book_base
-<span class="kw">(</span><span class="ex">book_base</span><span class="kw">)</span> $ <span class="ex">conda</span> install jupyter
-<span class="kw">(</span><span class="ex">book_base</span><span class="kw">)</span> $ <span class="ex">conda</span> install pandas
-<span class="kw">(</span><span class="ex">book_base</span><span class="kw">)</span> $ <span class="ex">conda</span> install matplotlib</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash">$ <span class="kw">conda</span> create -n book_base
+$ <span class="kw">activate</span> book_base
+<span class="kw">(book_base)</span> $ <span class="kw">conda</span> install jupyter
+<span class="kw">(book_base)</span> $ <span class="kw">conda</span> install pandas
+<span class="kw">(book_base)</span> $ <span class="kw">conda</span> install matplotlib</code></pre></div>
 <p>You can then deactivate this environment and clone it later for each isolated environment you’d like to create. We create our isolated environments as follows:</p>
-<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash">$ <span class="fu">mkdir</span> exp_1
-$ <span class="bu">cd</span> exp_1
-$ <span class="fu">mkdir</span> .ipython
-$ <span class="fu">mkdir</span> .jupyter
-$ <span class="fu">cat</span> <span class="op">&gt;</span> setup.bat
-<span class="ex">@REM</span> execute this before you start jupyter in this environment
-<span class="ex">@SET</span> JUPYTER_CONFIG_DIR=your_path/exp_1/.jupyter
-<span class="ex">@SET</span> IPYTHONDIR=your_path/exp_1/.ipython
-$ <span class="ex">conda</span> create -n book_exp_1 --clone book_base</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash">$ <span class="kw">mkdir</span> exp_1
+$ <span class="kw">cd</span> exp_1
+$ <span class="kw">mkdir</span> .ipython
+$ <span class="kw">mkdir</span> .jupyter
+$ <span class="kw">cat</span> <span class="kw">&gt;</span> setup.bat
+<span class="kw">@REM</span> execute this before you start jupyter in this environment
+<span class="kw">@SET</span> JUPYTER_CONFIG_DIR=your_path/exp_1/.jupyter
+<span class="kw">@SET</span> IPYTHONDIR=your_path/exp_1/.ipython
+$ <span class="kw">conda</span> create -n book_exp_1 --clone book_base</code></pre></div>
 <p>You can then activate your new environment and start jupyter as follows:</p>
-<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash">$ <span class="ex">activate</span> book_exp_1
-<span class="kw">(</span><span class="ex">book_exp_1</span><span class="kw">)</span> $ <span class="ex">setup.bat</span>
-<span class="kw">(</span><span class="ex">book_exp_1</span><span class="kw">)</span> $ <span class="ex">jupyter</span> notebook</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash">$ <span class="kw">activate</span> book_exp_1
+<span class="kw">(book_exp_1)</span> $ <span class="kw">setup.bat</span>
+<span class="kw">(book_exp_1)</span> $ <span class="kw">jupyter</span> notebook</code></pre></div>
 <p>The environment settings allow you to add custom configuration for Jupyter or Ipython in your experiment directory. For example, any library code you are developing can be added in the local <code>.ipython</code> directory to automatically be included in the path of your kernels.</p>
 <h1 id="arbitrage">Arbitrage</h1>
 <p>In real-world markets, arbitrage is the process of simultaneously purchasing and selling an asset (or similar assets) in different markets. An arbitrage trade exploits price differences between the same asset in different markets, or between an asset and related assets in the same market. Such differences occur because of market inefficiencies. That is, when the price of an asset deviates from <em>fair market value</em>, which is the price at which “reasonably knowledgeable” investors are willing to trade an asset. A “reasonably knowledgeable” investor is assumed to be implicitly aware of all the factors which influence an asset’s price, which are then incorporated to select a fair price for trade. Trading strategies we’ll discuss in later chapters derive their profit from these price deviations and their eventual correction. Price correction, however, is not required for arbitrage. In fact, arbitrage strategies only profit while price discrepancies exist. Can we ever be sure price discrepancies <em>do</em> exist? Generally speaking, we don’t know that this will ever be the case. In particular, subscribers to the <a href="https://en.wikipedia.org/wiki/Efficient-market_hypothesis">Efficient-Market Hypothesis</a>, which states that asset prices always (eventually) converge to fair market value, might say that price discrepancies are either non-existent or too rare to be profitable in a modern market. In EVE, however, we’ll show that these opportunities do exist and make a respectable profit.</p>
@@ -1194,31 +1194,31 @@ $ <span class="ex">conda</span> create -n book_exp_1 --clone book_base</code></p
 <p>We first consider arbitrage on ore and ice. These asset types are organized into families of which there are six variants for each family. The first three variants differ in refining yield and output (for ice). The second three variants are “compressed” versions of the first three in which the same yield and output is achieved from a smaller volume of raw material. There are currently sixteen ore families and four ice families, giving a total of 120 variants which can be refined into minerals and other raw materials. An arbitrage opportunity exists if a variant can be purchased at a low enough price such that refining and selling the refined materials yields a profit.</p>
 <p>We won’t describe ore and ice refinement in detail here. We refer interested readers to the <a href="https://wiki.eveuniversity.org/Reprocessing">Reprocessing page</a> at EVE University<a href="#fn10" class="footnoteRef" id="fnref10"><sup>10</sup></a>. For our discussion, it suffices to know that each ore or ice variant has an “ideal” refining output which is adjusted by the efficiency of the refining station and the skills of the refining player. The refining process is taxed at a rate computed from a reference price, a station tax rate and the yield of raw materials. We can combine the yield and tax of the refinement process with market data to determine whether an arbitrage opportunity exists, as well as the expected profit. We can describe this process in formal terms using the following definitions:</p>
 <ul>
-<li><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?r" alt="r" title="r" /> - an ore or ice type to be refined.</li>
-<li><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?r_m" alt="r_m" title="r_m" /> - the amount of material required for one refinement cycle.</li>
-<li><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?e" alt="e" title="e" /> - refinement efficiency computed from station efficiency and player skills. This will be a value between 0 and 1.</li>
-<li><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?m%28r%29%20%5Crightarrow%20%7B%28c_1%2C%20v_1%29%2C%20...%2C%20%28c_n%2C%20v_n%29%7D" alt="m(r) \rightarrow {(c_1, v_1), ..., (c_n, v_n)}" title="m(r) \rightarrow {(c_1, v_1), ..., (c_n, v_n)}" /> - a map from source material to a set of refined materials <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?%28c_i%2C%20v_i%29" alt="(c_i, v_i)" title="(c_i, v_i)" /> where <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?c_i" alt="c_i" title="c_i" /> represents the refined material type, and <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?v_i" alt="v_i" title="v_i" /> represents the ideal quantity produced when refining <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?r_m" alt="r_m" title="r_m" /> units of <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?r" alt="r" title="r" />.</li>
-<li><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?p_r%28t%29" alt="p_r(t)" title="p_r(t)" /> - the reference price for an asset (i.e. a price computed daily by CCP, see below).</li>
-<li><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?p_a%28t%29" alt="p_a(t)" title="p_a(t)" /> - the current best ask price for an asset (i.e. the minimum price at which the asset can be purchased).</li>
-<li><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?p_b%28t%29" alt="p_b(t)" title="p_b(t)" /> - the current best bid price for an asset (i.e. the maximum price at which the asset can be sold).</li>
-<li><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?t" alt="t" title="t" /> - sales tax for the refining player. This will be a value between 0 and 1.</li>
-<li><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?s_t" alt="s_t" title="s_t" /> - station refining tax which is affected by player standings towards the station. This will be a value between 0 and 0.05.</li>
+<li><img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=r" alt="r" title="r" /> - an ore or ice type to be refined.</li>
+<li><img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=r_m" alt="r_m" title="r_m" /> - the amount of material required for one refinement cycle.</li>
+<li><img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=e" alt="e" title="e" /> - refinement efficiency computed from station efficiency and player skills. This will be a value between 0 and 1.</li>
+<li><img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=m%28r%29%20%5Crightarrow%20%7B%28c_1%2C%20v_1%29%2C%20...%2C%20%28c_n%2C%20v_n%29%7D" alt="m(r) \rightarrow {(c_1, v_1), ..., (c_n, v_n)}" title="m(r) \rightarrow {(c_1, v_1), ..., (c_n, v_n)}" /> - a map from source material to a set of refined materials <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=%28c_i%2C%20v_i%29" alt="(c_i, v_i)" title="(c_i, v_i)" /> where <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=c_i" alt="c_i" title="c_i" /> represents the refined material type, and <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=v_i" alt="v_i" title="v_i" /> represents the ideal quantity produced when refining <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=r_m" alt="r_m" title="r_m" /> units of <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=r" alt="r" title="r" />.</li>
+<li><img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=p_r%28t%29" alt="p_r(t)" title="p_r(t)" /> - the reference price for an asset (i.e. a price computed daily by CCP, see below).</li>
+<li><img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=p_a%28t%29" alt="p_a(t)" title="p_a(t)" /> - the current best ask price for an asset (i.e. the minimum price at which the asset can be purchased).</li>
+<li><img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=p_b%28t%29" alt="p_b(t)" title="p_b(t)" /> - the current best bid price for an asset (i.e. the maximum price at which the asset can be sold).</li>
+<li><img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=t" alt="t" title="t" /> - sales tax for the refining player. This will be a value between 0 and 1.</li>
+<li><img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=s_t" alt="s_t" title="s_t" /> - station refining tax which is affected by player standings towards the station. This will be a value between 0 and 0.05.</li>
 </ul>
-<p>For a given source material <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?r" alt="r" title="r" />, with refined material set <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?%28c_1%2C%20v_1%29%2C%20...%2C%20%28c_n%2C%20v_n%29" alt="(c_1, v_1), ..., (c_n, v_n)" title="(c_1, v_1), ..., (c_n, v_n)" />, the amount of refined material <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?c_i" alt="c_i" title="c_i" /> produced by refining <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?r_m" alt="r_m" title="r_m" /> units of <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?r" alt="r" title="r" /> is <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?v_i%20%5Ctimes%20e" alt="v_i \times e" title="v_i \times e" />. The total tax charged for the refinement process is <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?%5Csum_i%5Cleft%28v_i%20%5Ctimes%20e%20%5Ctimes%20s_t%20%5Ctimes%20p_r%28c_i%29%5Cright%29" alt="\sum_i\left(v_i \times e \times s_t \times p_r(c_i)\right)" title="\sum_i\left(v_i \times e \times s_t \times p_r(c_i)\right)" />. Therefore, an arbitrage opportunity exists if the following equation is non-negative:</p>
-<p><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?%5Csum_i%5Cleft%28v_i%20%5Ctimes%20e%20%5Ctimes%20%5Cleft%5B%281%20-%20t%29%20%5Ctimes%20p_b%28c_i%29%20-%20s_t%20%5Ctimes%20p_r%28c_i%29%5Cright%5D%20%5Cright%29%20-%20r_m%20%5Ctimes%20p_a%28r%29" alt="\sum_i\left(v_i \times e \times \left[(1 - t) \times p_b(c_i) - s_t \times p_r(c_i)\right] \right) - r_m \times p_a(r)" title="\sum_i\left(v_i \times e \times \left[(1 - t) \times p_b(c_i) - s_t \times p_r(c_i)\right] \right) - r_m \times p_a(r)" /></p>
+<p>For a given source material <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=r" alt="r" title="r" />, with refined material set <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=%28c_1%2C%20v_1%29%2C%20...%2C%20%28c_n%2C%20v_n%29" alt="(c_1, v_1), ..., (c_n, v_n)" title="(c_1, v_1), ..., (c_n, v_n)" />, the amount of refined material <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=c_i" alt="c_i" title="c_i" /> produced by refining <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=r_m" alt="r_m" title="r_m" /> units of <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=r" alt="r" title="r" /> is <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=v_i%20%5Ctimes%20e" alt="v_i \times e" title="v_i \times e" />. The total tax charged for the refinement process is <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=%5Csum_i%5Cleft%28v_i%20%5Ctimes%20e%20%5Ctimes%20s_t%20%5Ctimes%20p_r%28c_i%29%5Cright%29" alt="\sum_i\left(v_i \times e \times s_t \times p_r(c_i)\right)" title="\sum_i\left(v_i \times e \times s_t \times p_r(c_i)\right)" />. Therefore, an arbitrage opportunity exists if the following equation is non-negative:</p>
+<p><img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=%5Csum_i%5Cleft%28v_i%20%5Ctimes%20e%20%5Ctimes%20%5Cleft%5B%281%20-%20t%29%20%5Ctimes%20p_b%28c_i%29%20-%20s_t%20%5Ctimes%20p_r%28c_i%29%5Cright%5D%20%5Cright%29%20-%20r_m%20%5Ctimes%20p_a%28r%29" alt="\sum_i\left(v_i \times e \times \left[(1 - t) \times p_b(c_i) - s_t \times p_r(c_i)\right] \right) - r_m \times p_a(r)" title="\sum_i\left(v_i \times e \times \left[(1 - t) \times p_b(c_i) - s_t \times p_r(c_i)\right] \right) - r_m \times p_a(r)" /></p>
 <p>The first term is a simplification of the equation:</p>
-<p><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?%5Csum_i%5Cleft%28v_i%20%5Ctimes%20e%20%5Ctimes%20p_b%28c_i%29%5Cright%29%20-%20%5Csum_i%5Cleft%28v_i%20%5Ctimes%20e%20%5Ctimes%20p_b%28c_i%29%20%5Ctimes%20t%20%5Cright%29%20-%20%5Csum_i%5Cleft%28v_i%20%5Ctimes%20e%20%5Ctimes%20s_t%20%5Ctimes%20p_r%28c_i%29%5Cright%29" alt="\sum_i\left(v_i \times e \times p_b(c_i)\right) - \sum_i\left(v_i \times e \times p_b(c_i) \times t \right) - \sum_i\left(v_i \times e \times s_t \times p_r(c_i)\right)" title="\sum_i\left(v_i \times e \times p_b(c_i)\right) - \sum_i\left(v_i \times e \times p_b(c_i) \times t \right) - \sum_i\left(v_i \times e \times s_t \times p_r(c_i)\right)" /></p>
-<p>which is, respectively, the profit from selling the refined materials, less sales tax and less refinement tax. The last term (<img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?r_m%20%5Ctimes%20p_a%28r%29" alt="r_m \times p_a(r)" title="r_m \times p_a(r)" />) in the opportunity equation is the cost of buying the ore or ice to refine.</p>
+<p><img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=%5Csum_i%5Cleft%28v_i%20%5Ctimes%20e%20%5Ctimes%20p_b%28c_i%29%5Cright%29%20-%20%5Csum_i%5Cleft%28v_i%20%5Ctimes%20e%20%5Ctimes%20p_b%28c_i%29%20%5Ctimes%20t%20%5Cright%29%20-%20%5Csum_i%5Cleft%28v_i%20%5Ctimes%20e%20%5Ctimes%20s_t%20%5Ctimes%20p_r%28c_i%29%5Cright%29" alt="\sum_i\left(v_i \times e \times p_b(c_i)\right) - \sum_i\left(v_i \times e \times p_b(c_i) \times t \right) - \sum_i\left(v_i \times e \times s_t \times p_r(c_i)\right)" title="\sum_i\left(v_i \times e \times p_b(c_i)\right) - \sum_i\left(v_i \times e \times p_b(c_i) \times t \right) - \sum_i\left(v_i \times e \times s_t \times p_r(c_i)\right)" /></p>
+<p>which is, respectively, the profit from selling the refined materials, less sales tax and less refinement tax. The last term (<img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=r_m%20%5Ctimes%20p_a%28r%29" alt="r_m \times p_a(r)" title="r_m \times p_a(r)" />) in the opportunity equation is the cost of buying the ore or ice to refine.</p>
 <p>The only factors in this equation which can be influenced by the player are efficiency and station refining tax. Station refining tax is based on player standings towards the refining station and starts at 5%. At time of writing, this tax is 0% if standing is 6.67 or better. Efficiency is determined by the product of the following attributes:</p>
 <ul>
 <li>Station base refining efficiency (a value between 0 and 1).</li>
-<li>Reprocessing skill multiplier which is <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?1.0%20%2B%200.03%20%5Ctimes%20%7Blevel%7D" alt="1.0 + 0.03 \times {level}" title="1.0 + 0.03 \times {level}" /> for a maximum of <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?1.15" alt="1.15" title="1.15" />.</li>
-<li>Reprocessing efficiency skill multiplier which is <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?1.0%20%2B%200.02%20%5Ctimes%20%7Blevel%7D" alt="1.0 + 0.02 \times {level}" title="1.0 + 0.02 \times {level}" /> for a maximum of <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?1.10" alt="1.10" title="1.10" />.</li>
-<li>Ore specific processing skill multiplier (ores only) which is <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?1.0%20%2B%200.02%20%5Ctimes%20%7Blevel%7D" alt="1.0 + 0.02 \times {level}" title="1.0 + 0.02 \times {level}" /> for a maximum of <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?1.10" alt="1.10" title="1.10" />.</li>
-<li>Ice processing skill multiplier (ice only) which is <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?1.0%20%2B%200.02%20%5Ctimes%20%7Blevel%7D" alt="1.0 + 0.02 \times {level}" title="1.0 + 0.02 \times {level}" /> for a maximum of <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?1.10" alt="1.10" title="1.10" />.</li>
+<li>Reprocessing skill multiplier which is <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=1.0%20%2B%200.03%20%5Ctimes%20%7Blevel%7D" alt="1.0 + 0.03 \times {level}" title="1.0 + 0.03 \times {level}" /> for a maximum of <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=1.15" alt="1.15" title="1.15" />.</li>
+<li>Reprocessing efficiency skill multiplier which is <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=1.0%20%2B%200.02%20%5Ctimes%20%7Blevel%7D" alt="1.0 + 0.02 \times {level}" title="1.0 + 0.02 \times {level}" /> for a maximum of <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=1.10" alt="1.10" title="1.10" />.</li>
+<li>Ore specific processing skill multiplier (ores only) which is <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=1.0%20%2B%200.02%20%5Ctimes%20%7Blevel%7D" alt="1.0 + 0.02 \times {level}" title="1.0 + 0.02 \times {level}" /> for a maximum of <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=1.10" alt="1.10" title="1.10" />.</li>
+<li>Ice processing skill multiplier (ice only) which is <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=1.0%20%2B%200.02%20%5Ctimes%20%7Blevel%7D" alt="1.0 + 0.02 \times {level}" title="1.0 + 0.02 \times {level}" /> for a maximum of <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=1.10" alt="1.10" title="1.10" />.</li>
 <li>Refining implant multiplier if the refining player has an appropriate implant (e.g. Zainou ‘Beancounter’ Reprocessing).</li>
 </ul>
-<p>In our research, we’ve found opportunities at various efficiency levels. Thus, it is not necessary to train all skills to level 5 to benefit from ore or ice arbitrage. However, you <em>will</em> need to train to maximum skills to maximize your profit. It is also the case that player-owned structures can have higher base refining efficiency than NPC structures (which typically have a base efficiency of <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?0.5" alt="0.5" title="0.5" />). Therefore, moving ore or ice to a player-owned structure may increase yield and hence profit. However, this is only practical if you have a ship large enough to transfer assets efficiently. You also incur the risk of losing your ship in transit. A more practical approach is to look for arbitrage opportunities at player-owned structures which host both refining and market services.</p>
+<p>In our research, we’ve found opportunities at various efficiency levels. Thus, it is not necessary to train all skills to level 5 to benefit from ore or ice arbitrage. However, you <em>will</em> need to train to maximum skills to maximize your profit. It is also the case that player-owned structures can have higher base refining efficiency than NPC structures (which typically have a base efficiency of <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=0.5" alt="0.5" title="0.5" />). Therefore, moving ore or ice to a player-owned structure may increase yield and hence profit. However, this is only practical if you have a ship large enough to transfer assets efficiently. You also incur the risk of losing your ship in transit. A more practical approach is to look for arbitrage opportunities at player-owned structures which host both refining and market services.</p>
 <p>With the theory established, we’ll turn now to developing code to detect arbitrage opportunities.</p>
 <h3 id="example-7---detecting-ore-and-ice-arbitrage-opportunities">Example 7 - Detecting Ore and Ice Arbitrage Opportunities</h3>
 <p>In this example, we’ll develop code to look for arbitrage opportunities using a day of order book market data. You can follow along with this example by downloading the <a href="code/book/Example_7_Ore_and_Ice_Arbitrage.ipynb">Jupyter Notebook</a>.</p>
@@ -1241,9 +1241,9 @@ $ <span class="ex">conda</span> create -n book_exp_1 --clone book_base</code></p
 </figure>
 <p>As a last initialization step, we’ll need to choose values for efficiency, sales tax, and station tax rate. For this example, we’ve initialized these values as follows:</p>
 <ul>
-<li><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?efficiency%20%3D%200.5%20%5Ctimes%201.15%20%5Ctimes%201.1%20%5Ctimes%201.1" alt="efficiency = 0.5 \times 1.15 \times 1.1 \times 1.1" title="efficiency = 0.5 \times 1.15 \times 1.1 \times 1.1" /> - this represents efficiency at a typical NPC station with maximum skills (but no implants).</li>
-<li><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?salesTax%20%3D%200.01" alt="salesTax = 0.01" title="salesTax = 0.01" /> - this represents sales tax at a typical NPC station with maximum skills.</li>
-<li><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?stationTax%20%3D%200.04" alt="stationTax = 0.04" title="stationTax = 0.04" /> - this is an empirical estimation which accounts for replacing market reference prices with actual prices (see below).</li>
+<li><img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=efficiency%20%3D%200.5%20%5Ctimes%201.15%20%5Ctimes%201.1%20%5Ctimes%201.1" alt="efficiency = 0.5 \times 1.15 \times 1.1 \times 1.1" title="efficiency = 0.5 \times 1.15 \times 1.1 \times 1.1" /> - this represents efficiency at a typical NPC station with maximum skills (but no implants).</li>
+<li><img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=salesTax%20%3D%200.01" alt="salesTax = 0.01" title="salesTax = 0.01" /> - this represents sales tax at a typical NPC station with maximum skills.</li>
+<li><img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=stationTax%20%3D%200.04" alt="stationTax = 0.04" title="stationTax = 0.04" /> - this is an empirical estimation which accounts for replacing market reference prices with actual prices (see below).</li>
 </ul>
 <p>Now we’re ready to look for arbitrage opportunities. The equations we derived above are suitable for checking whether an arbitrage opportunity exists, but do not reflect how we’d typically go about looking for opportunities in data. An actual strategy for finding arbitrage opportunities would need to simulate buying source material (based on order book data), then simulate refining and selling the refined materials (also using order book data). We would execute this procedure on every snapshot of a historical day of data, or on the latest snapshot if we are running our strategy live. The following pseudo-code describes a basic arbitrage opportunity finder for a day of order book data:</p>
 <pre><code>for each snapshot S:
@@ -1272,7 +1272,7 @@ $ <span class="ex">conda</span> create -n book_exp_1 --clone book_base</code></p
         # no more source material to buy
         break</code></pre>
 <p>This process considers all refinable assets for each snapshot. The check for an opportunity consists of first attempting to buy enough volume of a refinable asset, then attempting to sell the refined materials. If the gross proceeds from selling the refined materials exceeds the cost of buying the refined asset, plus reprocessing tax, then the opportunity is profitable. We can determine whether it is possible to buy a refinable asset, or whether it is possible to sell a refined material, by consulting orders in the order book. We maximize the profit for a given refinable asset by continuing to buy and refine until it is no longer profitable to do so.</p>
-<p>Maximizing each opportunity is complicated because the state of orders must be maintained between each refinement cycle. That is, orders must be “used up” as we buy and sell material over several refinement cycles. For now, we’ll implement a much simpler process which only attempts to find the <em>first</em> opportunity in a snapshot for each refinable type. We’ll derive a maximizing process later in the example. The first function we’ll implement attempts to buy enough source material at the given station to allow reprocessing to occur. The needed volume may be filled over multiple orders. Thus, the result of this function is a list of order pairs <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?%28p_1%2C%20v_1%29%2C%20...%2C%20%28p_n%2C%20v_n%29" alt="(p_1, v_1), ..., (p_n, v_n)" title="(p_1, v_1), ..., (p_n, v_n)" /> representing the prices and volumes of orders which were filled to buy the necessary material. An empty list is returned if sufficient material can’t be purchased:</p>
+<p>Maximizing each opportunity is complicated because the state of orders must be maintained between each refinement cycle. That is, orders must be “used up” as we buy and sell material over several refinement cycles. For now, we’ll implement a much simpler process which only attempts to find the <em>first</em> opportunity in a snapshot for each refinable type. We’ll derive a maximizing process later in the example. The first function we’ll implement attempts to buy enough source material at the given station to allow reprocessing to occur. The needed volume may be filled over multiple orders. Thus, the result of this function is a list of order pairs <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=%28p_1%2C%20v_1%29%2C%20...%2C%20%28p_n%2C%20v_n%29" alt="(p_1, v_1), ..., (p_n, v_n)" title="(p_1, v_1), ..., (p_n, v_n)" /> representing the prices and volumes of orders which were filled to buy the necessary material. An empty list is returned if sufficient material can’t be purchased:</p>
 <figure>
 <img src="img/ex7_cell4.PNG" alt="Buying Source Material" /><figcaption>Buying Source Material</figcaption>
 </figure>
@@ -1351,7 +1351,7 @@ $ <span class="ex">conda</span> create -n book_exp_1 --clone book_base</code></p
 <p>Answers to these questions will help determine the long term viability of our strategy.</p>
 <p>We’ll conduct our back test over the three month period from 2017-01-01 to 2017-03-31. The date range is arbitrary. We chose this date range because it is near time of writing. Before using any strategy, it is prudent to conduct your own back test with an appropriate date range.</p>
 <p>Unlike previous examples, we won’t provide a Jupyter notebook which performs the back test. The reason is that this back test is rather time intensive, especially if run linearly for each date in the date range (as a simple Jupyter notebook would do). Moreover, this back test is <a href="https://en.wikipedia.org/wiki/Embarrassingly_parallel">embarrassingly parallel</a>, making it much simpler to run offline with a simple script. To that end, we provide the <a href="code/book/ore_ice_arb_backtest.py"><code>ore_ice_arb_backtest.py</code></a> script which has the following usage:</p>
-<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash">$ <span class="ex">python</span> ore_ice_arb_backtest.py YYYY-MM-DD output.csv</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash">$ <span class="kw">python</span> ore_ice_arb_backtest.py YYYY-MM-DD output.csv</code></pre></div>
 <p>This command will find all ore and ice opportunities on the given date and write those opportunities in CSV format to the specified file. To run the complete back test, simply run this command for every date in the date range. If you have a reasonably powerful machine, you will be able to run multiple dates in parallel. When all dates complete, you can concatenate all the output files to make a single results file with all opportunities for our date range.</p>
 <blockquote>
 <h3 id="note-1">NOTE</h3>
@@ -1411,27 +1411,27 @@ $ <span class="ex">conda</span> create -n book_exp_1 --clone book_base</code></p
 <h2 id="scrapmetal-processing-arbitrage">Scrapmetal Processing Arbitrage</h2>
 <p>We started our discussion on arbitrage by looking at opportunities based on ore and ice. In fact, most asset types in EVE can processed through the “scrapmetal” game mechanic which is identical to ore and ice reprocessing except for efficiency, which is affected by different skills. As above, we can describe the scrapmetal processing mechanic in terms of the following definitions:</p>
 <ul>
-<li><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?r" alt="r" title="r" /> - an asset type to be reprocessed (<em>not</em> ice or ore).</li>
-<li><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?r_m" alt="r_m" title="r_m" /> - the amount of material required for one reprocessing cycle.</li>
-<li><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?e" alt="e" title="e" /> - reprocessing efficiency computed from station efficiency and player skills. This will be a value between 0 and 1.</li>
-<li><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?m%28r%29%20%5Crightarrow%20%7B%28c_1%2C%20v_1%29%2C%20...%2C%20%28c_n%2C%20v_n%29%7D" alt="m(r) \rightarrow {(c_1, v_1), ..., (c_n, v_n)}" title="m(r) \rightarrow {(c_1, v_1), ..., (c_n, v_n)}" /> - a map from source type to a set of reprocessed types <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?%28c_i%2C%20v_i%29" alt="(c_i, v_i)" title="(c_i, v_i)" /> where <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?c_i" alt="c_i" title="c_i" /> represents the reprocessed type, and <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?v_i" alt="v_i" title="v_i" /> represents the ideal quantity produced when reprocessing <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?r_m" alt="r_m" title="r_m" /> units of <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?r" alt="r" title="r" />.</li>
-<li><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?p_r%28t%29" alt="p_r(t)" title="p_r(t)" /> - the reference price for an asset (i.e. a price computed daily by CCP, see below).</li>
-<li><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?p_a%28t%29" alt="p_a(t)" title="p_a(t)" /> - the current best ask price for an asset (i.e. the minimum price at which the asset can be purchased).</li>
-<li><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?p_b%28t%29" alt="p_b(t)" title="p_b(t)" /> - the current best bid price for an asset (i.e. the maximum price at which the asset can be sold).</li>
-<li><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?t" alt="t" title="t" /> - sales tax for the reprocessing player. This will be a value between 0 and 1.</li>
-<li><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?s_t" alt="s_t" title="s_t" /> - station reprocessing tax which is affected by player standings towards the station. This will be a value between 0 and 0.05.</li>
+<li><img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=r" alt="r" title="r" /> - an asset type to be reprocessed (<em>not</em> ice or ore).</li>
+<li><img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=r_m" alt="r_m" title="r_m" /> - the amount of material required for one reprocessing cycle.</li>
+<li><img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=e" alt="e" title="e" /> - reprocessing efficiency computed from station efficiency and player skills. This will be a value between 0 and 1.</li>
+<li><img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=m%28r%29%20%5Crightarrow%20%7B%28c_1%2C%20v_1%29%2C%20...%2C%20%28c_n%2C%20v_n%29%7D" alt="m(r) \rightarrow {(c_1, v_1), ..., (c_n, v_n)}" title="m(r) \rightarrow {(c_1, v_1), ..., (c_n, v_n)}" /> - a map from source type to a set of reprocessed types <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=%28c_i%2C%20v_i%29" alt="(c_i, v_i)" title="(c_i, v_i)" /> where <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=c_i" alt="c_i" title="c_i" /> represents the reprocessed type, and <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=v_i" alt="v_i" title="v_i" /> represents the ideal quantity produced when reprocessing <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=r_m" alt="r_m" title="r_m" /> units of <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=r" alt="r" title="r" />.</li>
+<li><img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=p_r%28t%29" alt="p_r(t)" title="p_r(t)" /> - the reference price for an asset (i.e. a price computed daily by CCP, see below).</li>
+<li><img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=p_a%28t%29" alt="p_a(t)" title="p_a(t)" /> - the current best ask price for an asset (i.e. the minimum price at which the asset can be purchased).</li>
+<li><img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=p_b%28t%29" alt="p_b(t)" title="p_b(t)" /> - the current best bid price for an asset (i.e. the maximum price at which the asset can be sold).</li>
+<li><img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=t" alt="t" title="t" /> - sales tax for the reprocessing player. This will be a value between 0 and 1.</li>
+<li><img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=s_t" alt="s_t" title="s_t" /> - station reprocessing tax which is affected by player standings towards the station. This will be a value between 0 and 0.05.</li>
 </ul>
 <p>Given these definitions, an arbitrage opportunity exists if the following equation is non-negative:</p>
-<p><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?%5Csum_i%5Cleft%28v_i%20%5Ctimes%20e%20%5Ctimes%20%5Cleft%5B%281%20-%20t%29%20%5Ctimes%20p_b%28c_i%29%20-%20s_t%20%5Ctimes%20p_r%28c_i%29%5Cright%5D%20%5Cright%29%20-%20r_m%20%5Ctimes%20p_a%28r%29" alt="\sum_i\left(v_i \times e \times \left[(1 - t) \times p_b(c_i) - s_t \times p_r(c_i)\right] \right) - r_m \times p_a(r)" title="\sum_i\left(v_i \times e \times \left[(1 - t) \times p_b(c_i) - s_t \times p_r(c_i)\right] \right) - r_m \times p_a(r)" /></p>
+<p><img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=%5Csum_i%5Cleft%28v_i%20%5Ctimes%20e%20%5Ctimes%20%5Cleft%5B%281%20-%20t%29%20%5Ctimes%20p_b%28c_i%29%20-%20s_t%20%5Ctimes%20p_r%28c_i%29%5Cright%5D%20%5Cright%29%20-%20r_m%20%5Ctimes%20p_a%28r%29" alt="\sum_i\left(v_i \times e \times \left[(1 - t) \times p_b(c_i) - s_t \times p_r(c_i)\right] \right) - r_m \times p_a(r)" title="\sum_i\left(v_i \times e \times \left[(1 - t) \times p_b(c_i) - s_t \times p_r(c_i)\right] \right) - r_m \times p_a(r)" /></p>
 <p>Note that this equation is identical to the refining opportunity equation in the previous section. What makes scrapmetal processing different is the computation of efficiency which is determined by the following attributes:</p>
 <ul>
 <li>Station base refining efficiency (a value between 0 and 1).</li>
-<li>Scrapmetal Processing skill multiplier which is <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?1.0%20%2B%200.02%20%5Ctimes%20%7Blevel%7D" alt="1.0 + 0.02 \times {level}" title="1.0 + 0.02 \times {level}" /> for a maximum of <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?1.10" alt="1.10" title="1.10" />.</li>
+<li>Scrapmetal Processing skill multiplier which is <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=1.0%20%2B%200.02%20%5Ctimes%20%7Blevel%7D" alt="1.0 + 0.02 \times {level}" title="1.0 + 0.02 \times {level}" /> for a maximum of <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=1.10" alt="1.10" title="1.10" />.</li>
 </ul>
 <p>There are currently no implants which affect scrapmetal processing. As a result, maximum efficiency is much lower for scrapmetal processing as compared to ore and ice reprocessing. However, there are many more asset types eligible for scrapmetal processing. As we’ll see below, this difference provides many more opportunities for market price imbalances which lead to arbitrage opportunities. We’ll take a look at a day of scrapmetal processing arbitrage opportunities in the next example.</p>
 <h3 id="example-9---detecting-scrapmetal-arbitrage-opportunities">Example 9 - Detecting Scrapmetal Arbitrage Opportunities</h3>
 <p>In this example, we’ll repeat the analysis we performed in <a href="example-7---detecting-ore-and-ice-arbitrage-opportunities">Example 7</a>, replacing ore and ice with all assets eligible for scrapmetal processing. Because of the number of types eligible for processing, we won’t generate opportunities using a Jupyter notebook. At time of writing, there are about 8000 types we need to analyze to test for opportunities. The most effective way to scan for opportunities is take take advantage of the embarrassingly parallel nature of the opportunity search. Despite this optimization, analysis of a single day takes about four hours on our equipment, which is not very interesting as an illustrative example in a Jupyter notebook. Instead, we’ll use a script to generate a list of opportunities offline, then we’ll load the data into a Jupyter notebook for analysis. Our offline script, <a href="code/book/scrap_single_day.py"><code>scrap_single_day.py</code></a>, has the following usage:</p>
-<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash">$ <span class="ex">python</span> scrap_single_day.py YYYY-MM-DD output.csv</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash">$ <span class="kw">python</span> scrap_single_day.py YYYY-MM-DD output.csv</code></pre></div>
 <p>As noted above, this script will take some time to execute. Knowledgeable readers will find it beneficial to edit this script to take advantage of all available CPU cores on their particular system (we use 10 cores on our equipment). We’ll review the results of our single day opportunity finder for the remainder of this example. You can follow along by downloading the <a href="code/book/Example_9_Scrapmetal_Arbitrage.ipynb">Jupyter Notebook</a>.</p>
 <blockquote>
 <h3 id="note-2">NOTE</h3>
@@ -1569,17 +1569,17 @@ $ <span class="ex">conda</span> create -n book_exp_1 --clone book_base</code></p
 <li>Highly liquid assets usually incur lower market risk because they are in demand (i.e. they sell quickly).</li>
 </ol>
 <p>In other words, in liquid markets there should be little risk that our refined materials won’t sell in a reasonable time frame. However, there is one important caveat: we need to avoid flooding the market with atypical volumes of an asset. As discussed in <a href="#example-6---a-simple-strategy-cross-region-trading">Example 6</a>, a simple rule of thumb is to avoid limit orders which sum to more than 10% of the daily volume of a refined material.</p>
-<p>When would we expect limit orders to be more profitable then selling at the market? To discover these opportunities, we need to adjust our opportunity equation from above to include a new term, <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?b" alt="b" title="b" />, which is the brokerage fee percentage charged for placing a limited order. With this new term, the opportunity equation becomes:</p>
-<p><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?%5Csum_i%5Cleft%28v_i%20%5Ctimes%20e%20%5Ctimes%20%5Cleft%5B%281%20-%20t%20-%20b%29%20%5Ctimes%20p_a%28c_i%29%20-%20s_t%20%5Ctimes%20p_r%28c_i%29%5Cright%5D%20%5Cright%29%20-%20r_m%20%5Ctimes%20p_a%28r%29" alt="\sum_i\left(v_i \times e \times \left[(1 - t - b) \times p_a(c_i) - s_t \times p_r(c_i)\right] \right) - r_m \times p_a(r)" title="\sum_i\left(v_i \times e \times \left[(1 - t - b) \times p_a(c_i) - s_t \times p_r(c_i)\right] \right) - r_m \times p_a(r)" /></p>
+<p>When would we expect limit orders to be more profitable then selling at the market? To discover these opportunities, we need to adjust our opportunity equation from above to include a new term, <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=b" alt="b" title="b" />, which is the brokerage fee percentage charged for placing a limited order. With this new term, the opportunity equation becomes:</p>
+<p><img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=%5Csum_i%5Cleft%28v_i%20%5Ctimes%20e%20%5Ctimes%20%5Cleft%5B%281%20-%20t%20-%20b%29%20%5Ctimes%20p_a%28c_i%29%20-%20s_t%20%5Ctimes%20p_r%28c_i%29%5Cright%5D%20%5Cright%29%20-%20r_m%20%5Ctimes%20p_a%28r%29" alt="\sum_i\left(v_i \times e \times \left[(1 - t - b) \times p_a(c_i) - s_t \times p_r(c_i)\right] \right) - r_m \times p_a(r)" title="\sum_i\left(v_i \times e \times \left[(1 - t - b) \times p_a(c_i) - s_t \times p_r(c_i)\right] \right) - r_m \times p_a(r)" /></p>
 <p>There are two changes from the original equation:</p>
 <ol type="1">
-<li>Brokerage fee, <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?b" alt="b" title="b" />, reduces sale proceeds in the <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?%281%20-%20t%20-%20b%29" alt="(1 - t - b)" title="(1 - t - b)" /> term; and,</li>
-<li>Sale proceeds are now based on the best ask price of the refined material, <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?p_a%28c_i%29" alt="p_a(c_i)" title="p_a(c_i)" />, instead of the best bid price.</li>
+<li>Brokerage fee, <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=b" alt="b" title="b" />, reduces sale proceeds in the <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=%281%20-%20t%20-%20b%29" alt="(1 - t - b)" title="(1 - t - b)" /> term; and,</li>
+<li>Sale proceeds are now based on the best ask price of the refined material, <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=p_a%28c_i%29" alt="p_a(c_i)" title="p_a(c_i)" />, instead of the best bid price.</li>
 </ol>
 <p>An opportunity using sell limit orders is profitable if the above equation is greater than zero. In general, selling with limit orders instead of at the market is more profitable if the following inequality is true:</p>
-<p><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?%281%20-%20t%20-%20b%29%20%5Ctimes%20p_a%28c_i%29%20%3E%20%281%20-%20t%29%20%5Ctimes%20p_b%28c_i%29" alt="(1 - t - b) \times p_a(c_i) &gt; (1 - t) \times p_b(c_i)" title="(1 - t - b) \times p_a(c_i) &gt; (1 - t) \times p_b(c_i)" /></p>
+<p><img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=%281%20-%20t%20-%20b%29%20%5Ctimes%20p_a%28c_i%29%20%3E%20%281%20-%20t%29%20%5Ctimes%20p_b%28c_i%29" alt="(1 - t - b) \times p_a(c_i) &gt; (1 - t) \times p_b(c_i)" title="(1 - t - b) \times p_a(c_i) &gt; (1 - t) \times p_b(c_i)" /></p>
 <p>This equation can be reduced to the following inequality:</p>
-<p><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?%7B%7Bp_a%28c_i%29%20-%20p_b%28c_i%29%7D%5Cover%7Bp_b%28c_i%29%7D%7D%20%3E%20%7Bb%20%5Cover%20%7B1%20-%20t%20-%20b%7D%7D" alt="{{p_a(c_i) - p_b(c_i)}\over{p_b(c_i)}} &gt; {b \over {1 - t - b}}" title="{{p_a(c_i) - p_b(c_i)}\over{p_b(c_i)}} &gt; {b \over {1 - t - b}}" /></p>
+<p><img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=%7B%7Bp_a%28c_i%29%20-%20p_b%28c_i%29%7D%5Cover%7Bp_b%28c_i%29%7D%7D%20%3E%20%7Bb%20%5Cover%20%7B1%20-%20t%20-%20b%7D%7D" alt="{{p_a(c_i) - p_b(c_i)}\over{p_b(c_i)}} &gt; {b \over {1 - t - b}}" title="{{p_a(c_i) - p_b(c_i)}\over{p_b(c_i)}} &gt; {b \over {1 - t - b}}" /></p>
 <p>The term on the left is the “return on the spread”, while the term on the right is constant. This equation can be evaluated for each refined material to determine whether to sell with limit or market orders. In the next example, we’ll investigate what affect this modified strategy has on arbitrage. We’ll arbitrarily modify our ore and ice arbitrage strategy. The changes are identical for scrapmetal arbitrage.</p>
 <h3 id="example-11---ore-and-ice-arbitrage-with-limit-orders">Example 11 - Ore and Ice Arbitrage with Limit Orders</h3>
 <p>In this example, we’ll modify our ore and ice arbitrage strategy to sell refined material with limit orders when it is more profitable do this. This is a minor change to the original strategy. We’ll evaluate the modified strategy on a sample day of data. We leave it to the reader to perform a more comprehensive back test. You can follow along with this example by downloading the <a href="code/book/Example_11_Ore_and_Ice_Arbitrage_with_Limit_Orders.ipynb">Jupyter Notebook</a>.</p>
@@ -1629,22 +1629,22 @@ $ <span class="ex">conda</span> create -n book_exp_1 --clone book_base</code></p
 <li>which assets should we attempt to buy? and,</li>
 <li>at what price should we attempt to buy these assets?</li>
 </ol>
-<p>Let’s answer the second question first, since this is the easier of the two to resolve. To determine an appropriate buy price, we first need to decide how much return we require from any fill on our buy order which we then refine and sell. Let <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?g" alt="g" title="g" /> be the return we expect from our investment in a buy limit order. Return is just profit divided by cost, so we can use our opportunity function once again and solve for <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?p_b" alt="p_b" title="p_b" />, the best bid price for an asset, constrained so that the return is at least <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?g" alt="g" title="g" />. To solve this new form of our opportunity function, we also need to include the brokerage fee, <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?b" alt="b" title="b" />, since we’ll be placing buy limit orders. The modified form of our opportunity function is then:</p>
-<p><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?%5Csum_i%5Cleft%28v_i%20%5Ctimes%20e%20%5Ctimes%20%5Cleft%5B%281%20-%20t%29%20%5Ctimes%20p_b%28c_i%29%20-%20s_t%20%5Ctimes%20p_r%28c_i%29%5Cright%5D%20%5Cright%29%20-%20r_m%20%5Ctimes%20p_b%28r%29%20%5Ctimes%20%281%20%2B%20b%29" alt="\sum_i\left(v_i \times e \times \left[(1 - t) \times p_b(c_i) - s_t \times p_r(c_i)\right] \right) - r_m \times p_b(r) \times (1 + b)" title="\sum_i\left(v_i \times e \times \left[(1 - t) \times p_b(c_i) - s_t \times p_r(c_i)\right] \right) - r_m \times p_b(r) \times (1 + b)" /></p>
+<p>Let’s answer the second question first, since this is the easier of the two to resolve. To determine an appropriate buy price, we first need to decide how much return we require from any fill on our buy order which we then refine and sell. Let <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=g" alt="g" title="g" /> be the return we expect from our investment in a buy limit order. Return is just profit divided by cost, so we can use our opportunity function once again and solve for <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=p_b" alt="p_b" title="p_b" />, the best bid price for an asset, constrained so that the return is at least <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=g" alt="g" title="g" />. To solve this new form of our opportunity function, we also need to include the brokerage fee, <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=b" alt="b" title="b" />, since we’ll be placing buy limit orders. The modified form of our opportunity function is then:</p>
+<p><img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=%5Csum_i%5Cleft%28v_i%20%5Ctimes%20e%20%5Ctimes%20%5Cleft%5B%281%20-%20t%29%20%5Ctimes%20p_b%28c_i%29%20-%20s_t%20%5Ctimes%20p_r%28c_i%29%5Cright%5D%20%5Cright%29%20-%20r_m%20%5Ctimes%20p_b%28r%29%20%5Ctimes%20%281%20%2B%20b%29" alt="\sum_i\left(v_i \times e \times \left[(1 - t) \times p_b(c_i) - s_t \times p_r(c_i)\right] \right) - r_m \times p_b(r) \times (1 + b)" title="\sum_i\left(v_i \times e \times \left[(1 - t) \times p_b(c_i) - s_t \times p_r(c_i)\right] \right) - r_m \times p_b(r) \times (1 + b)" /></p>
 <p>There are two changes from the original equation:</p>
 <ol type="1">
-<li>Brokerage fee, <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?b" alt="b" title="b" />, increases the cost of purchasing the source material, scaling the purchase price by the term <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?%281%20%2B%20b%29" alt="(1 + b)" title="(1 + b)" />; and,</li>
-<li>Purchase price is now based on the best bid price of the source material, <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?p_b%28r%29" alt="p_b(r)" title="p_b(r)" />, instead of the best ask price.</li>
+<li>Brokerage fee, <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=b" alt="b" title="b" />, increases the cost of purchasing the source material, scaling the purchase price by the term <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=%281%20%2B%20b%29" alt="(1 + b)" title="(1 + b)" />; and,</li>
+<li>Purchase price is now based on the best bid price of the source material, <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=p_b%28r%29" alt="p_b(r)" title="p_b(r)" />, instead of the best ask price.</li>
 </ol>
-<p>When the above equation is positive, then the opportunity is profitable. Find the correct buy price for our limit orders, we need to create an equation in terms of our target return, <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?g" alt="g" title="g" />, and then solve for <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?p_b%28r%29" alt="p_b(r)" title="p_b(r)" />. Return is just profit divided by cost. Profit, in turn, is gross proceeds minus cost. As a result:</p>
-<p><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?%7Breturn%7D%20%3D%20%7B%7Bprofit%7D%5Cover%7Bcost%7D%7D%20%3D%20%7B%7B%7Bgross%7D%20-%20%7Bcost%7D%7D%5Cover%7Bcost%7D%7D%20%3D%20%7B%7Bgross%7D%5Cover%7Bcost%7D%7D%20-%201" alt="{return} = {{profit}\over{cost}} = {{{gross} - {cost}}\over{cost}} = {{gross}\over{cost}} - 1" title="{return} = {{profit}\over{cost}} = {{{gross} - {cost}}\over{cost}} = {{gross}\over{cost}} - 1" /></p>
+<p>When the above equation is positive, then the opportunity is profitable. Find the correct buy price for our limit orders, we need to create an equation in terms of our target return, <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=g" alt="g" title="g" />, and then solve for <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=p_b%28r%29" alt="p_b(r)" title="p_b(r)" />. Return is just profit divided by cost. Profit, in turn, is gross proceeds minus cost. As a result:</p>
+<p><img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=%7Breturn%7D%20%3D%20%7B%7Bprofit%7D%5Cover%7Bcost%7D%7D%20%3D%20%7B%7B%7Bgross%7D%20-%20%7Bcost%7D%7D%5Cover%7Bcost%7D%7D%20%3D%20%7B%7Bgross%7D%5Cover%7Bcost%7D%7D%20-%201" alt="{return} = {{profit}\over{cost}} = {{{gross} - {cost}}\over{cost}} = {{gross}\over{cost}} - 1" title="{return} = {{profit}\over{cost}} = {{{gross} - {cost}}\over{cost}} = {{gross}\over{cost}} - 1" /></p>
 <p>We can restructure our original opportunity function to put the gross proceeds terms on the left, and the cost terms on the right as follows:</p>
-<p><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?%5Csum_i%5Cleft%28v_i%20%5Ctimes%20e%20%5Ctimes%20%281%20-%20t%29%20%5Ctimes%20p_b%28c_i%29%5Cright%29%20-%20%5Cleft%28%5Cleft%5B%5Csum_i%20v_i%20%5Ctimes%20e%20%5Ctimes%20s_t%20%5Ctimes%20p_r%28c_i%29%20%5Cright%5D%20%2B%20r_m%20%5Ctimes%20p_b%28r%29%20%5Ctimes%20%281%20%2B%20b%29%5Cright%29" alt="\sum_i\left(v_i \times e \times (1 - t) \times p_b(c_i)\right) - \left(\left[\sum_i v_i \times e \times s_t \times p_r(c_i) \right] + r_m \times p_b(r) \times (1 + b)\right)" title="\sum_i\left(v_i \times e \times (1 - t) \times p_b(c_i)\right) - \left(\left[\sum_i v_i \times e \times s_t \times p_r(c_i) \right] + r_m \times p_b(r) \times (1 + b)\right)" /></p>
-<p>We can now write this equation in terms of return, <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?g" alt="g" title="g" />:</p>
-<p><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?g%20%3D%20%7B%7B%5Csum_i%5Cleft%28v_i%20%5Ctimes%20e%20%5Ctimes%20%281%20-%20t%29%20%5Ctimes%20p_b%28c_i%29%5Cright%29%7D%5Cover%7B%5Cleft%5B%5Csum_i%20v_i%20%5Ctimes%20e%20%5Ctimes%20s_t%20%5Ctimes%20p_r%28c_i%29%20%5Cright%5D%20%2B%20r_m%20%5Ctimes%20p_b%28r%29%20%5Ctimes%20%281%20%2B%20b%29%7D%7D%20-%201" alt="g = {{\sum_i\left(v_i \times e \times (1 - t) \times p_b(c_i)\right)}\over{\left[\sum_i v_i \times e \times s_t \times p_r(c_i) \right] + r_m \times p_b(r) \times (1 + b)}} - 1" title="g = {{\sum_i\left(v_i \times e \times (1 - t) \times p_b(c_i)\right)}\over{\left[\sum_i v_i \times e \times s_t \times p_r(c_i) \right] + r_m \times p_b(r) \times (1 + b)}} - 1" /></p>
-<p>Solving in terms of <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?p_b%28r%29" alt="p_b(r)" title="p_b(r)" /> gives:</p>
-<p><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?p_b%28r%29%20%3D%20%7B%7B%5Csum_i%5Cleft%28v_i%20%5Ctimes%20e%20%5Ctimes%20%5Cleft%5B%281%20-%20t%29%20%5Ctimes%20p_b%28c_i%29%20-%20s_t%20%5Ctimes%20%281%20%2B%20g%29%20%5Ctimes%20p_r%28c_i%29%20%5Cright%5D%5Cright%29%7D%5Cover%7Br_m%20%5Ctimes%20%281%20%2B%20b%29%20%5Ctimes%20%281%20%2B%20g%29%7D%7D" alt="p_b(r) = {{\sum_i\left(v_i \times e \times \left[(1 - t) \times p_b(c_i) - s_t \times (1 + g) \times p_r(c_i) \right]\right)}\over{r_m \times (1 + b) \times (1 + g)}}" title="p_b(r) = {{\sum_i\left(v_i \times e \times \left[(1 - t) \times p_b(c_i) - s_t \times (1 + g) \times p_r(c_i) \right]\right)}\over{r_m \times (1 + b) \times (1 + g)}}" /></p>
-<p>This equation looks complicated, but on any given day every term is a constant except <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?p_b%28c_i%29" alt="p_b(c_i)" title="p_b(c_i)" /> which is the current best bid for a refined material in a given market data snapshot.</p>
+<p><img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=%5Csum_i%5Cleft%28v_i%20%5Ctimes%20e%20%5Ctimes%20%281%20-%20t%29%20%5Ctimes%20p_b%28c_i%29%5Cright%29%20-%20%5Cleft%28%5Cleft%5B%5Csum_i%20v_i%20%5Ctimes%20e%20%5Ctimes%20s_t%20%5Ctimes%20p_r%28c_i%29%20%5Cright%5D%20%2B%20r_m%20%5Ctimes%20p_b%28r%29%20%5Ctimes%20%281%20%2B%20b%29%5Cright%29" alt="\sum_i\left(v_i \times e \times (1 - t) \times p_b(c_i)\right) - \left(\left[\sum_i v_i \times e \times s_t \times p_r(c_i) \right] + r_m \times p_b(r) \times (1 + b)\right)" title="\sum_i\left(v_i \times e \times (1 - t) \times p_b(c_i)\right) - \left(\left[\sum_i v_i \times e \times s_t \times p_r(c_i) \right] + r_m \times p_b(r) \times (1 + b)\right)" /></p>
+<p>We can now write this equation in terms of return, <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=g" alt="g" title="g" />:</p>
+<p><img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=g%20%3D%20%7B%7B%5Csum_i%5Cleft%28v_i%20%5Ctimes%20e%20%5Ctimes%20%281%20-%20t%29%20%5Ctimes%20p_b%28c_i%29%5Cright%29%7D%5Cover%7B%5Cleft%5B%5Csum_i%20v_i%20%5Ctimes%20e%20%5Ctimes%20s_t%20%5Ctimes%20p_r%28c_i%29%20%5Cright%5D%20%2B%20r_m%20%5Ctimes%20p_b%28r%29%20%5Ctimes%20%281%20%2B%20b%29%7D%7D%20-%201" alt="g = {{\sum_i\left(v_i \times e \times (1 - t) \times p_b(c_i)\right)}\over{\left[\sum_i v_i \times e \times s_t \times p_r(c_i) \right] + r_m \times p_b(r) \times (1 + b)}} - 1" title="g = {{\sum_i\left(v_i \times e \times (1 - t) \times p_b(c_i)\right)}\over{\left[\sum_i v_i \times e \times s_t \times p_r(c_i) \right] + r_m \times p_b(r) \times (1 + b)}} - 1" /></p>
+<p>Solving in terms of <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=p_b%28r%29" alt="p_b(r)" title="p_b(r)" /> gives:</p>
+<p><img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=p_b%28r%29%20%3D%20%7B%7B%5Csum_i%5Cleft%28v_i%20%5Ctimes%20e%20%5Ctimes%20%5Cleft%5B%281%20-%20t%29%20%5Ctimes%20p_b%28c_i%29%20-%20s_t%20%5Ctimes%20%281%20%2B%20g%29%20%5Ctimes%20p_r%28c_i%29%20%5Cright%5D%5Cright%29%7D%5Cover%7Br_m%20%5Ctimes%20%281%20%2B%20b%29%20%5Ctimes%20%281%20%2B%20g%29%7D%7D" alt="p_b(r) = {{\sum_i\left(v_i \times e \times \left[(1 - t) \times p_b(c_i) - s_t \times (1 + g) \times p_r(c_i) \right]\right)}\over{r_m \times (1 + b) \times (1 + g)}}" title="p_b(r) = {{\sum_i\left(v_i \times e \times \left[(1 - t) \times p_b(c_i) - s_t \times (1 + g) \times p_r(c_i) \right]\right)}\over{r_m \times (1 + b) \times (1 + g)}}" /></p>
+<p>This equation looks complicated, but on any given day every term is a constant except <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=p_b%28c_i%29" alt="p_b(c_i)" title="p_b(c_i)" /> which is the current best bid for a refined material in a given market data snapshot.</p>
 <p>Now that we know the price we should buy at to achieve our target return, let’s consider the question of determining which assets to buy. An ideal asset to buy would have at least two properties:</p>
 <ol type="1">
 <li>The best bid regularly hovers around our target price; and,</li>
@@ -1656,7 +1656,7 @@ $ <span class="ex">conda</span> create -n book_exp_1 --clone book_base</code></p
 <ol type="1">
 <li>The assets are liquid. We’ll define liquidity more carefully below.</li>
 <li>At least 30% of daily orders are sold into the best bid.</li>
-<li>The best bid in each snapshot is at or below our target price for scrapmetal arbitrage at a given return target, <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?g" alt="g" title="g" />.</li>
+<li>The best bid in each snapshot is at or below our target price for scrapmetal arbitrage at a given return target, <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=g" alt="g" title="g" />.</li>
 </ol>
 <p>This example will not be sufficient to suggest a long term strategy for arbitrage opportunities triggered by bid limit orders. You will need to run a proper back test over a longer time range in order to find assets which regularly present good opportunities. However, the techniques will be the same as those described here. You can follow along with this example by downloading the <a href="code/book/Example_12_Finding_Bid_Targets.ipynb">Jupyter Notebook</a>.</p>
 <p>This example is divided into three parts. In the first part, we find liquid assets using the same technique we used in <a href="#example-5---important-concepts-build-a-liquidity-filter">Example 5</a>. In the second part, we then infer trades on these liquid assets for a target date using the technique described in <a href="#example-4---unpublished-data-build-a-trade-heuristic">Example 4</a>, and eliminate any assets in which less than 30% of orders were sells to the bid side. Finally, in the last part, we perform a back test on our test date using a modified version of our arbitrage opportunity finder which finds snapshots where the current best bid was less than or equal to our target price for our target return. When the bid price is lower than the target price, then any orders sold into the bid will be profitable with arbitrage returning at least our target rate.</p>
@@ -1665,7 +1665,7 @@ $ <span class="ex">conda</span> create -n book_exp_1 --clone book_base</code></p
 <figure>
 <img src="img/ex12_cell1.PNG" alt="Liquidity Filter" /><figcaption>Liquidity Filter</figcaption>
 </figure>
-<p>Our filter passes assets which have a minimum required days of data (87 days in this example); a minimum required average ISK volume threshold (meaning <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?avgPrice%20%5Ctimes%20volume%20%5Cgeq%20threshold" alt="avgPrice \times volume \geq threshold" title="avgPrice \times volume \geq threshold" />, 100M ISK in this example); and, a minimum required volume per day (1000 units in this example). These liquidity settings attempt to make it likely that enough interesting volume is traded in a day to make an asset profitable. There are likely many assets which bid below our target price, but which trade infrequently, making it less interesting to tie up capital on bid orders for these assets<a href="#fn12" class="footnoteRef" id="fnref12"><sup>12</sup></a>. We apply our liquidity filter to our market history to extract the liquid types:</p>
+<p>Our filter passes assets which have a minimum required days of data (87 days in this example); a minimum required average ISK volume threshold (meaning <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=avgPrice%20%5Ctimes%20volume%20%5Cgeq%20threshold" alt="avgPrice \times volume \geq threshold" title="avgPrice \times volume \geq threshold" />, 100M ISK in this example); and, a minimum required volume per day (1000 units in this example). These liquidity settings attempt to make it likely that enough interesting volume is traded in a day to make an asset profitable. There are likely many assets which bid below our target price, but which trade infrequently, making it less interesting to tie up capital on bid orders for these assets<a href="#fn12" class="footnoteRef" id="fnref12"><sup>12</sup></a>. We apply our liquidity filter to our market history to extract the liquid types:</p>
 <figure>
 <img src="img/ex12_cell2.PNG" alt="Computing Liquid Instruments" /><figcaption>Computing Liquid Instruments</figcaption>
 </figure>
@@ -1767,21 +1767,21 @@ Buy Orders:
 <p>A simple EVE market making strategy first buys assets at the best bid, then sells these assets at the best ask. All trading occurs within a single station. Limit orders are placed for both the bid and ask (incurring broker fees), and sales tax is charged when ask orders are filled.</p>
 <p>Given the following definitions:</p>
 <ul>
-<li><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?p_a" alt="p_a" title="p_a" /> - the best ask price for an asset</li>
-<li><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?p_b" alt="p_b" title="p_b" /> - the best bid price for an asset</li>
-<li><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?n" alt="n" title="n" /> - the number of assets bought and sold</li>
-<li><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?t" alt="t" title="t" /> - station sales tax</li>
-<li><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?b" alt="b" title="b" /> - station broker fee</li>
+<li><img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=p_a" alt="p_a" title="p_a" /> - the best ask price for an asset</li>
+<li><img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=p_b" alt="p_b" title="p_b" /> - the best bid price for an asset</li>
+<li><img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=n" alt="n" title="n" /> - the number of assets bought and sold</li>
+<li><img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=t" alt="t" title="t" /> - station sales tax</li>
+<li><img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=b" alt="b" title="b" /> - station broker fee</li>
 </ul>
-<p>the total profit, <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?r" alt="r" title="r" />, obtained by making a market for a given asset type is:</p>
-<p><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?r%20%3D%20p_a%20%5Ctimes%20n%20-%20p_a%20%5Ctimes%20t%20%5Ctimes%20n%20-%20p_a%20%5Ctimes%20b%20%5Ctimes%20n%20-%20p_b%20%5Ctimes%20b%20%5Ctimes%20n%20-%20p_b%20%5Ctimes%20n" alt="r = p_a \times n - p_a \times t \times n - p_a \times b \times n - p_b \times b \times n - p_b \times n" title="r = p_a \times n - p_a \times t \times n - p_a \times b \times n - p_b \times b \times n - p_b \times n" /></p>
-<p>where the first term is the gross profit, and the remaining terms reflect sales tax, broker fees for placing limit orders, and the cost of buying assets at the best bid. A market making transaction is profitable when <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?r%20%3E%200" alt="r &gt; 0" title="r &gt; 0" />. That is, when:</p>
-<p><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?p_a%20%5Ctimes%20n%20-%20p_a%20%5Ctimes%20t%20%5Ctimes%20n%20-%20p_a%20%5Ctimes%20b%20%5Ctimes%20n%20-%20p_b%20%5Ctimes%20b%20%5Ctimes%20n%20-%20p_b%20%5Ctimes%20n%20%3E%200" alt="p_a \times n - p_a \times t \times n - p_a \times b \times n - p_b \times b \times n - p_b \times n &gt; 0" title="p_a \times n - p_a \times t \times n - p_a \times b \times n - p_b \times b \times n - p_b \times n &gt; 0" /></p>
+<p>the total profit, <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=r" alt="r" title="r" />, obtained by making a market for a given asset type is:</p>
+<p><img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=r%20%3D%20p_a%20%5Ctimes%20n%20-%20p_a%20%5Ctimes%20t%20%5Ctimes%20n%20-%20p_a%20%5Ctimes%20b%20%5Ctimes%20n%20-%20p_b%20%5Ctimes%20b%20%5Ctimes%20n%20-%20p_b%20%5Ctimes%20n" alt="r = p_a \times n - p_a \times t \times n - p_a \times b \times n - p_b \times b \times n - p_b \times n" title="r = p_a \times n - p_a \times t \times n - p_a \times b \times n - p_b \times b \times n - p_b \times n" /></p>
+<p>where the first term is the gross profit, and the remaining terms reflect sales tax, broker fees for placing limit orders, and the cost of buying assets at the best bid. A market making transaction is profitable when <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=r%20%3E%200" alt="r &gt; 0" title="r &gt; 0" />. That is, when:</p>
+<p><img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=p_a%20%5Ctimes%20n%20-%20p_a%20%5Ctimes%20t%20%5Ctimes%20n%20-%20p_a%20%5Ctimes%20b%20%5Ctimes%20n%20-%20p_b%20%5Ctimes%20b%20%5Ctimes%20n%20-%20p_b%20%5Ctimes%20n%20%3E%200" alt="p_a \times n - p_a \times t \times n - p_a \times b \times n - p_b \times b \times n - p_b \times n &gt; 0" title="p_a \times n - p_a \times t \times n - p_a \times b \times n - p_b \times b \times n - p_b \times n &gt; 0" /></p>
 <p>or, by re-arranging terms:</p>
-<p><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?%7Bp_a%20%5Cover%20p_b%7D%20%3E%20%7B%7B1%20%2B%20b%7D%5Cover%7B1%20-%20t%20-%20b%7D%7D" alt="{p_a \over p_b} &gt; {{1 + b}\over{1 - t - b}}" title="{p_a \over p_b} &gt; {{1 + b}\over{1 - t - b}}" /></p>
-<p>This last expression gives us a simple test to determine whether an asset is currently profitable for market making (the terms on the right are all constant). It also tells us that if we buy the asset at the bid price, <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?p_b" alt="p_b" title="p_b" />, then we must in turn sell the asset for at least <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?%7B%7B1%20%2B%20b%7D%5Cover%7B1%20-%20t%20-%20b%7D%7D%20%5Ctimes%20p_b" alt="{{1 + b}\over{1 - t - b}} \times p_b" title="{{1 + b}\over{1 - t - b}} \times p_b" /> in order to make a profit.</p>
-<p>If an asset is profitable for market making, then we’d also like to determine the expected return for this strategy. From the last chapter, we know that return is <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?%7B%7Bgross%7D%5Cover%7Bcost%7D%7D%20-%201" alt="{{gross}\over{cost}} - 1" title="{{gross}\over{cost}} - 1" />. Given the same definitions above, the expected return is therefore:</p>
-<p><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?%7B%7Bp_a%7D%5Cover%7Bp_a%20%5Ctimes%20t%20%2B%20b%20%5Ctimes%20%28p_a%20%2B%20p_b%29%20%2B%20p_b%7D%7D%20-%201" alt="{{p_a}\over{p_a \times t + b \times (p_a + p_b) + p_b}} - 1" title="{{p_a}\over{p_a \times t + b \times (p_a + p_b) + p_b}} - 1" /></p>
+<p><img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=%7Bp_a%20%5Cover%20p_b%7D%20%3E%20%7B%7B1%20%2B%20b%7D%5Cover%7B1%20-%20t%20-%20b%7D%7D" alt="{p_a \over p_b} &gt; {{1 + b}\over{1 - t - b}}" title="{p_a \over p_b} &gt; {{1 + b}\over{1 - t - b}}" /></p>
+<p>This last expression gives us a simple test to determine whether an asset is currently profitable for market making (the terms on the right are all constant). It also tells us that if we buy the asset at the bid price, <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=p_b" alt="p_b" title="p_b" />, then we must in turn sell the asset for at least <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=%7B%7B1%20%2B%20b%7D%5Cover%7B1%20-%20t%20-%20b%7D%7D%20%5Ctimes%20p_b" alt="{{1 + b}\over{1 - t - b}} \times p_b" title="{{1 + b}\over{1 - t - b}} \times p_b" /> in order to make a profit.</p>
+<p>If an asset is profitable for market making, then we’d also like to determine the expected return for this strategy. From the last chapter, we know that return is <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=%7B%7Bgross%7D%5Cover%7Bcost%7D%7D%20-%201" alt="{{gross}\over{cost}} - 1" title="{{gross}\over{cost}} - 1" />. Given the same definitions above, the expected return is therefore:</p>
+<p><img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=%7B%7Bp_a%7D%5Cover%7Bp_a%20%5Ctimes%20t%20%2B%20b%20%5Ctimes%20%28p_a%20%2B%20p_b%29%20%2B%20p_b%7D%7D%20-%201" alt="{{p_a}\over{p_a \times t + b \times (p_a + p_b) + p_b}} - 1" title="{{p_a}\over{p_a \times t + b \times (p_a + p_b) + p_b}} - 1" /></p>
 <p>Beyond profitability, this last expression allows us to filter for market making opportunities which exceed a certain return. Note that neither the profitability formula, nor the return formula contain a term describing the number of assets bought or sold. In reality, the volume transacted is an important factor as markets have a fixed capacity which can change over time. We’ll consider the volume question again later in the chapter.</p>
 <p>Market making as a trading strategy in EVE has two important limitations which must be taken into consideration:</p>
 <ul>
@@ -1896,13 +1896,13 @@ Buy Orders:
 <img src="img/ex14_cell2.PNG" alt="Filtering For Liquidity" /><figcaption>Filtering For Liquidity</figcaption>
 </figure>
 <p>Our next two filters consider profitability and return using the equations defined earlier in this chapter. We can actually combine these filters into a single filter since any asset with a positive return must also be profitable. Therefore, we’ll only compute return and use our filter to retain those assets which meet a particular return threshold. From above, we know that return is determined by the equation:</p>
-<p><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?%7B%7Bp_a%7D%5Cover%7Bp_a%20%5Ctimes%20t%20%2B%20b%20%5Ctimes%20%28p_a%20%2B%20p_b%29%20%2B%20p_b%7D%7D%20-%201" alt="{{p_a}\over{p_a \times t + b \times (p_a + p_b) + p_b}} - 1" title="{{p_a}\over{p_a \times t + b \times (p_a + p_b) + p_b}} - 1" /></p>
+<p><img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=%7B%7Bp_a%7D%5Cover%7Bp_a%20%5Ctimes%20t%20%2B%20b%20%5Ctimes%20%28p_a%20%2B%20p_b%29%20%2B%20p_b%7D%7D%20-%201" alt="{{p_a}\over{p_a \times t + b \times (p_a + p_b) + p_b}} - 1" title="{{p_a}\over{p_a \times t + b \times (p_a + p_b) + p_b}} - 1" /></p>
 <p>where:</p>
 <ul>
-<li><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?p_a" alt="p_a" title="p_a" /> - the best ask price for an asset</li>
-<li><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?p_b" alt="p_b" title="p_b" /> - the best bid price for an asset</li>
-<li><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?t" alt="t" title="t" /> - station sales tax</li>
-<li><img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?b" alt="b" title="b" /> - station broker fee</li>
+<li><img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=p_a" alt="p_a" title="p_a" /> - the best ask price for an asset</li>
+<li><img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=p_b" alt="p_b" title="p_b" /> - the best bid price for an asset</li>
+<li><img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=t" alt="t" title="t" /> - station sales tax</li>
+<li><img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=b" alt="b" title="b" /> - station broker fee</li>
 </ul>
 <p>The order book will provide best bid and ask prices, but we’ll need to pick specific values for sales tax and broker fee. For this example, we’ll use 1% and 2.5%, respectively, which are typical values at an NPC station with maximum skills. For each asset, we’ll compute return for each snapshot in each order book over our date range. It is rarely the case that returns are consistent from snapshot to snapshot, much less from day to day. Therefore, we’ll use the median of the snapshot returns to represent the return for an asset for a given day. We’ll include an asset if median return exceeds our target return for at least half the days in our date range. We’ll set our target return at 5%. Once again, these are arbitrary choices. You can tighten the filter by using a lower quantile for representing daily return; by increasing the number of days for which the return target must be met; or, by increasing the return target. The following code produces a Pandas DataFrame of daily returns for each asset in our date range (NOTE: this cell may take several minutes to execute due to the amount of data processed):</p>
 <figure>
@@ -2111,7 +2111,7 @@ Buy Orders:
 
         <span class="co"># Place a buy order for an asset</span>
         top_bid <span class="op">=</span> <span class="va">self</span>.best_bid(order_book)
-        price <span class="op">=</span> top_bid <span class="op">+</span> <span class="fl">0.01</span> <span class="cf">if</span> top_bid <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span> <span class="cf">else</span> <span class="fl">0.01</span>
+        price <span class="op">=</span> top_bid <span class="op">+</span> <span class="fl">0.01</span> <span class="cf">if</span> top_bid <span class="op">is</span> <span class="op">not</span> <span class="va">None</span> <span class="cf">else</span> <span class="fl">0.01</span>
         buy_order <span class="op">=</span> <span class="va">self</span>.tracked_order(<span class="va">self</span>.type_id, <span class="dv">30</span>, <span class="va">True</span>, price, <span class="va">self</span>.units, <span class="dv">1</span>)
 
         <span class="co"># Wait for our buy order to be filled</span>
@@ -2123,7 +2123,7 @@ Buy Orders:
         <span class="co"># Place a sell order for the asset we just bought</span>
         order_book <span class="op">=</span> <span class="va">self</span>.oms.get_current_order_book(<span class="va">self</span>.type_id)
         top_ask <span class="op">=</span> <span class="va">self</span>.best_ask(order_book)
-        price <span class="op">=</span> top_ask <span class="op">-</span> <span class="fl">0.01</span> <span class="cf">if</span> top_ask <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span> <span class="cf">else</span> <span class="dv">1000000000</span>
+        price <span class="op">=</span> top_ask <span class="op">-</span> <span class="fl">0.01</span> <span class="cf">if</span> top_ask <span class="op">is</span> <span class="op">not</span> <span class="va">None</span> <span class="cf">else</span> <span class="dv">1000000000</span>
         sell_order <span class="op">=</span> <span class="va">self</span>.tracked_order(<span class="va">self</span>.type_id, <span class="dv">30</span>, <span class="va">False</span>, price, <span class="va">self</span>.units, <span class="dv">1</span>)
 
         <span class="co"># Wait for our sell order to complete.  This is optional, the sell order</span>
@@ -2159,7 +2159,7 @@ Buy Orders:
 <p>Our first action is to wait for the next order book for the type we wish to trade. The <code>order_book</code> method returns a SimPy <code>Event</code> which will trigger when the order book is available. With SimPy, we <code>yield</code> an event to suspend the strategy until the event fires. Therefore, our strategy code is now blocked until the next order book is available:</p>
 <div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python">    <span class="co"># Place a buy order for an asset</span>
     top_bid <span class="op">=</span> <span class="va">self</span>.best_bid(order_book)
-    price <span class="op">=</span> top_bid <span class="op">+</span> <span class="fl">0.01</span> <span class="cf">if</span> top_bid <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span> <span class="cf">else</span> <span class="fl">0.01</span>
+    price <span class="op">=</span> top_bid <span class="op">+</span> <span class="fl">0.01</span> <span class="cf">if</span> top_bid <span class="op">is</span> <span class="op">not</span> <span class="va">None</span> <span class="cf">else</span> <span class="fl">0.01</span>
     buy_order <span class="op">=</span> <span class="va">self</span>.tracked_order(<span class="va">self</span>.type_id, <span class="dv">30</span>, <span class="va">True</span>, price, <span class="va">self</span>.units, <span class="dv">1</span>)
 
     <span class="co"># Wait for our buy order to be filled</span>
@@ -2171,7 +2171,7 @@ Buy Orders:
 <div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python">    <span class="co"># Place a sell order for the asset we just bought</span>
     order_book <span class="op">=</span> <span class="va">self</span>.oms.get_current_order_book(<span class="va">self</span>.type_id)
     top_ask <span class="op">=</span> <span class="va">self</span>.best_ask(order_book)
-    price <span class="op">=</span> top_ask <span class="op">-</span> <span class="fl">0.01</span> <span class="cf">if</span> top_ask <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span> <span class="cf">else</span> <span class="dv">1000000000</span>
+    price <span class="op">=</span> top_ask <span class="op">-</span> <span class="fl">0.01</span> <span class="cf">if</span> top_ask <span class="op">is</span> <span class="op">not</span> <span class="va">None</span> <span class="cf">else</span> <span class="dv">1000000000</span>
     sell_order <span class="op">=</span> <span class="va">self</span>.tracked_order(<span class="va">self</span>.type_id, <span class="dv">30</span>, <span class="va">False</span>, price, <span class="va">self</span>.units, <span class="dv">1</span>)
 
     <span class="co"># Wait for our sell order to complete.  This is optional, the sell order</span>
@@ -2236,18 +2236,18 @@ Buy Orders:
                 <span class="co"># Wait for the first snapshot with a profitable spread ratio.</span>
                 <span class="co">#</span>
                 buy_order <span class="op">=</span> <span class="va">None</span>
-                <span class="cf">while</span> buy_order <span class="kw">is</span> <span class="va">None</span>:
+                <span class="cf">while</span> buy_order <span class="op">is</span> <span class="va">None</span>:
                     order_book <span class="op">=</span> <span class="cf">yield</span> <span class="va">self</span>.oms.order_book(<span class="va">self</span>.type_id)
                     top_bid <span class="op">=</span> <span class="va">self</span>.best_bid(order_book)
                     top_ask <span class="op">=</span> <span class="va">self</span>.best_ask(order_book)
-                    <span class="cf">if</span> top_bid <span class="kw">is</span> <span class="va">None</span> <span class="kw">or</span> top_ask <span class="kw">is</span> <span class="va">None</span>:
+                    <span class="cf">if</span> top_bid <span class="op">is</span> <span class="va">None</span> <span class="op">or</span> top_ask <span class="op">is</span> <span class="va">None</span>:
                         <span class="co"># Spread not available</span>
                         <span class="cf">continue</span>
                     <span class="cf">if</span> top_ask <span class="op">/</span> top_bid <span class="op">&lt;=</span> price_ratio_target:
                         <span class="co"># Spread not profitable</span>
                         <span class="cf">continue</span></code></pre></div>
 <p>When the spread turns profitable, we place a buy order priced just above the current best bid:</p>
-<div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python">                    price <span class="op">=</span> top_bid <span class="op">+</span> <span class="fl">0.01</span> <span class="cf">if</span> top_bid <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span> <span class="cf">else</span> <span class="fl">0.01</span>
+<div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python">                    price <span class="op">=</span> top_bid <span class="op">+</span> <span class="fl">0.01</span> <span class="cf">if</span> top_bid <span class="op">is</span> <span class="op">not</span> <span class="va">None</span> <span class="cf">else</span> <span class="fl">0.01</span>
                     buy_order <span class="op">=</span> <span class="va">self</span>.tracked_order(<span class="va">self</span>.type_id, <span class="dv">30</span>, <span class="va">True</span>, price, <span class="va">self</span>.units, <span class="dv">1</span>)
                     <span class="cf">if</span> <span class="va">self</span>.verbose:
                         <span class="bu">print</span>(<span class="bu">str</span>(env.now) <span class="op">+</span> <span class="st">&quot; Buy order placed at &quot;</span> <span class="op">+</span> <span class="bu">str</span>(price))</code></pre></div>
@@ -2258,11 +2258,11 @@ Buy Orders:
                 <span class="co">#</span>
                 sell_order <span class="op">=</span> <span class="va">None</span>
                 c1, c2 <span class="op">=</span> buy_order.closed(), <span class="va">self</span>.oms.order_book(<span class="va">self</span>.type_id)
-                <span class="cf">while</span> sell_order <span class="kw">is</span> <span class="va">None</span>:
+                <span class="cf">while</span> sell_order <span class="op">is</span> <span class="va">None</span>:
                     result <span class="op">=</span> <span class="cf">yield</span> c1 <span class="op">|</span> c2</code></pre></div>
 <p>When <code>result</code> fires, it will return a map with a key for each of the events which triggered. The values in the map correspond to the values returned by the triggered events. If the buy order completes, then we’re ready to place a sell order. Note that we first compute a minimum price to protect re-pricing our sell order below profitability. This price is determined by the spread profitability ratio and the price at which the asset was purchased (see above). We place the sell order with a price designed to capture the best ask, while not going lower than the minimum sell price. Note that creating the sell order also breaks us out of the loop above:</p>
 <div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python">                    <span class="co"># Check for order status change first to avoid racing with new order book</span>
-                    <span class="cf">if</span> c1 <span class="kw">in</span> result:
+                    <span class="cf">if</span> c1 <span class="op">in</span> result:
                         <span class="co"># Order closed, if it was filled then place our sell order</span>
                         <span class="cf">if</span> buy_order.status <span class="op">!=</span> MMOrderStatus.FILLED:
                             <span class="co"># Something unexpected happened, exit sim</span>
@@ -2275,17 +2275,17 @@ Buy Orders:
                                                                (<span class="dv">1</span> <span class="op">-</span> <span class="va">self</span>.tax_rate <span class="op">-</span> <span class="va">self</span>.broker_rate)
                         order_book <span class="op">=</span> <span class="va">self</span>.oms.get_current_order_book(<span class="va">self</span>.type_id)
                         top_ask <span class="op">=</span> <span class="va">self</span>.best_ask(order_book)
-                        price <span class="op">=</span> top_ask <span class="op">-</span> <span class="fl">0.01</span> <span class="cf">if</span> top_ask <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span> <span class="cf">else</span> <span class="dv">1000000000</span>
+                        price <span class="op">=</span> top_ask <span class="op">-</span> <span class="fl">0.01</span> <span class="cf">if</span> top_ask <span class="op">is</span> <span class="op">not</span> <span class="va">None</span> <span class="cf">else</span> <span class="dv">1000000000</span>
                         price <span class="op">=</span> <span class="bu">max</span>(price, minimum_sell_price)
                         sell_order <span class="op">=</span> <span class="va">self</span>.tracked_order(<span class="va">self</span>.type_id, <span class="dv">30</span>, <span class="va">False</span>, price, <span class="va">self</span>.units, <span class="dv">1</span>)
                         <span class="cf">if</span> <span class="va">self</span>.verbose:
                             <span class="bu">print</span>(<span class="bu">str</span>(env.now) <span class="op">+</span> <span class="st">&quot; Sell order placed at &quot;</span> <span class="op">+</span> <span class="bu">str</span>(price))</code></pre></div>
 <p>If a new order book arrives while we’re waiting for our buy order to complete, then we’ll verify that our buy order still captures the best bid. The <code>promote_order</code> function in the base strategy handles this automatically, only re-pricing if we’re no longer at the top of the book. Note that there’s no check to ensure we don’t price ourselves out of profitability. We leave that improvement as an exercise for the reader:</p>
-<div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python">                    <span class="cf">if</span> c2 <span class="kw">in</span> result <span class="kw">and</span> sell_order <span class="kw">is</span> <span class="va">None</span>:
+<div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python">                    <span class="cf">if</span> c2 <span class="op">in</span> result <span class="op">and</span> sell_order <span class="op">is</span> <span class="va">None</span>:
                         <span class="co"># Make sure we still own the best bid</span>
                         order_book <span class="op">=</span> result[c2]
                         new_price <span class="op">=</span> <span class="va">self</span>.promote_order(buy_order, order_book)
-                        <span class="cf">if</span> <span class="va">self</span>.verbose <span class="kw">and</span> new_price <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:
+                        <span class="cf">if</span> <span class="va">self</span>.verbose <span class="op">and</span> new_price <span class="op">is</span> <span class="op">not</span> <span class="va">None</span>:
                             <span class="bu">print</span>(<span class="bu">str</span>(env.now) <span class="op">+</span> <span class="st">&quot; Buy order price changed to &quot;</span> <span class="op">+</span> <span class="bu">str</span>(new_price))
                         <span class="co"># Reset for next order book</span>
                         c2 <span class="op">=</span> <span class="va">self</span>.oms.order_book(<span class="va">self</span>.type_id)</code></pre></div>
@@ -2297,7 +2297,7 @@ Buy Orders:
                 <span class="cf">while</span> <span class="va">True</span>:
                     result <span class="op">=</span> <span class="cf">yield</span> c1 <span class="op">|</span> c2
                     <span class="co"># Check for order status change first to avoid racing with new order book</span>
-                    <span class="cf">if</span> c1 <span class="kw">in</span> result:
+                    <span class="cf">if</span> c1 <span class="op">in</span> result:
                         <span class="cf">if</span> sell_order.status <span class="op">!=</span> MMOrderStatus.FILLED:
                             <span class="co"># Something unexpected happened, exit sim</span>
                             <span class="cf">raise</span> <span class="pp">Exception</span>(<span class="st">&quot;Sell order in unexpected state: &quot;</span> <span class="op">+</span> <span class="bu">str</span>(sell_order.status))
@@ -2306,11 +2306,11 @@ Buy Orders:
                             <span class="bu">print</span>(<span class="bu">str</span>(env.now) <span class="op">+</span> <span class="st">&quot; Sell order completed&quot;</span>)
                         <span class="cf">break</span></code></pre></div>
 <p>If we receive a new order book, then we’ll verify that our sell order still captures the top of book. However, this time we impose a <code>side_limit</code> to avoid moving our sell order out of profitability:</p>
-<div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python">                    <span class="cf">if</span> c2 <span class="kw">in</span> result <span class="kw">and</span> sell_order.status <span class="op">==</span> MMOrderStatus.OPEN:
+<div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python">                    <span class="cf">if</span> c2 <span class="op">in</span> result <span class="op">and</span> sell_order.status <span class="op">==</span> MMOrderStatus.OPEN:
                         <span class="co"># Make sure we still own the best ask</span>
                         order_book <span class="op">=</span> result[c2]
                         new_price <span class="op">=</span> <span class="va">self</span>.promote_order(sell_order, order_book, side_limit<span class="op">=</span>minimum_sell_price)
-                        <span class="cf">if</span> <span class="va">self</span>.verbose <span class="kw">and</span> new_price <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:
+                        <span class="cf">if</span> <span class="va">self</span>.verbose <span class="op">and</span> new_price <span class="op">is</span> <span class="op">not</span> <span class="va">None</span>:
                             <span class="bu">print</span>(<span class="bu">str</span>(env.now) <span class="op">+</span> <span class="st">&quot; Sell order price changed to &quot;</span> <span class="op">+</span> <span class="bu">str</span>(new_price))
                         <span class="co"># Reset for next order book</span>
                         c2 <span class="op">=</span> <span class="va">self</span>.oms.order_book(<span class="va">self</span>.type_id)</code></pre></div>
@@ -2407,7 +2407,7 @@ Buy Orders:
         stop_strategy <span class="op">=</span> env.timeout(<span class="va">self</span>.end_time <span class="op">-</span> env.now)
         run_strategy <span class="op">=</span> env.process(<span class="bu">super</span>().run(env))
         <span class="cf">yield</span> stop_strategy <span class="op">|</span> run_strategy
-        <span class="cf">if</span> <span class="kw">not</span> run_strategy.triggered:
+        <span class="cf">if</span> <span class="op">not</span> run_strategy.triggered:
             <span class="co"># Interrupt</span>
             run_strategy.interrupt()
         <span class="cf">if</span> <span class="va">self</span>.verbose:
@@ -2446,7 +2446,7 @@ Buy Orders:
 <li>you’re betting on few competitors entering the market to undercut your sell orders. In the worst case, competitors will undercut you below profitability.</li>
 </ul>
 <p>Let’s do the math on this strategy, then we’ll explore an example where we try to find good targets for relisting. It may be tempting to run our simulator for this variant, but the current version of our simulator is not ideal for testing relisting because our order arrival model is not adversarial (i.e. it can’t know to undercut a relisted market). We invite the reader to improve our simulator for this use case.</p>
-<p>If the best ask for a given asset type <em>a</em> is <em>p</em>, then we can buy a unit of <em>a</em> at a cost of <em>p</em> with a market order. We are not charged any broker fees in this case because we’re buying at the market. If our goal is a return of <em>r</em>, then we need to sell the asset at a price of <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?%7Bp%20times%20%28r%20%2B%201%29%7D%5Cover%7B1%20-%20r%20%5Ctimes%20%28t%20%2B%20b%29%20-%20t%20-%20b%7D" alt="{p times (r + 1)}\over{1 - r \times (t + b) - t - b}" title="{p times (r + 1)}\over{1 - r \times (t + b) - t - b}" /> where <em>t</em> is the current sales tax rate, and <em>b</em> is the current broker fee rate. This formula is just a variant of the return formula we introduced at the beginning of this chapter. Normally, we’ll want to pad <em>r</em> a little higher to allow for price movement down. We’ll need to add even more buffer if we expect competition to undercut our prices significantly.</p>
+<p>If the best ask for a given asset type <em>a</em> is <em>p</em>, then we can buy a unit of <em>a</em> at a cost of <em>p</em> with a market order. We are not charged any broker fees in this case because we’re buying at the market. If our goal is a return of <em>r</em>, then we need to sell the asset at a price of <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=%7Bp%20times%20%28r%20%2B%201%29%7D%5Cover%7B1%20-%20r%20%5Ctimes%20%28t%20%2B%20b%29%20-%20t%20-%20b%7D" alt="{p times (r + 1)}\over{1 - r \times (t + b) - t - b}" title="{p times (r + 1)}\over{1 - r \times (t + b) - t - b}" /> where <em>t</em> is the current sales tax rate, and <em>b</em> is the current broker fee rate. This formula is just a variant of the return formula we introduced at the beginning of this chapter. Normally, we’ll want to pad <em>r</em> a little higher to allow for price movement down. We’ll need to add even more buffer if we expect competition to undercut our prices significantly.</p>
 <p>Now let’s consider which asset types would be best suited for this strategy. We might consider assets which meet one or more of the following criteria:</p>
 <ul>
 <li>There should be ample buy volume in the market. Our main risk with this strategy is that we are unable to sell our orders before enough competition arrives to undercut us below profitability. As long as buy volume is strong, this risk is low.</li>
@@ -2509,7 +2509,7 @@ Buy Orders:
 <p>These results suggest that, at least for the market at this particular location, relisting is only practical if it extends over multiple days. However, this increases the probability that other market participants will try to undercut. It is possible that less populated regions are better targets for relisting. We leave this analysis to the reader.</p>
 <h2 id="practical-trading-tips-1">Practical Trading Tips</h2>
 <h3 id="funding-requirements">Funding Requirements</h3>
-<p>Our discussion of simulation didn’t cover account management, but for real trading you’ll need to decide how much to fund your trading account. The amount required depends on the largest position you plan to take, plus a buffer to cover broker fees. For simplicity, suppose you are going to trade a single asset. Suppose further that the highest price you’ll buy this asset at is <em>p</em> and you’re hoping to making a return of <em>r</em> on each round of market making. If <em>n</em> is the volume you plan to trade and <em>b</em> is the broker fee rate, then you’ll need to spend <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?%28n%20%5Ctimes%20p%29%20%5Ctimes%20%281%20%2B%20b%29" alt="(n \times p) \times (1 + b)" title="(n \times p) \times (1 + b)" /> to acquire an initial position in your asset. When you’re ready to sell your position, you’ll need to spend at least <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?n%20%5Ctimes%20p%20%5Ctimes%20%281%20%2B%20r%29%20%5Ctimes%20b" alt="n \times p \times (1 + r) \times b" title="n \times p \times (1 + r) \times b" /> on the sell order. Therefore, your account must be funded with at least <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?%28n%20%5Ctimes%20p%29%20%5Ctimes%20%281%20%2B%20b%29%20%2B%20%28n%20%5Ctimes%20p%20%29%20%5Ctimes%20%281%20%2B%20r%29%20%5Ctimes%20b" alt="(n \times p) \times (1 + b) + (n \times p ) \times (1 + r) \times b" title="(n \times p) \times (1 + b) + (n \times p ) \times (1 + r) \times b" /> or in simplified form: <img style="vertical-align:middle" src="https://latex.codecogs.com/png.latex?%28n%20%5Ctimes%20p%29%20%5Ctimes%20%281%20%2B%20b%20%5Ctimes%20%282%20%2B%20r%29%29" alt="(n \times p) \times (1 + b \times (2 + r))" title="(n \times p) \times (1 + b \times (2 + r))" />. We recommend a small buffer above this minimum value to account for price movement and re-pricing fees.</p>
+<p>Our discussion of simulation didn’t cover account management, but for real trading you’ll need to decide how much to fund your trading account. The amount required depends on the largest position you plan to take, plus a buffer to cover broker fees. For simplicity, suppose you are going to trade a single asset. Suppose further that the highest price you’ll buy this asset at is <em>p</em> and you’re hoping to making a return of <em>r</em> on each round of market making. If <em>n</em> is the volume you plan to trade and <em>b</em> is the broker fee rate, then you’ll need to spend <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=%28n%20%5Ctimes%20p%29%20%5Ctimes%20%281%20%2B%20b%29" alt="(n \times p) \times (1 + b)" title="(n \times p) \times (1 + b)" /> to acquire an initial position in your asset. When you’re ready to sell your position, you’ll need to spend at least <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=n%20%5Ctimes%20p%20%5Ctimes%20%281%20%2B%20r%29%20%5Ctimes%20b" alt="n \times p \times (1 + r) \times b" title="n \times p \times (1 + r) \times b" /> on the sell order. Therefore, your account must be funded with at least <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=%28n%20%5Ctimes%20p%29%20%5Ctimes%20%281%20%2B%20b%29%20%2B%20%28n%20%5Ctimes%20p%20%29%20%5Ctimes%20%281%20%2B%20r%29%20%5Ctimes%20b" alt="(n \times p) \times (1 + b) + (n \times p ) \times (1 + r) \times b" title="(n \times p) \times (1 + b) + (n \times p ) \times (1 + r) \times b" /> or in simplified form: <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=%28n%20%5Ctimes%20p%29%20%5Ctimes%20%281%20%2B%20b%20%5Ctimes%20%282%20%2B%20r%29%29" alt="(n \times p) \times (1 + b \times (2 + r))" title="(n \times p) \times (1 + b \times (2 + r))" />. We recommend a small buffer above this minimum value to account for price movement and re-pricing fees.</p>
 <h3 id="order-layering">Order Layering</h3>
 <p>A key challenge for market making strategies is ensuring that your orders always capture the top of book. There are two main forces fighting against you:</p>
 <ol type="1">
