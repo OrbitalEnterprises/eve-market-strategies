@@ -16,7 +16,7 @@ class TradingUtil:
         if station_id in region_info.station_map.keys():
             return region_info.station_map[station_id].solar_system_id
         if esip_client is not None:
-            result, status = esip_client.Universe.get_universe_structures_structure_id(structure_id=stationID).result()
+            result, status = esip_client.Universe.get_universe_structures_structure_id(structure_id=station_id).result()
             if status.status_code == 200 and len(result) > 0:
                 return result[0]['solar_system_id'];
         if citadel_client is not None:
