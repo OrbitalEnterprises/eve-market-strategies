@@ -545,7 +545,7 @@ There are two changes from the original equation:
 1. Brokerage fee, $b$, increases the cost of purchasing the source material, scaling the purchase price by the term $(1 + b)$; and,
 2. Purchase price is now based on the best bid price of the source material, $p_b(r)$, instead of the best ask price.
 
-When the above equation is positive, then the opportunity is profitable.  Find the correct buy price for our limit orders, we need to create an equation in terms of our target return, $g$, and then solve for $p_b(r)$.  Return is just profit divided by cost.  Profit, in turn, is gross proceeds minus cost.  As a result:
+When the above equation is positive, then the opportunity is profitable.  To find the correct buy price for our limit orders, we need to create an equation in terms of our target return, $g$, and then solve for $p_b(r)$.  Return is just profit divided by cost.  Profit, in turn, is gross proceeds minus cost.  As a result:
 
 ${return} = {{profit}\over{cost}} = {{{gross} - {cost}}\over{cost}} = {{gross}\over{cost}} - 1$
 
@@ -566,7 +566,7 @@ This equation looks complicated, but on any given day every term is a constant e
 Now that we know the price we should buy at to achieve our target return, let's consider the question of determining which assets to buy.  An ideal asset to buy would have at least two properties:
 
 1. The best bid regularly hovers around our target price; and,
-2. A reasonable volume of the asset is sold at the best bid (this implies the asset liquid).
+2. A reasonable volume of the asset is sold at the best bid (this implies the asset is liquid).
 
 We can use a back test similar to what we have done earlier to check which assets regularly bid close to the appropriate target price for our desired return.  To check how much volume is sold at the best bid, we need to estimate trades as we did previously in [Example 4](#example-4---unpublished-data-build-a-trade-heuristic).  We'll implement both of these tests in the next example.
 

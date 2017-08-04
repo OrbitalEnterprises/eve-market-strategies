@@ -1,5 +1,6 @@
 # evekit.util package
 import datetime
+import pytz
 
 
 def convert_raw_time(raw_time):
@@ -9,4 +10,4 @@ def convert_raw_time(raw_time):
     :param raw_time: time in milliseconds UTC (since the epoch)
     :return: raw time converted to datetime
     """
-    return datetime.datetime.fromtimestamp(raw_time//1000, datetime.timezone.utc).replace(microsecond=raw_time%1000*1000)
+    return datetime.datetime.fromtimestamp(raw_time//1000, pytz.UTC).replace(microsecond=raw_time%1000*1000)
