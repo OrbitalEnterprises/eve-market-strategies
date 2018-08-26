@@ -335,7 +335,7 @@ def execution_chunk(chunk):
     for next_type in type_list:
         book_batch = book_batch.union(source_types[next_type]['material_map'].keys())
         book_types[next_type] = source_types[next_type]
-    order_book = OrderBook.get_data_frame(dates=[compute_date], types=book_batch, regions=[region_id], 
+    order_book = OrderBook.get_data_frame(dates=[dt], types=book_batch, regions=[region_id], 
                                           config=dict(local_storage=".", tree=True, skip_missing=True, fill_gaps=True, verbose=True))
     return find_opportunities(order_book, book_types, station_id, region_id, efficiency, tax_rate, station_tax, verbose=True)    
 
