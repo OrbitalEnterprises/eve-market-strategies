@@ -94,6 +94,7 @@ class MarketData:
             existing = SwaggerClient.from_url("https://evekit-market.orbital.enterprises//swagger",
                                               config={'use_models': False,
                                                       'validate_responses': False,
+                                                      'validate_requests': False,
                                                       'also_return_response': True})
             __external_clients__.set('MarketData', True, existing)
         return existing
