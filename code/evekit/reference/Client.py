@@ -5,13 +5,10 @@ Convenience objects for creating various swagger clients:
 * SDE        - Client for the EVE Static Data Export service hosted by Orbital Enterprises
 * MarketData - Client for Market Data service hosted by Orbital Enterprises
 * ESI        - Client for CCP's EVE Swagger Interface
-* ESIProxy   - Client for the EVE Swagger Interface Proxy hosted by Orbital Enterprises
 * Citadel    - Client for the Structure Name API at https://stop.hammerti.me.uk/api/
 
 """
 from bravado.client import SwaggerClient
-from bravado.requests_client import RequestsClient
-from bravado.requests_client import Authenticator
 
 
 class __ExternalClientMap:
@@ -39,6 +36,7 @@ def __mk_key__(*args):
     :return: concatenated key
     """
     return "_".join(args)
+
 
 __external_clients__ = __ExternalClientMap()
 """
@@ -136,59 +134,4 @@ class Citadel:
                                                       'validate_responses': False,
                                                       'also_return_response': True})
             __external_clients__.set('Citadel', True, existing)
-        return existing
-
-
-class ApiKeyPairAuthenticator(Authenticator):
-    """
-    Bravado authenticator which accepts two query based API keys
-    """
-    def __init__(self, host, key_1_name, key_1_key, key_2_name, key_2_key):
-        super(ApiKeyPairAuthenticator, self).__init__(host)
-        self.key_1_name = key_1_name
-        self.key_1_key = key_1_key
-        self.key_2_name = key_2_name
-        self.key_2_key = key_2_key
-
-    def apply(self, request):
-        request.params[self.key_1_name] = self.key_1_key
-        request.params[self.key_2_name] = self.key_2_key
-        return request
-
-
-class AuthRequestsClient(RequestsClient):
-    """
-    Customized Bravado RequestClient which allows setting an authenticator directly
-    """
-    def set_auth(self, auth):
-        self.authenticator = auth
-
-
-class ESIProxy:
-    @staticmethod
-    def get(api_key, api_hash, release='latest', source='tranquility'):
-        """
-        Get a Swagger client for the Proxied EVE Swagger Interface
-        :param api_key: Proxy api key.
-        :param api_hash: Proxy api hash.
-        :param release: ESI release.  One of 'latest', 'legacy' or 'dev'.
-        :param source: ESI source.  One of 'tranquility' or 'singularity'.
-        :return: a SwaggerClient for the EVE Swagger Interface
-        """
-        global __external_clients__
-        key = __mk_key__(api_key, api_hash, release, source)
-        existing = __external_clients__.get('ESIProxy', key)
-        if existing is None:
-            pair_auth = ApiKeyPairAuthenticator('esi-proxy.orbital.enterprises',
-                                                'esiProxyKey', api_key,
-                                                'esiProxyHash', api_hash)
-            http_client = AuthRequestsClient()
-            http_client.set_auth(pair_auth)
-            url = "https://esi-proxy.orbital.enterprises/%s/swagger.json?datasource=%s" % (release, source)
-            existing = SwaggerClient.from_url(url,
-                                              http_client=http_client,
-                                              config={'use_models': False,
-                                                      'validate_responses': False,
-                                                      'also_return_response': True})
-            __external_clients__.set('ESIProxy', key, existing)
         return existing

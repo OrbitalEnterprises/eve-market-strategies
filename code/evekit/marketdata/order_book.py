@@ -33,6 +33,7 @@ class MarketOrder:
         self.order_range = vals[7]
         self.location_id = int(vals[8])
         self.duration = int(vals[9])
+        self.system_id = int(vals[10]) if len(vals) >= 11 else 0
 
     def copy(self):
         new_order = MarketOrder()
@@ -45,14 +46,17 @@ class MarketOrder:
         new_order.volume = self.volume           
         new_order.order_range = self.order_range      
         new_order.location_id = self.location_id      
-        new_order.duration = self.duration         
+        new_order.duration = self.duration
+        new_order.system_id = self.system_id
         return new_order
-        
+
     def __str__(self):
-        return "MarkerOrder[%d, %s, %s, %s, %d, %d, %d, %s, %d, %d]" % (self.order_id, self.buy, self.issued,
-                                                                        self.price, self.volume_entered,
-                                                                        self.min_volume, self.volume, self.order_range,
-                                                                        self.location_id, self.duration)
+        return "MarkerOrder[%d, %s, %s, %s, %d, %d, %d, %s, %d, %d, %d]" % (self.order_id, self.buy, self.issued,
+                                                                            self.price, self.volume_entered,
+                                                                            self.min_volume, self.volume,
+                                                                            self.order_range,
+                                                                            self.location_id, self.duration,
+                                                                            self.system_id)
 
     def __repr__(self):
         return str(self)

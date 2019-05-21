@@ -2,3 +2,7 @@ eve-market-strategies.epub
 eve-market-strategies.mobi
 eve-market-strategies.pdf
 eve-market-strategies.rtf
+.idea
+.DS_Store
+.ipython
+__pycache__

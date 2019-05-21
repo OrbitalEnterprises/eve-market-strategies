@@ -18,16 +18,14 @@
 #
 # See the book text for more details
 #
-import pandas as pd
 import numpy as np
-from pandas import DataFrame, Series
 import datetime
 import sys
 # EveKit imports
 from evekit.reference import Client
-from evekit.util import convert_raw_time
 from evekit.marketdata import TradingUtil
 from evekit.marketdata import OrderBook
+from multiprocessing import Pool
 
 # Set efficiency, tax rate and station tax.
 
@@ -43,30 +41,33 @@ tax_rate = 0.01
 # So we'll set station tax to 0.04 here.
 station_tax = 0.04
 
+
 # Setup reference data
 #
 def setup(dt):
-    global sde_client, region_id, station_id, compute_date, source_types
+    global sde_client, region_id, system_id, station_id, compute_date, source_types
     #
     # Preliminaries
     #
     sde_client = Client.SDE.get()
-    region_query = "{values: ['The Forge']}"
     station_query = "{values: ['Jita IV - Moon 4 - Caldari Navy Assembly Plant']}"
-    region_id = sde_client.Map.getRegions(regionName=region_query).result()[0][0]['regionID']
-    station_id = sde_client.Station.getStations(stationName=station_query).result()[0][0]['stationID']
+    station_data = sde_client.Station.getStations(stationName=station_query).result()[0][0]
+    region_id = station_data['regionID']
+    system_id = station_data['solarSystemID']
+    station_id = station_data['stationID']
     compute_date = dt
-    print("Using region_id=%d, station_id=%d on date %s" % (region_id, station_id, str(compute_date)), flush=True)
+    print("Using region_id=%d, system_id=%d, station_id=%d on date %s" %
+          (region_id, system_id, station_id, str(compute_date)), flush=True)
     #
     # Setup types
     #
     material_map = {}
     source_types = {}
     for next_type in Client.SDE.load_complete(sde_client.Inventory.getTypeMaterials):
-        typeID = next_type['typeID']
-        if typeID not in material_map.keys():
-            material_map[typeID] = {}
-        material_map[typeID][next_type['materialTypeID']] = next_type
+        type_id = next_type['typeID']
+        if type_id not in material_map.keys():
+            material_map[type_id] = {}
+        material_map[type_id][next_type['materialTypeID']] = next_type
     #
     # Now resolve type information
     #
@@ -75,9 +76,9 @@ def setup(dt):
         next_batch = type_list[i:min(i+100, len(type_list))]
         type_query = "{values:[" + ",".join([str(x) for x in next_batch]) + "]}"
         for next_type in Client.SDE.load_complete(sde_client.Inventory.getTypes, typeID=type_query):
-            typeID = next_type['typeID']
-            source_types[typeID] = next_type
-            source_types[typeID]['material_map'] = material_map[typeID]
+            type_id = next_type['typeID']
+            source_types[type_id] = next_type
+            source_types[type_id]['material_map'] = material_map[type_id]
     #
     # Finally, remove the ore and ice types from the source types
     #
@@ -95,12 +96,12 @@ def setup(dt):
 
 # Function to save opportunities to a file in CSV format
 #
-def save_opportunities(opps, fout):
+def save_opportunities(opps, opp_fout):
     for opp in opps:
         profit = "{:15,.2f}".format(opp['profit'])
         margin = "{:8.2f}".format(opp['margin'] * 100)
         # time, profit, gross, cost, typename
-        print("%s,%s,%s,%s,%s" % (str(opp['time']), str(opp['profit']), str(opp['gross']), str(opp['cost']), opp['type']), file=fout)
+        print("%s,%s,%s,%s,%s" % (str(opp['time']), str(opp['profit']), str(opp['gross']), str(opp['cost']), opp['type']), file=opp_fout)
 
 
 # Function which attempts to buy a type from the given order list in the given volume.
@@ -127,14 +128,13 @@ def attempt_buy_type_list(buy_volume, sell_order_list):
 # Orders in the list are "consumed" as they are used (mutates buy_order_list)
 # Set use_citadel=True to resolve citadel locations for more accurate order matching.
 #
-def attempt_sell_type_list(sell_region_id, sell_location_id, sell_volume, buy_order_list):
-    config = dict(use_citadel=False)
+def attempt_sell_type_list(sell_region_id, sell_solar_id, sell_location_id, sell_volume, buy_order_list):
     potential = []
-    for next_order in buy_order_list:
+    ranged_buy_orders = [x for x in buy_order_list if TradingUtil.order_match(sell_region_id, sell_solar_id,
+                                                                              sell_location_id, x)]
+    for next_order in ranged_buy_orders:
         try:
-            if sell_volume >= next_order['min_volume'] and next_order['volume'] > 0 and \
-               TradingUtil.check_range(sell_region_id, sell_location_id, next_order['location_id'], 
-                                       next_order['order_range'], config):
+            if sell_volume >= next_order['min_volume'] and next_order['volume'] > 0:
                 # Sell into this order
                 amount = min(sell_volume, next_order['volume'])
                 order_record = dict(price=next_order['price'], volume=amount)
@@ -184,7 +184,7 @@ def compress_order_list(order_list, ascending=True):
             order_map[next_order['price']] = next_order['volume']
         else:
             order_map[next_order['price']] += next_order['volume']
-    orders = [ dict(price=k,volume=v) for k, v in order_map.items()]
+    orders = [dict(price=k,volume=v) for k, v in order_map.items()]
     return sorted(orders, key=lambda x: x['price'], reverse=not ascending)
 
 
@@ -203,13 +203,13 @@ def compress_order_list(order_list, ascending=True):
 #
 # Compressed order lists group orders by price and sum the volume.
 #
-def attempt_opportunity(snapshot, type_id, region_id, station_id, type_map, tax_rate, efficiency, station_tax):
+def attempt_opportunity(snapshot, type_id, opp_region_id, opp_system_id, opp_station_id, type_map, opp_tax_rate,
+                        opp_efficiency, opp_station_tax):
     # Reduce to type to extract minimum reprocessing volume
-    by_type = snapshot[snapshot.type_id == type_id]
     required_volume = type_map[type_id]['portionSize']
     #
     # Create source sell order list.
-    sell_order_list = extract_sell_orders(snapshot, type_id, station_id)
+    sell_order_list = extract_sell_orders(snapshot, type_id, opp_station_id)
     #
     # Create refined materials buy order lists.
     buy_order_map = {}
@@ -226,7 +226,6 @@ def attempt_opportunity(snapshot, type_id, region_id, station_id, type_map, tax_
     while True:
         #
         # Attempt to buy source material
-        current_cost = 0
         current_gross = 0
         bought = attempt_buy_type_list(required_volume, sell_order_list)
         if len(bought) == 0:
@@ -234,24 +233,25 @@ def attempt_opportunity(snapshot, type_id, region_id, station_id, type_map, tax_
             break
         #
         # Add cost of buying source material
-        current_cost = np.sum([ x['price'] * x['volume'] for x in bought ])
+        current_cost = np.sum([x['price'] * x['volume'] for x in bought])
         #
         # Now attempt to refine and sell all refined materials
         sell_orders = {}
         for next_mat_id in buy_order_map.keys():
-            sell_volume = int(type_map[type_id]['material_map'][next_mat_id]['quantity'] * efficiency)
-            sold = attempt_sell_type_list(region_id, station_id, sell_volume, buy_order_map[next_mat_id])
+            sell_volume = int(type_map[type_id]['material_map'][next_mat_id]['quantity'] * opp_efficiency)
+            sold = attempt_sell_type_list(opp_region_id, opp_system_id, opp_station_id, sell_volume,
+                                          buy_order_map[next_mat_id])
             if len(sold) == 0:
                 # Can't sell any more refined material, done with this opportunity
                 sell_orders = []
                 break
             #
             # Add gross profit from selling refined material
-            current_gross += (1 - tax_rate) * np.sum([ x['price'] * x['volume'] for x in sold ])
+            current_gross += (1 - opp_tax_rate) * np.sum([x['price'] * x['volume'] for x in sold])
             #
             # Add incremental cost of refining source to this refined material.
             # If we had actual adjusted_prices, we'd use those prices in place of x['price'] below.
-            current_cost += station_tax * np.sum([ x['price'] * x['volume'] for x in sold ])
+            current_cost += opp_station_tax * np.sum([x['price'] * x['volume'] for x in sold])
             #
             # Save the set of sale orders we just made
             sell_orders[next_mat_id] = sold
@@ -286,7 +286,8 @@ def attempt_opportunity(snapshot, type_id, region_id, station_id, type_map, tax_
 # station.  Refined materials are assumed to be sold from the given station ID into the
 # given region ID.  The remaining parameters configure the reprocessing equation.
 #
-def find_opportunities(order_book, type_map, station_id, region_id, efficiency, sales_tax, station_tax, verbose=False):
+def find_opportunities(order_book, type_map, opp_station_id, opp_system_id, opp_region_id, opp_efficiency, sales_tax,
+                       opp_station_tax, verbose=False):
     total_snapshots = len(order_book.groupby(order_book.index))
     if verbose:
         print("Checking %d snapshots for opportunities" % total_snapshots, flush=True)
@@ -305,23 +306,25 @@ def find_opportunities(order_book, type_map, station_id, region_id, efficiency, 
         #
         # Iterate through each source type looking for opportunities
         for source_type in type_map.values():
-            opp = attempt_opportunity(snapshot, source_type['typeID'], region_id, station_id, type_map, 
-                                      sales_tax, efficiency, station_tax)
+            opp = attempt_opportunity(snapshot, source_type['typeID'], opp_region_id, opp_system_id, opp_station_id,
+                                      type_map, sales_tax, opp_efficiency, opp_station_tax)
             if opp is not None:
                 #
                 # Save the time and type if we've found a valid opportunity
                 opp['time'] = snapshot_time
                 opp['type'] = source_type['typeName']
                 opportunities.append(opp)
+
     if verbose:
         print(flush=True)
+
     return opportunities
 
 
 # Execution opportunity finder on a set of types pulled from the type map
 #
 def execution_chunk(chunk):
-    global sde_client, source_types, region_id, station_id
+    global sde_client, source_types, region_id, system_id, station_id
     sde_client = Client.SDE.get()
     source_types = chunk['source_types']
     region_id = chunk['region_id']
@@ -329,15 +332,17 @@ def execution_chunk(chunk):
     dt = chunk['compute_date']
     type_list = chunk['type_list']
     print("Processing: " + str(type_list))
-    #setup(dt)
+    # setup(dt)
     book_batch = set(type_list)
     book_types = {}
     for next_type in type_list:
         book_batch = book_batch.union(source_types[next_type]['material_map'].keys())
         book_types[next_type] = source_types[next_type]
     order_book = OrderBook.get_data_frame(dates=[dt], types=book_batch, regions=[region_id], 
-                                          config=dict(local_storage=".", tree=True, skip_missing=True, fill_gaps=True, verbose=True))
-    return find_opportunities(order_book, book_types, station_id, region_id, efficiency, tax_rate, station_tax, verbose=True)    
+                                          config=dict(local_storage=".", tree=True, skip_missing=True,
+                                                      fill_gaps=True, verbose=True))
+    return find_opportunities(order_book, book_types, station_id, system_id, region_id,
+                              efficiency, tax_rate, station_tax, verbose=True)
 
 # The first actual change we need to make for scrapmetal processing is dealing with the large
 # number of reprocessable types.  If you have sufficient memory, you can load the entire
@@ -349,24 +354,27 @@ def execution_chunk(chunk):
 # and 288 snapshots in a day, a significant amount of data is being analyzed.
 #
 
-from multiprocessing import Pool
 
 if __name__ == '__main__':
     # start 4 worker processes
-    workers = 14
-    chunk_size = 100
+    workers = 1
+    chunk_size = 10
     compute_date = datetime.datetime.strptime(sys.argv[1], "%Y-%m-%d")
     setup(compute_date)
     with Pool(processes=workers) as pool:
         # execute find_opportunities on chunks of the type_map
-        type_list = list(source_types.keys())
+        process_type_list = list(source_types.keys())
         chunks = []
-        for i in range(0, len(type_list), chunk_size):
-            chunks.append(dict(compute_date=compute_date,
-                               type_list=type_list[i:min(i+chunk_size, len(type_list))],
-                               source_types=source_types,
-                               region_id=region_id,
-                               station_id=station_id))
+        for i in range(0, len(process_type_list), chunk_size):
+            next_chunk = dict(compute_date=compute_date,
+                              type_list=process_type_list[i:min(i + chunk_size, len(process_type_list))],
+                              source_types=source_types,
+                              region_id=region_id,
+                              station_id=station_id)
+            # temp
+            execution_chunk(next_chunk)
+            # temp
+            chunks.append(next_chunk)
         opps_arrays = pool.map(execution_chunk, chunks)
         fout = open(sys.argv[2], 'w')
         for next_result in opps_arrays:

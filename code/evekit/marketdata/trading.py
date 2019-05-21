@@ -11,22 +11,42 @@ class TradingUtil:
         pass
 
     @staticmethod
-    def resolve_solar_system(region_id, station_id, citadel_client=None, esip_client=None):
+    def resolve_solar_system(region_id, station_id):
         region_info = Region.get_region(region_id)
         if station_id in region_info.station_map.keys():
             return region_info.station_map[station_id].solar_system_id
-        if esip_client is not None:
-            result, status = esip_client.Universe.get_universe_structures_structure_id(structure_id=station_id).result()
-            if status.status_code == 200 and len(result) > 0:
-                return result[0]['solar_system_id'];
-        if citadel_client is not None:
-            result, status = citadel_client.Citadel.getCitadel(citadel_id=station_id).result()
-            if status.status_code == 200 and str(station_id) in result:
-                return result[str(station_id)]['systemId']
         return None
 
     @staticmethod
-    def check_range(region_id, sell_station_id, buy_station_id, order_range, config=None):
+    def order_match(region_id, solar_system_id, station_id, order):
+        """
+        Check whether a sell order placed at the given station in the given solar system could
+        be matched by the target order.
+
+        :param region_id: region where sell order will be placed
+        :param solar_system_id: solar system where sell order will be placed
+        :param station_id: station where sell order will be placed
+        :param order: order information
+        :return:
+        """
+        # Case 1 - order has range "region"
+        if str(order.order_range) == 'region':
+            return True
+        # Case 2 - order has range "station" and is in the same location
+        if str(order.order_range) == 'station':
+            return order.location_id == station_id
+        # Case 3 - order has range "solarsystem" and has location in the same solar system as stationID
+        region_info = Region.get_region(region_id)
+        if str(order.order_range) == 'solarsystem':
+            return order.location_id in region_info.station_map.keys() and \
+                   region_info.station_map[order.location_id].solar_system_id == solar_system_id
+        # Case 4 - order has a jump range and stationID is within the listed jump range
+        if order.system_id in region_info.solar_system_map.keys():
+            return region_info.solar_system_jump_count(solar_system_id, order.system_id) <= int(order.orderRange)
+        return False
+
+    @staticmethod
+    def check_range(region_id, sell_station_id, buy_station_id, order_range):
         """
         Check whether a sell order in the given selling station is within range of a buy
         order in the given buying station where the buying order has the given
@@ -36,11 +56,6 @@ class TradingUtil:
         :param sell_station_id: station ID where the sell order wil be placed
         :param buy_station_id: station ID where the buy order resides
         :param order_range: order range for the buy order
-        :param config: an optional configuration dictionary with settings:
-          use_citadel - if True, resolve player-owned structure information using the Citadel client
-          use_esi_proxy - if True, resolve player-owned structure information using the ESI Proxy client
-          esip_key - ESI Proxy key (required if use_esi_proxy is True)
-          esip_hash - ESI Proxy hash (required if use_esi_proxy is True)
         :return: None if solar system information was required but could not be resolved,
           otherwise returns True if the sell order is within range of the buy order, and
           False otherwise.
@@ -52,21 +67,8 @@ class TradingUtil:
         if order_range == 'station':
             return sell_station_id == buy_station_id
         # Remaining checks require solar system IDs and distance between solar systems
-        config = {} if config is None else config
-        use_citadel = config.get('use_citadel', False)
-        use_esi_proxy = config.get('use_esi_proxy', False)
-        citadel_client = None
-        esip_client = None
-        if use_citadel:
-            citadel_client = Client.Citadel.get()
-        if use_esi_proxy:
-            esip_key = config.get('esip_key', None)
-            esip_hash = config.get('esip_hash', None)
-            if esip_key is None or esip_hash is None:
-                raise Exception("ESI Proxy option requires key and hash")
-            esip_client = Client.ESIProxy.get(esip_key, esip_hash)
-        sell_solar = TradingUtil.resolve_solar_system(region_id, sell_station_id, citadel_client, esip_client)
-        buy_solar = TradingUtil.resolve_solar_system(region_id, buy_station_id, citadel_client, esip_client)
+        sell_solar = TradingUtil.resolve_solar_system(region_id, sell_station_id)
+        buy_solar = TradingUtil.resolve_solar_system(region_id, buy_station_id)
         # Make sure we actually found solar systems before continuing.
         # We'll return False if we can't find both solar systems.
         if sell_solar is None or buy_solar is None:
