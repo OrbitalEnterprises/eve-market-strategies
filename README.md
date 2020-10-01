@@ -33,6 +33,6 @@ We've set up a simple make file to build the book which should work on most vari
 
 Use the command `make` or `make -f Makefile` to build the book.  The build will output versions of the book in Markdown, HTML, ePub, Mobi \(Kindle\), PDF and RTF.  
 
-## Legal
+## Legal Information
 
 EVE Online is Copyright (c) CCP Games 1997-2017.  Use of the third party APIs provided by CCP, and the data exposed by these APIs, is subject to the [DEVELOPER LICENSE AGREEMENT](https://developers.eveonline.com/resource/license-agreement).
